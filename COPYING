@@ -1,0 +1,16 @@
+If no otherwise stated, all the files in this directory are released
+under a MIT-style license: see LICENSE file for details.
+
+If you want to use kim-os as a whole operating system, please include LICENSE
+file in your project's repository, and/or publish or redistribute it if
+you're delivering and/or selling it to someone else.
+
+If you just want to copy some files of kim-os project, you just have
+to declare the kim-os origin at top of the file. Just retain the header as-is:
+
+"This file is part of kim-os project: https://github.com/colosimo/kim-os
+ According to kim-os license, you can do whatever you want with it,
+ as long as you retain this notice."
+
+If you copy one or more files and then modify them, please declare that they
+were originally part of kim-os.

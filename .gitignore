@@ -1,0 +1,7 @@
+doc/*.pdf
+**/*.d
+**/*.o
+**/*.a
+generated/
+.config
+kim

@@ -1,0 +1,6 @@
+KIM is a minimal Operating System for MCUs.
+
+KIM means "Keep It Minimal". Documentation, at present, is minimal as well:
+just browse into the source code and pick up whatever you're interested in:
+unless otherwise stated inside a file, everything here is released under
+MIT-style license. See COPYING and LICENSE for details.
