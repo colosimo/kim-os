@@ -9,6 +9,9 @@
 #ifndef _CPU_H_
 #define _CPU_H_
 
+#include <basic.h>
+#include <linker.h>
+
 /* System Control Block registers */
 #define R_SCB_CPUID   reg32(0xE000ED00)
 #define R_SCB_ICSR    reg32(0xE000ED04)
@@ -41,5 +44,8 @@ static inline void cpsie(void)
 {
   __asm volatile ("cpsie i");
 }
+
+#define attr_isrv_sys attr_sect("isrv_sys")
+#define attr_isrv_irq attr_sect("isrv_irq")
 
 #endif /* _CPU_H_ */

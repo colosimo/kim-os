@@ -12,8 +12,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define uint unsigned int
-#define ulong unsigned long
 #define uchar unsigned char
 
 #define i32 int32_t

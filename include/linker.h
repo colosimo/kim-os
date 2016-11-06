@@ -28,4 +28,8 @@
 extern struct task_t __start_tasks, __stop_tasks;
 #define tasks(i) (&((&__start_tasks)[i]))
 
+extern unsigned char __start_data_flash, __end_data_flash;
+extern unsigned char __start_data_sram, __end_data_sram;
+extern unsigned char __start_bss, __end_bss;
+
 #endif /* _LINKER_H_ */

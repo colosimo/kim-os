@@ -54,7 +54,7 @@ struct task_t {
 	int running: 1;
 };
 
-typedef struct los_task_t los_task_t;
+typedef struct task_t task_t;
 
 /* tasks_step: to be called in the main loop */
 void task_stepall();
@@ -63,12 +63,12 @@ void task_stepall();
 struct task_t *task_find(int id);
 
 /* task_start: start the desired task */
-void task_start(struct task_t *t);
+void task_start(task_t *t);
 
 /* task_stop: stop the desired task */
-void task_stop(struct task_t *t);
+void task_stop(task_t *t);
 
 /* task_done: task ended spontaneously */
-void task_done(struct task_t *t);
+void task_done(task_t *t);
 
 #endif /* _KIM_H_ */

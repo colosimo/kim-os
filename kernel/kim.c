@@ -10,37 +10,27 @@
 #include <kim.h>
 #include <linker.h>
 
-struct task_t attr_tasks dummy;
+task_t attr_tasks dummy;
 
-u32 attr_weak k_ticks(void) /* FIXME dummy */
-{
-	return 0;
-}
-
-u32 attr_weak k_ticks_freq(void) /* FIXME dummy */
-{
-	return 1000;
-}
-
-void task_start(struct task_t *t) {
+void task_start(task_t *t) {
 	t->last_run = 0;
 	t->running = 1;
 	if (t->start)
 		t->start(t);
 }
 
-void task_stop(struct task_t *t) {
+void task_stop(task_t *t) {
 	if (t->stop)
 		t->stop(t);
 	t->running = 0;
 }
 
-void task_done(struct task_t *t)
+void task_done(task_t *t)
 {
 	t->running = 0;
 }
 
-struct task_t *task_find(int id)
+task_t *task_find(int id)
 {
 	struct task_t *t = tasks(0);
 	for (;t != &__stop_tasks; t++) {
@@ -60,5 +50,17 @@ void task_stepall()
 			continue;
 		t->last_run = k_ticks();
 		t->step(t);
+	}
+}
+
+void attr_weak sleep()
+{
+}
+
+void attr_weak k_main(void)
+{
+	while(1) {
+		sleep();
+		task_stepall();
 	}
 }

@@ -9,8 +9,19 @@
 #include <kim.h>
 #include <kprint.h>
 
+u32 k_ticks(void) /* dummy */
+{
+	return 0;
+}
+
+u32 k_ticks_freq(void) /* dummy */
+{
+	return 100;
+}
+
 int main(int argc, char *argv[])
 {
 	kprint("Hello!\n");
+	k_main();
 	return 0;
 }

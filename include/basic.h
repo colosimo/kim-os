@@ -11,6 +11,9 @@
 
 #include <intdefs.h>
 
+#define uint unsigned int
+#define ulong unsigned long
+
 /* Some useful macros */
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))

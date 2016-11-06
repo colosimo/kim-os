@@ -6,8 +6,11 @@
  * as long as you retain this notice.
  */
 
-#include <los.h>
+#include <kim.h>
+#include <basic.h>
+#include <linker.h>
 #include <cpu.h>
+#include <log.h>
 
 #define STACK_TOP ((void*)(0x10001000 - 32)) /* reserve top 32 bytes for IAP */
 
@@ -42,18 +45,18 @@ static uint32_t ipsr(void)
 }
 
 
-void ATTR_WEAK isr_none(void)
+void attr_weak isr_none(void)
 {
 	crt("Unhandled IPSR=%x ISPR=%x\n", (uint)ipsr(), (uint)rd32(R_NVIC_ISPR));
 	while(1);
 }
 
-void ATTR_WEAK isr_systick(void)
+void attr_weak isr_systick(void)
 {
 	ticks++;
 }
 
-static const void *ATTR_ISRV_SYS _isrv[] = {
+static const void *attr_isrv_sys _isrv[] = {
 	/* Cortex-M0 system interrupts */
 	STACK_TOP,	/* Stack top */
 	isr_reset,	/* Reset */
@@ -73,12 +76,12 @@ static const void *ATTR_ISRV_SYS _isrv[] = {
 	isr_systick,	/* SysTick */
 };
 
-uint32_t systicks(void)
+u32 attr_weak k_ticks(void)
 {
 	return ticks;
 }
 
-inline void sleep()
+void sleep()
 {
 	asm("wfi");
 }
