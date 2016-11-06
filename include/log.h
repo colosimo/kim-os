@@ -9,6 +9,8 @@
 #ifndef _LOG_H_
 #define _LOG_H_
 
+#include <kprint.h>
+
 #define V_NON 0 /* No log */
 #define V_CRT 1 /* Log critical */
 #define V_ERR 2 /* Log errors */
