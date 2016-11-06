@@ -9,7 +9,6 @@
 #include <stdarg.h>
 #include <endiannes.h>
 #include <basic.h>
-#include <stdio.h>
 
 extern int putchar(int c);
 
