@@ -22,10 +22,16 @@
 #define VERB V_LOG
 #endif
 
-#define crt(...) {if (VERB >= V_CRT) kprint("CRT " __VA_ARGS__);}
-#define err(...) {if (VERB >= V_ERR) kprint("ERR " __VA_ARGS__);}
-#define wrn(...) {if (VERB >= V_WRN) kprint("WRN " __VA_ARGS__);}
-#define log(...) {if (VERB >= V_LOG) kprint("LOG " __VA_ARGS__);}
-#define dbg(...) {if (VERB >= V_DBG) kprint("DBG " __VA_ARGS__);}
+#define log_macro(v, pfx, ...) \
+	do {if (VERB >= v ) { \
+		kprint(pfx " %9d ", (uint)k_ticks()); \
+		kprint(__VA_ARGS__);} \
+	} while (0)
+
+#define crt(...) log_macro(V_CRT, "CRT", __VA_ARGS__)
+#define err(...) log_macro(V_ERR, "ERR", __VA_ARGS__)
+#define wrn(...) log_macro(V_WRN, "WRN", __VA_ARGS__)
+#define log(...) log_macro(V_LOG, "LOG", __VA_ARGS__)
+#define dbg(...) log_macro(V_DBG, "DBG", __VA_ARGS__)
 
 #endif /* _LOG_H_ */
