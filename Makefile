@@ -96,7 +96,6 @@ OBJS += $(patsubst %.c,%.o,$(wildcard lib/*.c)) \
         $(patsubst %.c,%.o,$(wildcard kernel/*.c)) \
         $(patsubst %.c,%.o,$(wildcard arch/$(ARCH)/*.c)) \
         $(patsubst %.c,%.o,$(wildcard app/$(APP)/*.c)) \
-        $(patsubst %.c,%.o,$(wildcard tasks/*.c))
 
 DEPS := $(OBJS:.o=.d)
 
