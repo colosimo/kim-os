@@ -15,8 +15,9 @@ INCFLAGS += -I$A/cpu-$(CPU)/soc-$(SOC)/include
 
 LDS = $A/cpu-$(CPU)/soc-$(SOC)/kim.lds
 GCCVER = $(shell $(CROSS_COMPILE)gcc --version|grep ^arm|cut -f 3 -d ' ')
-LFLAGS += -T $(LDS) -L/usr/lib/gcc/arm-none-eabi/$(GCCVER)/armv6-m -lgcc
-LAST_LD = $(LD)
+LFLAGS += -T $(LDS) -L/usr/lib/gcc/arm-none-eabi/$(GCCVER)/armv6-m -lgcc \
+	-nostdlib -nostartfiles
+LAST_LD = $(CC)
 
 OBJS += $(patsubst %.c,%.o,$(wildcard $A/cpu-$(CPU)/*.c))
 OBJS += $(patsubst %.c,%.o,$(wildcard $A/cpu-$(CPU)/soc-$(SOC)/*.c))
