@@ -64,7 +64,7 @@ int putchar(int c)
 	return 0;
 }
 
-u32 attr_weak k_ticks_freq(void) /* FIXME dummy */
+u32 attr_weak k_ticks_freq(void)
 {
 	return SYSTICKS_FREQ;
 }
