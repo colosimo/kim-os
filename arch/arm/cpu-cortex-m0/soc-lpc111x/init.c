@@ -11,7 +11,6 @@
 #include <reg.h>
 #include <log.h>
 
-#define CPU_FREQ 12000000
 #define SYSTICKS_FREQ 100
 
 extern void board_init();
@@ -72,13 +71,16 @@ u32 attr_weak k_ticks_freq(void) /* FIXME dummy */
 
 void attr_used init(void)
 {
+	unsigned cpu_freq;
+
+	/* Init board */
+	board_init(&cpu_freq);
+
 	/* Init system ticks */
-	wr32(R_SYST_RVR, CPU_FREQ / SYSTICKS_FREQ);
+	wr32(R_SYST_RVR, cpu_freq / SYSTICKS_FREQ);
 	wr32(R_SYST_CVR, 0);
 	wr32(R_SYST_CSR, BIT0 | BIT1 | BIT2);
 
-	/* Init board */
-	board_init();
 	log("Init done, launching k_main\n");
 
 	/* Skip to main */

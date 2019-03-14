@@ -12,7 +12,9 @@
 #include <linker.h>
 #include <basic.h>
 
-void attr_weak board_init()
+#define CPU_FREQ 12000000
+
+void attr_weak board_init(unsigned *cpu_freq)
 {
 	/* Init UART on TXD and RXD pins */
 	or32(R_SYSAHBCLKCTRL, BIT16);
@@ -29,4 +31,7 @@ void attr_weak board_init()
 	wr32(R_U0DLM, 0);
 	and32(R_U0LCR, ~BIT7);
 	or32(R_U0LCR, BIT1 | BIT0);
+
+	if (cpu_freq)
+		*cpu_freq = CPU_FREQ;
 }
