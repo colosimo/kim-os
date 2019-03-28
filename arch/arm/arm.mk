@@ -9,14 +9,15 @@ A:=arch/$(ARCH)
 
 CFLAGS += -Werror -Wall -mcpu=cortex-m0 -mthumb -Os -mfloat-abi=soft \
   -nostartfiles
-CROSS_COMPILE=arm-none-eabi-
+CROSS_COMPILE=/opt/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-
 INCFLAGS += -I$A/cpu-$(CPU)/include
 INCFLAGS += -I$A/cpu-$(CPU)/soc-$(SOC)/include
 
 LDS = $A/cpu-$(CPU)/soc-$(SOC)/kim.lds
 GCCVER = $(shell $(CROSS_COMPILE)gcc --version|grep ^arm|cut -f 3 -d ' ')
-LFLAGS += -T $(LDS) -L/usr/lib/gcc/arm-none-eabi/$(GCCVER)/armv6-m -lgcc \
-	-nostdlib -nostartfiles
+LFLAGS += -T $(LDS) \
+   -L/opt/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/ \
+   -lgcc -nostdlib -nostartfiles -ffreestanding
 LAST_LD = $(CC)
 
 OBJS += $(patsubst %.c,%.o,$(wildcard $A/cpu-$(CPU)/*.c))
