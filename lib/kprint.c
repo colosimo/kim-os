@@ -64,6 +64,8 @@ void kprint(const char *fmt, ...)
 		}
 
 		if (!fmt_prefix) {
+			if (*fmt == '\n')
+				putchar('\r');
 			putchar(*fmt);
 			continue;
 		}
