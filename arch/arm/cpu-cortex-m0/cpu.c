@@ -12,7 +12,8 @@
 #include <cpu.h>
 #include <log.h>
 
-#define STACK_TOP ((void*)(0x10001000 - 32)) /* reserve top 32 bytes for IAP */
+/* FIXME: Stack top depends on soc, so it should be moved externally */
+#define STACK_TOP ((void*)(0x20001000))
 
 static uint32_t ticks = 0;
 
