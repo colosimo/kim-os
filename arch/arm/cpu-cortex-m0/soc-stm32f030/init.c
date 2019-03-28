@@ -13,7 +13,7 @@
 
 #define SYSTICKS_FREQ 100
 
-extern void board_init(unsigned *cpu_freq);
+extern void board_init(u32 *cpu_freq);
 
 extern void isr_none(void);
 extern void isr_uart(void) {}
@@ -62,7 +62,7 @@ u32 attr_weak k_ticks_freq(void)
 
 void attr_used init(void)
 {
-	unsigned cpu_freq;
+	u32 cpu_freq;
 
 	/* Init board */
 	board_init(&cpu_freq);
