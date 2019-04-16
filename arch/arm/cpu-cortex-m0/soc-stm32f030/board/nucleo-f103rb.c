@@ -23,7 +23,7 @@ int putchar(int c)
 {
 	/* Write byte to tx register (TDR) */
 	wr32(R_USART2_TDR, c);
-	/* Wait for data sent (TDR becomes empty */
+	/* Wait for data sent (TDR becomes empty) */
 	while (!(rd32(R_USART2_ISR) & BIT7));
 	return 0;
 }
@@ -58,7 +58,7 @@ void board_init(u32 *cpu_freq)
 
 	*cpu_freq = CPU_FREQ;
 
-	/* This initialize USART2 on PA2/PA3 for debug purpose
+	/* This initializes USART2 on PA2/PA3 for debug purpose
 	   NOTE: need to solder 0 Ohm on SB62/63 pads and unsolder on SB13/14 */
 	gpio_func(IO(PORTA, 2), 1);
 	gpio_func(IO(PORTA, 3), 1);
