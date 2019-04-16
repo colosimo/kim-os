@@ -21,12 +21,12 @@ extern void isr_none(void);
 /* dummy USART behavior: echo char */
 void attr_weak isr_uart1(void)
 {
-	putchar(rd32(R_USART1_RDR));
+	wr32(R_USART1_TDR, rd32(R_USART1_RDR));
 }
 
 void attr_weak isr_uart2(void)
 {
-	putchar(rd32(R_USART2_RDR));
+	wr32(R_USART2_TDR, rd32(R_USART2_RDR));
 }
 
 static const void *attr_isrv_irq _isrv[] = {
