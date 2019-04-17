@@ -90,13 +90,13 @@ $(TARGET_MK): $(OBJS)
 	@echo CPU=$(CPU) >> $(TARGET_MK)
 	@echo MACH=$(MACH) >> $(TARGET_MK)
 	@echo BOARD=$(BOARD) >> $(TARGET_MK)
+	@echo APP=$(APP) >> $(TARGET_MK)
 
-# Find out obj list by looking for any .c file under core/ and arch/$(ARCH)
+# Find out obj list by looking for any .c file under proper directories
 OBJS += $(patsubst %.c,%.o,$(wildcard lib/*.c)) \
         $(patsubst %.c,%.o,$(wildcard kernel/*.c)) \
         $(patsubst %.c,%.o,$(wildcard arch/$(ARCH)/*.c)) \
         $(patsubst %.c,%.o,$(wildcard app/$(APP)/*.c)) \
-        $(patsubst %.c,%.o,$(wildcard tasks/*.c)) \
 
 DEPS := $(OBJS:.o=.d)
 
