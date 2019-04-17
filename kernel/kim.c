@@ -57,6 +57,11 @@ void attr_weak sleep()
 
 void attr_weak k_main(void)
 {
+	struct task_t *t = tasks(0);
+
+	for (;t != &__stop_tsks; t++)
+		task_start(t);
+
 	while(1) {
 		sleep();
 		task_stepall();
