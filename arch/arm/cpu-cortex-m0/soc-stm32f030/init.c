@@ -18,6 +18,8 @@ extern void board_init(u32 *cpu_freq);
 
 extern void isr_none(void);
 
+extern void uart_init(void);
+
 /* dummy USART behavior: echo char */
 void attr_weak isr_uart1(void)
 {
@@ -82,6 +84,8 @@ void attr_used init(void)
 	wr32(R_SYST_RVR, cpu_freq / SYSTICKS_FREQ);
 	wr32(R_SYST_CVR, 0);
 	wr32(R_SYST_CSR, BIT0 | BIT1 | BIT2);
+
+	uart_init();
 
 	/* Skip to main */
 	k_main();
