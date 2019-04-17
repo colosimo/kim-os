@@ -38,7 +38,7 @@ static void *_memcpy(void *dest, const void *src, size_t n, int isstring)
 
 int memcmp(const void *s1, const void *s2, size_t n)
 {
-	return _memcmp(s1, s2, SIZE_MAX, 0);
+	return _memcmp(s1, s2, n, 0);
 }
 
 void *memcpy(void *dest, const void *src, size_t n)
