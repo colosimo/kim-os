@@ -99,7 +99,41 @@ int isalpha(int c)
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
 
+int ishexdigit(int c)
+{
+	return isdigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+}
+
 int isalnum(int c)
 {
 	return isalpha(c) || isdigit(c);
+}
+
+int atoi(const char *p)
+{
+	int sign = 0;
+	int ret = 0;
+	if (p[0] == '-') {
+		sign = 1;
+		p++;
+	}
+	while (isdigit(*p)) {
+		ret = ret * 10 + (*p - '0');
+		p++;
+	}
+	return sign ? -ret : ret;
+}
+
+int atoi_hex(const char *p)
+{
+	int ret = 0;
+	while(ishexdigit(*p)) {
+		ret *= 16;
+		if (isdigit(*p))
+			ret += (*p - '0');
+		else
+			ret += ((*p) | BIT5) + 10 - 'a';
+		p++;
+	}
+	return ret;
 }

@@ -33,10 +33,13 @@ int strcmp(const char *s1, const char *s2);
 int strncmp(char *s1, const char *s2, size_t n);
 char *strcpy(char *s1, const char *s2);
 char *strncpy(char *s1, const char *s2, size_t n);
+int atoi(const char *p);
+int atoi_hex(const char *p);
 
 /* char check functions */
 int isspace(int c);
 int isdigit(int c);
+int ishexdigit(int c);
 int isalpha(int c);
 int isalnum(int c);
 
