@@ -59,7 +59,7 @@ int isalnum(int c);
 #define BIT12 (1 << 12)
 #define BIT13 (1 << 13)
 #define BIT14 (1 << 14)
-#define BIT15 (1 << 15)
+#define BIT15 ((u16)(1 << 15))
 #define BIT16 (1 << 16)
 #define BIT17 (1 << 17)
 #define BIT18 (1 << 18)
@@ -75,7 +75,7 @@ int isalnum(int c);
 #define BIT28 (1 << 28)
 #define BIT29 (1 << 29)
 #define BIT30 (1 << 30)
-#define BIT31 (1 << 31)
+#define BIT31 ((u32)(1 << 31))
 
 /* Hardware registers definition and manipulation */
 #define reg8(x)  ((volatile uint8_t*)(x))
