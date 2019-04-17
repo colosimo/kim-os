@@ -10,8 +10,6 @@
 #include <kim.h>
 #include <linker.h>
 
-task_t attr_tasks dummy;
-
 void task_start(task_t *t) {
 	t->last_run = 0;
 	t->running = 1;
@@ -33,7 +31,7 @@ void task_done(task_t *t)
 task_t *task_find(int id)
 {
 	struct task_t *t = tasks(0);
-	for (;t != &__stop_tasks; t++) {
+	for (;t != &__stop_tsks; t++) {
 		if (id == t->id)
 			return t;
 	}
@@ -43,7 +41,7 @@ task_t *task_find(int id)
 void task_stepall()
 {
 	struct task_t *t = tasks(0);
-	for (;t != &__stop_tasks; t++) {
+	for (;t != &__stop_tsks; t++) {
 		if (!t->running)
 			continue;
 		if (k_elapsed(t->last_run) < MS_TO_TICKS(t->intvl_ms))

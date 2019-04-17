@@ -25,8 +25,8 @@
 #define attr_drvs attr_sect("drvs")
 #define attr_tasks attr_sect("tasks")
 
-extern struct task_t __start_tasks, __stop_tasks;
-#define tasks(i) (&((&__start_tasks)[i]))
+extern struct task_t __start_tsks, __stop_tsks;
+#define tasks(i) (&((&__start_tsks)[i]))
 
 extern unsigned char __start_data_flash, __end_data_flash;
 extern unsigned char __start_data_sram, __end_data_sram;
