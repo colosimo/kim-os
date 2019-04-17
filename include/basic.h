@@ -19,8 +19,18 @@
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max3(a, b, c) max(max((a), (b)), (c))
 #define min3(a, b, c) min(min((a), (b)), (c))
+#define msb(x) (((x) >> 8) & 0xff)
+#define lsb(x) ((x) & 0xff)
 
 #define array_size(x) (sizeof((x)) / sizeof((x)[0]))
+
+static inline u32 abs(i32 a)
+{
+	if (a >= 0)
+		return a;
+	else
+		return -a;
+}
 
 /* Memory handling functions */
 void *memcpy(void *dest, const void *src, size_t n);
@@ -76,6 +86,10 @@ int isalnum(int c);
 #define BIT29 (1 << 29)
 #define BIT30 (1 << 30)
 #define BIT31 ((u32)(1 << 31))
+
+/* Useful constants */
+#define _K 1024
+#define _M (_K * _K)
 
 /* Hardware registers definition and manipulation */
 #define reg8(x)  ((volatile uint8_t*)(x))
