@@ -23,7 +23,7 @@
 #define attr_sect(x) __attribute__((section(x))) attr_aligned(4) attr_used
 #define attr_devs attr_sect("devs")
 #define attr_drvs attr_sect("drvs")
-#define attr_tasks attr_sect("tasks")
+#define attr_tasks attr_sect("tsks")
 
 extern struct task_t __start_tsks, __stop_tsks;
 #define tasks(i) (&((&__start_tsks)[i]))
