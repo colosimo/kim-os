@@ -23,9 +23,9 @@ static tclock_priv_t tclock_priv[2] = {
 
 void tclock_start(struct task_t *t)
 {
-	log("%s\n", __func__);
 	tclock_priv_t *p = (tclock_priv_t*)t->priv;
 	p->last = 0;
+	log("%s on uart id=%d\n", __func__, p->uart_id);
 }
 
 void tclock_stop(struct task_t *t)
