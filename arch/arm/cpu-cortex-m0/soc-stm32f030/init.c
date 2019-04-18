@@ -11,7 +11,7 @@
 #include <reg.h>
 #include <log.h>
 
-#define SYSTICKS_FREQ 100
+#define SYSTICKS_FREQ 1000
 
 extern int putchar(int c);
 extern void board_init(u32 *cpu_freq);
