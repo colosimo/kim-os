@@ -37,7 +37,8 @@ int nvm_erase_pages(unsigned s_start, unsigned s_end)
 
 	unlock_flash_cr();
 
-	/* Enable PER (Page Erase) */
+	/* Disable PG (Programming) and enable PER (Page Erase) */
+	and32(R_FLASH_CR, ~BIT0);
 	or32(R_FLASH_CR, BIT1);
 
 	for (i = s_start; i <= s_end; i++) {
@@ -61,7 +62,7 @@ int nvm_erase_pages(unsigned s_start, unsigned s_end)
 
 int nvm_copy_to_flash(void *ptr, const void *data, int cnt)
 {
-	u8 *src, *dst;
+	u16 *src, *dst;
 	int i;
 	unsigned p = (unsigned)ptr;
 
@@ -70,19 +71,19 @@ int nvm_copy_to_flash(void *ptr, const void *data, int cnt)
 
 	unlock_flash_cr();
 
-	/* set the PG bit in FLASH_CR register */
-	wr32(R_FLASH_CR, BIT0);
+	/* Clear PER and set PG bit in FLASH_CR register */
+	and32(R_FLASH_CR, ~BIT1);
+	or32(R_FLASH_CR, BIT0);
 
-	src = (u8*)data;
-	dst = (u8*)ptr;
+	src = (u16*)data;
+	dst = (u16*)ptr;
 	for (i = 0; i < cnt / 2; i++) {
-		*((u16*)dst) = *((u16*)src);
-		dst += 2;
-		src += 2;
+		*dst++ = *src++;
 		wait_no_bsy();
 	}
 
 	/* Lock the CR register until next prepare */
+	and32(R_FLASH_CR, ~BIT0);
 	or32(R_FLASH_CR, BIT7);
 
 	return 0;
