@@ -11,6 +11,8 @@
 
 #include <intdefs.h>
 
+#define CRCINIT_DEF 0xffff
+
 /* CRC-CCIT computation: polynomial 0x1021 */
 u16 crc16_ccit(const void *data, size_t len, u16 init);
 
