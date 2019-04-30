@@ -13,6 +13,7 @@
 #include <uart.h>
 #include <reg.h>
 #include <kim.h>
+#include <cpu.h>
 
 #define UART_BUF_SIZE 512
 
@@ -39,6 +40,9 @@ int uart_init(void)
 {
 	cbuf_init(&uart_cbuf[0], buf1, sizeof(buf1));
 	cbuf_init(&uart_cbuf[1], buf2, sizeof(buf2));
+	or32(R_NVIC_ISER, BIT28);
+	or32(R_NVIC_ISER, BIT27);
+
 	return 0;
 }
 

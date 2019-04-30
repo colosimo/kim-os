@@ -75,10 +75,9 @@ void board_init(u32 *cpu_freq)
 	 * fPCLK=48MHz, br=115.2KBps, BRR=0x1A1, see table 87 pag. 610 */
 	wr32(R_USART2_BRR, 0x1a1);
 	or32(R_USART2_CR1, BIT5 | BIT3 | BIT2 | BIT0);
-	or32(R_NVIC_ISER, BIT28);
+
 	wr32(R_USART1_BRR, 0x1a1);
 	or32(R_USART1_CR1, BIT5 | BIT3 | BIT2 | BIT0);
-	or32(R_NVIC_ISER, BIT27);
 
 	log("%s done\n", __func__);
 }
