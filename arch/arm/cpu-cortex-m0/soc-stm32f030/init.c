@@ -31,7 +31,7 @@ void attr_weak isr_uart2(void)
 	wr32(R_USART2_TDR, rd32(R_USART2_RDR));
 }
 
-static const void *attr_isrv_irq _isrv[] = {
+static const void *attr_isrv_irq _isrv_irq[] = {
 
 	/* STM32F030 peripheral IRQs */
 	isr_none,	/* WWDG */

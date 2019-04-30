@@ -57,7 +57,7 @@ void attr_weak isr_systick(void)
 	ticks++;
 }
 
-static const void *attr_isrv_sys _isrv[] = {
+static const void *attr_isrv_sys _isrv_sys[] = {
 	/* Cortex-M0 system interrupts */
 	STACK_TOP,	/* Stack top */
 	isr_reset,	/* Reset */
