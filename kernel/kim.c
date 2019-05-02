@@ -11,6 +11,8 @@
 #include <linker.h>
 
 void task_start(task_t *t) {
+	if (!t)
+		return;
 	t->last_run = 0;
 	t->running = 1;
 	if (t->start)
@@ -18,6 +20,9 @@ void task_start(task_t *t) {
 }
 
 void task_stop(task_t *t) {
+	if (!t)
+		return;
+
 	if (t->stop)
 		t->stop(t);
 	t->running = 0;
@@ -25,6 +30,9 @@ void task_stop(task_t *t) {
 
 void task_done(task_t *t)
 {
+	if (!t)
+		return;
+
 	t->running = 0;
 }
 
