@@ -38,7 +38,7 @@ task_t *task_find(int id)
 	return NULL;
 }
 
-void task_stepall()
+void task_stepall(void)
 {
 	struct task_t *t = tasks(0);
 	for (;t != &__stop_tsks; t++) {
@@ -51,7 +51,7 @@ void task_stepall()
 	}
 }
 
-void attr_weak sleep()
+void attr_weak sleep(void)
 {
 }
 

@@ -82,7 +82,7 @@ u32 attr_weak k_ticks(void)
 	return ticks;
 }
 
-void sleep()
+void sleep(void)
 {
 	asm("wfi");
 }
