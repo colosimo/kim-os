@@ -12,8 +12,6 @@
 #include <basic.h>
 #include <linker.h>
 
-#define NVM_MAP_ADDR  ((void*) (0x7d000))
-
 struct attr_packed nvm_map_t {
 	void *sats;
 	void *lang;
