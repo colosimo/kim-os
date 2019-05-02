@@ -19,7 +19,7 @@ static void wait_no_bsy(void)
 	while(rd32(R_FLASH_SR) & BIT0);
 }
 
-static int unlock_flash_cr()
+static int unlock_flash_cr(void)
 {
 	wait_no_bsy();
 	if (rd32(R_FLASH_CR) & BIT7) {
@@ -34,6 +34,9 @@ int nvm_erase_pages(unsigned s_start, unsigned s_end)
 {
 	unsigned i;
 	int ret = 0;
+
+	if (s_end < s_start)
+		return -ERRINVAL;
 
 	unlock_flash_cr();
 
@@ -66,7 +69,12 @@ int nvm_copy_to_flash(void *ptr, const void *data, int cnt)
 	int i;
 	unsigned p = (unsigned)ptr;
 
-	if ((p >= 0x00080000 && p < 0x08000000) || p >= 0x08080000)
+	/* FIXME RAM length depending on the chip */
+	if (data < (void*)0x20000000 || data >= (void*)0x20002000 || cnt < 0)
+		return -ERRINVAL;
+
+	/* FIXME flash length depending on chip */
+	if (p < 0x08000000 || p >= 0x08080000)
 		return -ERRINVAL;
 
 	unlock_flash_cr();
@@ -91,12 +99,9 @@ int nvm_copy_to_flash(void *ptr, const void *data, int cnt)
 
 unsigned nvm_get_page(const void *addr)
 {
-	unsigned a;
+	/* FIXME flash length depending on chip */
+	if (addr < (void*)0x08000000 || (addr > (void*)0x08080000))
+		return -ERRINVAL;
 
-	if ((unsigned)addr > 0x08000000)
-		a = ((unsigned)addr) - 0x08000000;
-	else
-		a = (unsigned)addr;
-
-	return a / _K;
+	return ((unsigned)addr - 0x08000000) / _K;
 }
