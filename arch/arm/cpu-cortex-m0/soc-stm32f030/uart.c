@@ -58,6 +58,9 @@ int uart_read(int uart_id, void *buf, size_t count)
 	if (uart_id > array_size(uart_cbuf))
 		return -ERRINVAL;
 
+	if (!buf || count < 0)
+		return -ERRINVAL;
+
 	return cbuf_read(&uart_cbuf[uart_id], buf, count);
 }
 
@@ -66,6 +69,10 @@ int uart_write(int uart_id, void *buf, size_t count)
 	int i;
 	volatile u32 *tdr;
 	volatile u32 *isr;
+
+	if (!buf || count < 0)
+		return -ERRINVAL;
+
 	tdr = uart_id ? R_USART2_TDR : R_USART1_TDR;
 	isr = uart_id ? R_USART2_ISR : R_USART1_ISR;
 	for (i = 0; i < count; i++) {
