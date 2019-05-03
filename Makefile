@@ -25,7 +25,12 @@ LD              = $(CROSS_COMPILE)ld
 OBJCOPY         = $(CROSS_COMPILE)objcopy
 STRIP           = $(CROSS_COMPILE)strip
 
+ifeq ($(APP),)
 EXE := kim
+else
+EXE := $(APP)
+endif
+
 OUTPUT_DIR := generated
 TARGET_LIB := $(OUTPUT_DIR)/lib$(EXE).a
 TARGET_MK := $(patsubst %.a,%.mk,$(TARGET_LIB))
