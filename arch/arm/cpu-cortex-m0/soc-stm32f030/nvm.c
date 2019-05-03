@@ -58,7 +58,7 @@ int nvm_erase_pages(unsigned s_start, unsigned s_end)
 
 	/* Disable PER (Page Erase) */
 	and32(R_FLASH_CR, ~BIT1);
-	/* Lock the CR register until next prepare */
+	/* Lock the CR register until next usage */
 	or32(R_FLASH_CR, BIT7);
 	return ret;
 }
@@ -90,7 +90,7 @@ int nvm_copy_to_flash(void *ptr, const void *data, size_t cnt)
 		wait_no_bsy();
 	}
 
-	/* Lock the CR register until next prepare */
+	/* Lock the CR register until next usage */
 	and32(R_FLASH_CR, ~BIT0);
 	or32(R_FLASH_CR, BIT7);
 
