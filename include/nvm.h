@@ -12,14 +12,6 @@
 #include <basic.h>
 #include <linker.h>
 
-struct attr_packed nvm_map_t {
-	void *sats;
-	void *lang;
-	void *fw;
-	uint32_t version;
-	uint16_t crc;     /* map crc */
-};
-
 int nvm_prepare_pages(unsigned s_start, unsigned s_end);
 int nvm_erase_pages(unsigned s_start, unsigned s_end);
 int nvm_copy_to_flash(void *ptr, const void *data, int cnt);
