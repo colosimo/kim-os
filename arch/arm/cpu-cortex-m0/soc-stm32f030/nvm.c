@@ -63,14 +63,14 @@ int nvm_erase_pages(unsigned s_start, unsigned s_end)
 	return ret;
 }
 
-int nvm_copy_to_flash(void *ptr, const void *data, int cnt)
+int nvm_copy_to_flash(void *ptr, const void *data, size_t cnt)
 {
 	u16 *src, *dst;
 	int i;
 	unsigned p = (unsigned)ptr;
 
 	/* FIXME RAM length depending on the chip */
-	if (data < (void*)0x20000000 || data >= (void*)0x20002000 || cnt < 0)
+	if (data < (void*)0x20000000 || data >= (void*)0x20002000)
 		return -ERRINVAL;
 
 	/* FIXME flash length depending on chip */

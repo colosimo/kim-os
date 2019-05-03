@@ -14,7 +14,7 @@
 
 int nvm_prepare_pages(unsigned s_start, unsigned s_end);
 int nvm_erase_pages(unsigned s_start, unsigned s_end);
-int nvm_copy_to_flash(void *ptr, const void *data, int cnt);
+int nvm_copy_to_flash(void *ptr, const void *data, size_t cnt);
 unsigned nvm_get_page(const void *addr);
 
 #define NVM_CMD_SUCCESS          0
