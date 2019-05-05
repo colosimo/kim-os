@@ -25,15 +25,21 @@ static u8 buf2[UART_BUF_SIZE];
 void isr_uart1(void)
 {
 	u8 c;
-	c = rd32(R_USART1_RDR);
-	cbuf_write(&uart_cbuf[0], &c, 1);
+	while (rd32(R_USART1_ISR) & (BIT5 | BIT3)) {
+		c = rd32(R_USART1_RDR);
+		cbuf_write(&uart_cbuf[0], &c, 1);
+		or32(R_USART1_ICR, BIT3);
+	}
 }
 
 void isr_uart2(void)
 {
 	u8 c;
-	c = rd32(R_USART2_RDR);
-	cbuf_write(&uart_cbuf[1], &c, 1);
+	while (rd32(R_USART2_ISR) & (BIT5 | BIT3)) {
+		c = rd32(R_USART2_RDR);
+		cbuf_write(&uart_cbuf[1], &c, 1);
+		or32(R_USART1_ICR, BIT3);
+	}
 }
 
 int uart_init(void)
