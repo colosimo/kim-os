@@ -8,6 +8,7 @@
 
 #include <basic.h>
 #include <errcode.h>
+#include <cpu.h>
 #include <nvm.h>
 #include <log.h>
 #include <reg.h>
@@ -47,8 +48,10 @@ int nvm_erase_pages(unsigned s_start, unsigned s_end)
 	for (i = s_start; i <= s_end; i++) {
 		wait_no_bsy();
 		wr32(R_FLASH_AR, 0x08000000 + i * _K);
+		cpsid();
 		or32(R_FLASH_CR, BIT6);
 		wait_no_bsy();
+		cpsie();
 		if (!(rd32(R_FLASH_SR) & BIT5)) {
 			ret = -ERRIO;
 			err("%s failed on page 0x%x\n", __func__, i);
