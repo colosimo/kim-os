@@ -63,13 +63,13 @@ void board_init(u32 *cpu_freq)
 	gpio_func(IO(PORTA, 2), 1);
 	gpio_func(IO(PORTA, 3), 1);
 	gpio_mode(IO(PORTA, 2), PULL_NO);
-	gpio_mode(IO(PORTA, 3), PULL_NO);
+	gpio_mode(IO(PORTA, 3), PULL_UP);
 
 	/* This initializes USART1 on PA9/PA10 for data */
 	gpio_func(IO(PORTA, 9), 1);
 	gpio_func(IO(PORTA, 10), 1);
 	gpio_mode(IO(PORTA, 9), PULL_NO);
-	gpio_mode(IO(PORTA, 10), PULL_NO);
+	gpio_mode(IO(PORTA, 10), PULL_UP);
 
 	/* Init USART1 and USART2 at 115kbps:
 	 * fPCLK=48MHz, br=115.2KBps, BRR=0x1A1, see table 87 pag. 610 */
