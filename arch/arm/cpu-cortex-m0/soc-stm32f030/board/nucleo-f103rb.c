@@ -79,5 +79,5 @@ void board_init(u32 *cpu_freq)
 	wr32(R_USART1_BRR, 0x1a1);
 	or32(R_USART1_CR1, BIT5 | BIT3 | BIT2 | BIT0);
 
-	log("%s done\n", __func__);
+	dbg("%s done\n", __func__);
 }
