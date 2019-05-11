@@ -85,5 +85,6 @@ int uart_write(int uart_id, void *buf, size_t count)
 		wr32(tdr, ((u8*)buf)[i]);
 		while (!(rd32(isr) & BIT7));
 	}
+	while (!(rd32(isr) & BIT6));
 	return count;
 }
