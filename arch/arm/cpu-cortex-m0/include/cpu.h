@@ -48,4 +48,9 @@ static inline void cpsie(void)
 #define attr_isrv_sys attr_sect("isrv_sys")
 #define attr_isrv_irq attr_sect("isrv_irq")
 
+static inline void cpu_reset()
+{
+	wr32(R_SCB_AIRCR, (0x05fa << 16) | BIT2);
+}
+
 #endif /* _CPU_H_ */
