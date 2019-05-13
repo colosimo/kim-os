@@ -101,7 +101,6 @@ $(TARGET_MK): $(OBJS)
 OBJS += $(patsubst %.c,%.o,$(wildcard lib/*.c)) \
         $(patsubst %.c,%.o,$(wildcard kernel/*.c)) \
         $(patsubst %.c,%.o,$(wildcard arch/$(ARCH)/*.c)) \
-        $(patsubst %.c,%.o,$(wildcard app/$(APP)/*.c)) \
 
 DEPS := $(OBJS:.o=.d)
 
