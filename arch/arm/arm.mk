@@ -7,7 +7,7 @@
 
 A:=arch/$(ARCH)
 
-CFLAGS += -Werror -Wall -mcpu=cortex-m0 -mthumb -Os -mfloat-abi=soft \
+CFLAGS += -Werror -Wall -mcpu=$(CPU) -mthumb -Os -mfloat-abi=soft \
   -nostartfiles
 CROSS_COMPILE=/opt/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-
 INCFLAGS += -I$A/cpu-$(CPU)/include
