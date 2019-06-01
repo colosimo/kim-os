@@ -9,6 +9,8 @@
 #ifndef _REG_H_
 #define _REG_H_
 
+#define SOC_STM32F103
+
 /* RCC registers */
 #define R_RCC_CR       reg32(0x40021000)
 #define R_RCC_CFGR     reg32(0x40021004)
