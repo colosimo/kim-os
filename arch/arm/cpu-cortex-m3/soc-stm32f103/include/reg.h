@@ -62,10 +62,10 @@
 /* GPIO registers */
 #define R_GPIOA_CRL     reg32(0x40010800)
 #define R_GPIOA_CRH     reg32(0x40010804)
-#define R_GPIOA_IDR     reg32(0x48010808)
-#define R_GPIOA_ODR     reg32(0x4801080c)
-#define R_GPIOA_BSRR    reg32(0x48010810)
-#define R_GPIOA_BRR     reg32(0x48010814)
-#define R_GPIOA_LCKR    reg32(0x48010818)
+#define R_GPIOA_IDR     reg32(0x40010808)
+#define R_GPIOA_ODR     reg32(0x4001080c)
+#define R_GPIOA_BSRR    reg32(0x40010810)
+#define R_GPIOA_BRR     reg32(0x40010814)
+#define R_GPIOA_LCKR    reg32(0x40010818)
 
 #endif /* _REG_H_ */
