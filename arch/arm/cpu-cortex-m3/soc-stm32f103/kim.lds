@@ -12,7 +12,7 @@ SECTIONS
 	.text 0x08000000: {
 		*(isrv_sys); /* Interrupt Service Routine Vector - System */
 		*(isrv_irq); /* Interrupt Service Routine Vector - Peripherals IRQs */
-		. = 0x000000C0;
+		. = 0x0000240;
 		*(.text)
 	} > flash
 
