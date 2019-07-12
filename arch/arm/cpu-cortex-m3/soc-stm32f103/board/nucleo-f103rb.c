@@ -44,10 +44,11 @@ void board_init(u32 *cpu_freq)
 
 	/* Configure flash latency */
 	while(rd32(R_FLASH_SR) & BIT0);
-	if (CPU_FREQ > 24000000)
-		or32(R_FLASH_ACR, 0b001);
-	else if (CPU_FREQ > 48000000)
+
+	if (CPU_FREQ > 48000000)
 		or32(R_FLASH_ACR, 0b010);
+	else if (CPU_FREQ > 24000000)
+		or32(R_FLASH_ACR, 0b001);
 
 	/* Use PLL as system clock */
 	or32(R_RCC_CFGR, 0b10);
