@@ -11,51 +11,10 @@
 #include <linker.h>
 #include <cpu.h>
 #include <log.h>
+#include <cpu-cortex-m-common.h>
 
 /* FIXME: Stack top depends on soc, so it should be moved externally */
 #define STACK_TOP ((void*)(0x20001000))
-
-static uint32_t ticks = 0;
-
-extern void init(void);
-
-void isr_reset(void)
-{
-	unsigned char *src, *dest;
-
-	/* Load data to ram */
-	src = &__start_data_flash;
-	dest = &__start_data_sram;
-	while (dest != &__end_data_sram)
-			*dest++ = *src++;
-
-	/* Set bss section to 0 */
-	dest = &__start_bss;
-	while (dest != &__end_bss)
-			*dest++ = 0;
-
-	/* Skip to mach or board specific init */
-	init();
-}
-
-static uint32_t ipsr(void)
-{
-  uint32_t res;
-  __asm volatile ("mrs %0, ipsr" : "=r" (res));
-  return res;
-}
-
-
-void attr_weak isr_none(void)
-{
-	crt("Unhandled IPSR=%x ISPR=%x\n", (uint)ipsr(), (uint)rd32(R_NVIC_ISPR));
-	while(1);
-}
-
-void attr_weak isr_systick(void)
-{
-	ticks++;
-}
 
 static const void *attr_isrv_sys _isrv_sys[] = {
 	/* Cortex-M0 system interrupts */
@@ -76,13 +35,3 @@ static const void *attr_isrv_sys _isrv_sys[] = {
 	isr_none,	/* PendSV */
 	isr_systick,	/* SysTick */
 };
-
-u32 attr_weak k_ticks(void)
-{
-	return ticks;
-}
-
-void sleep(void)
-{
-	asm("wfi");
-}
