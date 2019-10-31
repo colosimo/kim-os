@@ -38,7 +38,7 @@ TARGET_BIGOBJ := $(OUTPUT_DIR)/$(EXE)-bigobj.o
 
 # Verbosity
 ifdef VERB
-CFLAGS += -DVERB=$(VERB)
+CFLAGS += -DVERB=$(VERB) -DBOARD_$(BOARD)
 endif
 
 ifeq ($(NOLOGTIME),y)
