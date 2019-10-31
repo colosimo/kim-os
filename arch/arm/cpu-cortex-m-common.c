@@ -48,7 +48,7 @@ void isr_reset(void)
 	init();
 }
 
-void sleep(void)
+void attr_weak sleep(void)
 {
 	asm("wfi");
 }

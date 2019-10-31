@@ -9,7 +9,7 @@
 #include <kim.h>
 #include <basic.h>
 #include <linker.h>
-#include <cpu-cortex-m-common.h>
+#include <cpu.h>
 
 /* FIXME: Stack top depends on soc, so it should be moved externally */
 #define STACK_TOP ((void*)(0x20005000))

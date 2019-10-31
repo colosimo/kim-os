@@ -11,7 +11,6 @@
 #include <linker.h>
 #include <cpu.h>
 #include <log.h>
-#include <cpu-cortex-m-common.h>
 
 /* FIXME: Stack top depends on soc, so it should be moved externally */
 #define STACK_TOP ((void*)(0x20001000))

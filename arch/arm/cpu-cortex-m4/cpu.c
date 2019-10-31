@@ -9,7 +9,7 @@
 #include <kim.h>
 #include <basic.h>
 #include <linker.h>
-#include <cpu-cortex-m-common.h>
+#include <cpu.h>
 
 static const void *attr_isrv_sys _isrv_sys[] = {
 	/* Cortex-M4 system interrupts */
