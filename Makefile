@@ -11,10 +11,9 @@
 ifeq ($(CONFIG),)
 $(info Please set CONFIG var)
 $(info Available configs: $(patsubst config/%.mk,%,$(wildcard config/*)))
-$(error Aborting)
 endif
 
-include config/$(CONFIG).mk
+-include config/$(CONFIG).mk
 
 KIMPATH := $(CURDIR)
 
@@ -106,7 +105,7 @@ OBJS += $(patsubst %.c,%.o,$(wildcard lib/*.c)) \
 DEPS := $(OBJS:.o=.d)
 
 -include $(DEPS)
-include arch/$(ARCH)/$(ARCH).mk
+-include arch/$(ARCH)/$(ARCH).mk
 
 -include app/$(APP)/$(APP).mk
 
