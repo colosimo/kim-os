@@ -27,9 +27,9 @@ OBJCOPY         = $(CROSS_COMPILE)objcopy
 STRIP           = $(CROSS_COMPILE)strip
 
 ifeq ($(APP),)
-EXE := kim
+EXE := kim.elf
 else
-EXE := $(APP)
+EXE := $(APP).elf
 endif
 
 OUTPUT_DIR := generated

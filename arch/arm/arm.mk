@@ -25,8 +25,8 @@ OBJS += $(patsubst %.c,%.o,$(wildcard $A/cpu-$(CPU)/*.c))
 OBJS += $(patsubst %.c,%.o,$(wildcard $A/cpu-$(CPU)/soc-$(SOC)/*.c))
 OBJS += $A/cpu-$(CPU)/soc-$(SOC)/board/$(BOARD).o
 
-POST_LD += $(OBJCOPY) -O binary $(EXE) $(EXE).bin;
-POST_LD += $(OBJCOPY) -O ihex $(EXE) $(EXE).hex;
+POST_LD += $(OBJCOPY) -O binary $(EXE) $(patsubst %.elf,%.bin,$(EXE));
+POST_LD += $(OBJCOPY) -O ihex $(EXE) $(patsubst %.elf,%.hex,$(EXE));
 
 %.ldscpp: %.lds
 	$(CPP) -P $(CFLAGS) $< -o $@
