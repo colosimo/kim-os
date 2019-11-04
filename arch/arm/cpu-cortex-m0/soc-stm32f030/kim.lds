@@ -3,8 +3,16 @@
  */
 MEMORY
 {
+#ifdef SOC_VARIANT_stm32f030r8
 	flash : o = 0x08000000, l = 64k
 	sram  : o = 0x20000000, l =  8k
+#elif defined SOC_VARIANT_stm32f030c8
+	flash : o = 0x08000000, l = 64k
+	sram  : o = 0x20000000, l =  8k
+#else
+#error Unhandled SOC_VARIANT: $(SOC_VARIANT)
+#endif
+
 }
 
 SECTIONS

@@ -72,8 +72,7 @@ int nvm_copy_to_flash(void *ptr, const void *data, size_t cnt)
 	int i;
 	unsigned p = (unsigned)ptr;
 
-	/* FIXME RAM length depending on the chip */
-	if (data < (void*)0x20000000 || data >= (void*)0x20002000)
+	if (data < (void*)0x20000000 || data >= (void*)STACK_TOP)
 		return -ERRINVAL;
 
 	/* FIXME flash length depending on chip */

@@ -14,9 +14,9 @@ INCFLAGS += -I$A
 INCFLAGS += -I$A/cpu-$(CPU)/include
 INCFLAGS += -I$A/cpu-$(CPU)/soc-$(SOC)/include
 
-LDS = $A/cpu-$(CPU)/soc-$(SOC)/kim.lds
+LDSCPP := $A/cpu-$(CPU)/soc-$(SOC)/kim.ldscpp
 GCCVER = $(shell $(CROSS_COMPILE)gcc --version|grep ^arm|cut -f 3 -d ' ')
-LFLAGS += -T $(LDS) \
+LFLAGS += -T $(LDSCPP) \
    -L/opt/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/ \
    -lgcc -nostdlib -nostartfiles -ffreestanding
 LAST_LD = $(CC)
@@ -27,3 +27,10 @@ OBJS += $A/cpu-$(CPU)/soc-$(SOC)/board/$(BOARD).o
 
 POST_LD += $(OBJCOPY) -O binary $(EXE) $(EXE).bin;
 POST_LD += $(OBJCOPY) -O ihex $(EXE) $(EXE).hex;
+
+%.ldscpp: %.lds
+	$(CPP) -P $(CFLAGS) $< -o $@
+
+$(EXE): $(LDSCPP)
+
+CLEAN_LIST += $(LDSCPP)

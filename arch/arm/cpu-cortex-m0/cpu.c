@@ -11,9 +11,7 @@
 #include <linker.h>
 #include <cpu.h>
 #include <log.h>
-
-/* FIXME: Stack top depends on soc, so it should be moved externally */
-#define STACK_TOP ((void*)(0x20001000))
+#include <reg.h>
 
 static const void *attr_isrv_sys _isrv_sys[] = {
 	/* Cortex-M0 system interrupts */

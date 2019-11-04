@@ -10,9 +10,7 @@
 #include <basic.h>
 #include <linker.h>
 #include <cpu.h>
-
-/* FIXME: Stack top depends on soc, so it should be moved externally */
-#define STACK_TOP ((void*)(0x20005000))
+#include <reg.h>
 
 static const void *attr_isrv_sys _isrv_sys[] = {
 	/* Cortex-M3 system interrupts */

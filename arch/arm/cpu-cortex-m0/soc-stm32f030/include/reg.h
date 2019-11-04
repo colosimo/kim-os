@@ -9,7 +9,15 @@
 #ifndef _REG_H_
 #define _REG_H_
 
-#define SOC_STM32F030
+#ifdef SOC_VARIANT_stm32f030r8
+#define STACK_TOP ((void*)(0x20002000))
+#define FLASH_PAGE_SIZE 1024
+#elif defined SOC_VARIANT_stm32f030c8
+#define STACK_TOP ((void*)(0x20002000))
+#define FLASH_PAGE_SIZE 1024
+#else
+#error Unhandled SOC_VARIANT: $(SOC_VARIANT)
+#endif
 
 /* RCC registers */
 #define R_RCC_CR       reg32(0x40021000)

@@ -9,6 +9,8 @@
 #ifndef _REG_H_
 #define _REG_H_
 
+#define STACK_TOP ((void*)(0x20002000))
+
 /* I/O Configuration (IOCON) */
 #define R_IOCON_PIO2_6    reg32(0x40044000)
 #define R_IOCON_PIO2_0    reg32(0x40044008)

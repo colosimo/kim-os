@@ -1,10 +1,17 @@
 /*
  * Author: Aurelio Colosimo, 2019
  */
-MEMORY /* FIXME: check values below */
+MEMORY
 {
-	flash : o = 0x08000000, l = 64k
-	sram  : o = 0x20000000, l =  8k
+#ifdef SOC_VARIANT_stm32f103rb
+	flash : o = 0x08000000, l = 128k
+	sram  : o = 0x20000000, l =  20k
+#elif defined SOC_VARIANT_stm32f103rc
+	flash : o = 0x08000000, l = 256k
+	sram  : o = 0x20000000, l =  64k
+#else
+#error Unhandled SOC_VARIANT: $(SOC_VARIANT)
+#endif
 }
 
 SECTIONS

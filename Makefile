@@ -20,6 +20,7 @@ KIMPATH := $(CURDIR)
 
 # Cross compiling configuration
 CC              = $(CROSS_COMPILE)gcc
+CPP             = $(CROSS_COMPILE)cpp
 AR              = $(CROSS_COMPILE)ar
 LD              = $(CROSS_COMPILE)ld
 OBJCOPY         = $(CROSS_COMPILE)objcopy
@@ -110,6 +111,7 @@ include arch/$(ARCH)/$(ARCH).mk
 -include app/$(APP)/$(APP).mk
 
 INCFLAGS += -Iarch/$(ARCH)/include -Iinclude -Igenerated -Itasks
+CFLAGS += -DSOC_$(SOC) -DSOC_VARIANT_$(SOC_VARIANT)
 
 # The list of files to be cleaned is:
 # 1) any .o and in obj or in any arch; 2) each .d corresponding to its .o;
