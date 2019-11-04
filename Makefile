@@ -32,9 +32,10 @@ EXE := $(APP).elf
 endif
 
 OUTPUT_DIR := generated
-TARGET_LIB := $(OUTPUT_DIR)/lib$(EXE).a
+EXE_NOEXT := $(patsubst %.elf,%,$(EXE))
+TARGET_LIB := $(OUTPUT_DIR)/lib$(EXE_NOEXT).a
 TARGET_MK := $(patsubst %.a,%.mk,$(TARGET_LIB))
-TARGET_BIGOBJ := $(OUTPUT_DIR)/$(EXE)-bigobj.o
+TARGET_BIGOBJ := $(OUTPUT_DIR)/$(EXE_NOEXT)-bigobj.o
 
 # Verbosity
 ifdef VERB
