@@ -2,6 +2,7 @@ doc/*.pdf
 **/*.d
 **/*.o
 **/*.a
+**/*.ldscpp
 generated/
 .config
 kim
