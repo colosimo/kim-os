@@ -10,6 +10,7 @@
 #include <basic.h>
 #include <linker.h>
 #include <cpu.h>
+#include <reg.h>
 
 static const void *attr_isrv_sys _isrv_sys[] = {
 	/* Cortex-M4 system interrupts */
