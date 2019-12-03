@@ -18,6 +18,13 @@
 
 #define DEFAULT_UART_BR 115200
 
+void sleep(void)
+{
+	/* Redefining empty sleep (no wfi call) because in this board, linked
+	 * to stlink-v3, it seems wfi interferes with correct communication
+	 * over swd for debug and flash operations */
+}
+
 int putchar(int c)
 {
 	/* Write byte to tx register (DR) */
