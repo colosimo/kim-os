@@ -28,6 +28,7 @@ static void printhex(int x, int ndigits)
 
 	for (i = 0; i < sizeof(x); i++) {
 
+		/* FIXME: fix ndigits handling when odd */
 		if (*p != 0 || (ndigits && i >= sizeof(x) - ndigits / 2) ||
 		    i == sizeof(x) - 1) {
 			started = 1;
