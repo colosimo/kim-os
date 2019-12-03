@@ -47,6 +47,32 @@ static void printhex(int x, int ndigits)
 	}
 }
 
+static void printint(int x, int sgnd, int ndigits)
+{
+	unsigned int div = 1000000000;
+	int started = 0;
+	int d;
+
+	/* FIXME: handle ndigits parameter */
+	if (x == 0) {
+			putchar('0');
+			return;
+	}
+	if (sgnd && x < 0) {
+			putchar('-');
+			x = -x;
+	}
+	while (div > 0) {
+		d = x / div;
+		if (d || started) {
+			started = 1;
+			putchar('0' + d);
+		}
+		x = x % div;
+		div /= 10;
+	}
+}
+
 /* Minimal printf function. Supports strings, chars and hex numbers. */
 void kprint(const char *fmt, ...)
 {
@@ -91,11 +117,18 @@ void kprint(const char *fmt, ...)
 		case 'p':
 			putchar('0');
 			putchar('x');
-		case 'd':
-		case 'u':
 		case 'x':
+		case 'X':
 			printhex(va_arg(args, int), ndigits);
 			ndigits = 0;
+			break;
+
+		case 'd':
+			printint(va_arg(args, unsigned int), 1, ndigits);
+			break;
+
+		case 'u':
+			printint(va_arg(args, unsigned int), 0, ndigits);
 			break;
 
 		default:
