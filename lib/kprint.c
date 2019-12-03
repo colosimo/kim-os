@@ -14,7 +14,16 @@ extern int putchar(int c);
 
 static const char hex[] = "0123456789abcdef";
 
-static void printhex(int x, int ndigits)
+static char *buf_putchar_buf;
+static int buf_putchar_buflen;
+
+int buf_putchar(int c)
+{
+	buf_putchar_buf[buf_putchar_buflen++] = c;
+	return 0;
+}
+
+static void printhex(int x, int ndigits, int (*_putchar)(int))
 {
 	unsigned char *p;
 	int i;
@@ -36,9 +45,9 @@ static void printhex(int x, int ndigits)
 
 		if (started) {
 			c = hex[*p >> 4];
-			putchar(c);
+			_putchar(c);
 			c = hex[*p & 0xf];
-			putchar(c);
+			_putchar(c);
 		}
 
 		if (cpu_be)
@@ -48,7 +57,7 @@ static void printhex(int x, int ndigits)
 	}
 }
 
-static void printint(int _x, int sgnd, int ndigits)
+static void printint(int _x, int sgnd, int ndigits, int (*_putchar)(int))
 {
 	char buf[13];
 	unsigned int x;
@@ -75,10 +84,10 @@ static void printint(int _x, int sgnd, int ndigits)
 		i++;
 
 	for (; i < sizeof(buf); i++)
-		putchar(buf[i]);
+		_putchar(buf[i]);
 }
 
-static void vkprint(const char *fmt, va_list args)
+static void vkprint(const char *fmt, va_list args, int (*_putchar)(int))
 {
 	char *s;
 	int ndigits = 0;
@@ -93,8 +102,8 @@ static void vkprint(const char *fmt, va_list args)
 
 		if (!fmt_prefix) {
 			if (*fmt == '\n')
-				putchar('\r');
-			putchar(*fmt);
+				_putchar('\r');
+			_putchar(*fmt);
 			continue;
 		}
 
@@ -102,35 +111,35 @@ static void vkprint(const char *fmt, va_list args)
 
 		switch (*fmt) {
 		case '%':
-			putchar('%');
+			_putchar('%');
 			break;
 		case 'c':
-			putchar(va_arg(args, int));
+			_putchar(va_arg(args, int));
 			break;
 		case 's':
 			while (ndigits--)
-				putchar(' ');
+				_putchar(' ');
 			s = va_arg(args, char *);
 			while (*s)
-				putchar(*s++);
+				_putchar(*s++);
 			ndigits = 0;
 			break;
 
 		case 'p':
-			putchar('0');
-			putchar('x');
+			_putchar('0');
+			_putchar('x');
 		case 'x':
 		case 'X':
-			printhex(va_arg(args, int), ndigits);
+			printhex(va_arg(args, int), ndigits, _putchar);
 			ndigits = 0;
 			break;
 
 		case 'd':
-			printint(va_arg(args, unsigned int), 1, ndigits);
+			printint(va_arg(args, unsigned int), 1, ndigits, _putchar);
 			break;
 
 		case 'u':
-			printint(va_arg(args, unsigned int), 0, ndigits);
+			printint(va_arg(args, unsigned int), 0, ndigits, _putchar);
 			break;
 
 		default:
@@ -148,6 +157,18 @@ void kprint(const char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	vkprint(fmt, args);
+	vkprint(fmt, args, putchar);
 	va_end(args);
+}
+
+/* Minimal printf function. Supports strings, chars and hex numbers. */
+void k_sprintf(char *buf, const char *fmt, ...)
+{
+	va_list args;
+	buf_putchar_buf = buf;
+	buf_putchar_buflen = 0;
+	va_start(args, fmt);
+	vkprint(fmt, args, buf_putchar);
+	va_end(args);
+	buf_putchar('\0');
 }

@@ -12,4 +12,6 @@
 /* printf-like function */
 void kprint(const char *fmt, ...) __attribute__((format(printf,1,2)));
 
+void k_sprintf(char *buf, const char *fmt, ...) __attribute__((format(printf,2,3)));
+
 #endif
