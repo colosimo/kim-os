@@ -66,8 +66,7 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	or32(R_RCC_CFGR, 0b11);
 	while (((rd32(R_RCC_CFGR) >> 2) & 0b11) != 0b11);
 
-	*cpu_freq = 60000000;
-	*apb_freq = *ahb_freq = 30000000;
+	*cpu_freq = *apb_freq = *ahb_freq = 30000000;
 
 	/* Enable desired peripherals */
 	or32(R_RCC_APB1ENR1, BIT18); /* USART3 */
