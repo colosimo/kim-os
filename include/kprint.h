@@ -10,10 +10,12 @@
 #define _KPRINT_H_
 
 /* printf-like function */
-void kprint(const char *fmt, ...) __attribute__((format(printf,1,2)));
+void k_printf(const char *fmt, ...) __attribute__((format(printf,1,2)));
 
 void k_sprintf(char *buf, const char *fmt, ...) __attribute__((format(printf,2,3)));
 
 void k_fprintf(int fd, const char *fmt, ...) __attribute__((format(printf,2,3)));
+
+#define kprint k_printf
 
 #endif

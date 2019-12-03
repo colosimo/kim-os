@@ -161,7 +161,7 @@ static void vkprint(const char *fmt, va_list args, int (*_putchar)(int))
 }
 
 /* Minimal printf function. Supports strings, chars and hex numbers. */
-void kprint(const char *fmt, ...)
+void k_printf(const char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
