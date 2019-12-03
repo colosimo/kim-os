@@ -48,30 +48,34 @@ static void printhex(int x, int ndigits)
 	}
 }
 
-static void printint(int x, int sgnd, int ndigits)
+static void printint(int _x, int sgnd, int ndigits)
 {
-	unsigned int div = 1000000000;
-	int started = 0;
-	int d;
+	char buf[13];
+	unsigned int x;
+	int i = sizeof(buf) - 1;
+	int d = 0;
 
-	/* FIXME: handle ndigits parameter */
-	if (x == 0) {
-			putchar('0');
-			return;
+	if (_x == 0)
+		buf[i--] = '0';
+
+	if (sgnd)
+		x = (_x < 0) ? -_x : _x;
+	else
+		x = _x;
+
+	while ((x || d < ndigits) && i > 1) {
+		buf[i--] = '0' + x % 10;
+		x /= 10;
+		d++;
 	}
-	if (sgnd && x < 0) {
-			putchar('-');
-			x = -x;
-	}
-	while (div > 0) {
-		d = x / div;
-		if (d || started) {
-			started = 1;
-			putchar('0' + d);
-		}
-		x = x % div;
-		div /= 10;
-	}
+
+	if (sgnd && _x < 0)
+		buf[i] = '-';
+	else
+		i++;
+
+	for (; i < sizeof(buf); i++)
+		putchar(buf[i]);
 }
 
 /* Minimal printf function. Supports strings, chars and hex numbers. */
