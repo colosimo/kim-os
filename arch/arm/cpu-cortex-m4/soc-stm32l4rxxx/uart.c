@@ -24,7 +24,7 @@ static u8 buf1[UART_BUF_SIZE];
 static u8 buf2[UART_BUF_SIZE];
 static u8 buf3[UART_BUF_SIZE];
 
-void isr_uart1(void)
+void isr_usart1(void)
 {
 	u8 c;
 	while (rd32(R_USART1_ISR) & (BIT5 | BIT3)) {
@@ -34,7 +34,7 @@ void isr_uart1(void)
 	}
 }
 
-void isr_uart2(void)
+void isr_usart2(void)
 {
 	u8 c;
 	while (rd32(R_USART2_ISR) & (BIT5 | BIT3)) {
@@ -44,7 +44,7 @@ void isr_uart2(void)
 	}
 }
 
-void isr_uart3(void)
+void isr_usart3(void)
 {
 	u8 c;
 	while (rd32(R_USART3_ISR) & (BIT5 | BIT3)) {
