@@ -10,6 +10,8 @@
 #include <kim.h>
 #include <linker.h>
 
+extern void sleep(void);
+
 void task_start(task_t *t) {
 	if (!t)
 		return;
@@ -57,10 +59,6 @@ void task_stepall(void)
 		t->last_run = k_ticks();
 		t->step(t);
 	}
-}
-
-void attr_weak sleep(void)
-{
 }
 
 void attr_weak k_main(void)
