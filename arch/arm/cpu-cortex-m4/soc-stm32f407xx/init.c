@@ -10,7 +10,6 @@
 #include <cpu.h>
 #include <reg.h>
 #include <log.h>
-#include <uart.h>
 
 #define SYSTICKS_FREQ 1000
 

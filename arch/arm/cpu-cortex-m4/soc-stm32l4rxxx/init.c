@@ -152,6 +152,8 @@ void attr_used init(void)
 
 	log("ahb freq is %d\n", (uint)ahb_freq);
 
+	uart_init();
+
 	/* Skip to main */
 	k_main();
 }
