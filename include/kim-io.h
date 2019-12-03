@@ -44,4 +44,7 @@ struct __attribute__((packed)) k_dev_t {
 };
 typedef struct k_dev_t k_dev_t;
 
+int dev_enum(int (*dev_cb)(k_dev_t *));
+int dev_dump(k_dev_t *dev);
+
 #endif /* _KIM_IO_H_ */

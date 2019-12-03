@@ -11,6 +11,7 @@
 #include <kim-io.h>
 #include <linker.h>
 #include <errcode.h>
+#include <log.h>
 
 /* I/O Model */
 static const k_drv_t *drv_find(uint8_t major)
@@ -91,4 +92,20 @@ int k_ioctl(int fd, int cmd, void *buf, size_t count)
 	if (!ptr)
 			return -ERRINVAL;
 	return ptr(fd, cmd, buf, count);
+}
+
+int dev_enum(int (*dev_cb)(k_dev_t *))
+{
+	k_dev_t *dev;
+
+	for (dev = devs(0); dev != &__stop_devs; dev++)
+		dev_cb(dev);
+
+	return 0;
+}
+
+int dev_dump(k_dev_t *dev)
+{
+	log("id=%02x name=%s\n", dev->id, dev->name);
+	return 0;
 }
