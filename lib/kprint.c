@@ -9,6 +9,7 @@
 #include <stdarg.h>
 #include <endiannes.h>
 #include <basic.h>
+#include <kim-io.h>
 
 extern int putchar(int c);
 
@@ -20,6 +21,13 @@ static int buf_putchar_buflen;
 int buf_putchar(int c)
 {
 	buf_putchar_buf[buf_putchar_buflen++] = c;
+	return 0;
+}
+
+static int _fprintf_fd;
+int _fprintf(int c)
+{
+	k_write(_fprintf_fd, &c, 1);
 	return 0;
 }
 
@@ -171,4 +179,13 @@ void k_sprintf(char *buf, const char *fmt, ...)
 	vkprint(fmt, args, buf_putchar);
 	va_end(args);
 	buf_putchar('\0');
+}
+
+void k_fprintf(int fd, const char *fmt, ...)
+{
+	va_list args;
+	_fprintf_fd = fd;
+	va_start(args, fmt);
+	vkprint(fmt, args, _fprintf);
+	va_end(args);
 }
