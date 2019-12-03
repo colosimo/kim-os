@@ -22,27 +22,6 @@ u32 k_ticks(void);
 u32 k_ticks_freq(void);
 static inline u32 k_elapsed(u32 tprev) {return k_ticks() - tprev;}
 
-/* Device handling */
-int k_getfd(int devid);
-int k_read(int fd, void *buf, size_t count);
-int k_write(int fd, const void *buf, size_t count);
-int k_ioctl(int d, int request, ...);
-
-struct __attribute__((packed)) k_drv_t {
-	int (*read)(int fd, void *buf, size_t count);
-	int (*write)(int fd, const void *buf, size_t count);
-	int (*ioctl)(int fd, int cmd, const void *buf, size_t count);
-	uint8_t maj;
-	uint8_t unused[3];
-};
-
-struct __attribute__((packed)) k_dev_t {
-	uint16_t id;
-	const struct k_drv_t *drv;
-	void *priv;
-	uint8_t unused[2];
-};
-
 struct task_t {
 	int id;
 	void (*start)(struct task_t *t);

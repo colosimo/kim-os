@@ -25,8 +25,17 @@
 #define attr_drvs attr_sect("drvs")
 #define attr_tasks attr_sect("tsks")
 
+/* Section Tasks: "tsks" */
 extern struct task_t __start_tsks, __stop_tsks;
 #define tasks(i) (&((&__start_tsks)[i]))
+
+/* Section Devices: "devs" */
+extern struct k_dev_t __start_devs, __stop_devs;
+#define devs(i) (&((&__start_devs)[i]))
+
+/* Section Drivers: "drvs" */
+extern struct k_drv_t __start_drvs, __stop_drvs;
+#define drvs(i) (&((&__start_drvs)[i]))
 
 extern unsigned char __start_data_flash, __end_data_flash;
 extern unsigned char __start_data_sram, __end_data_sram;

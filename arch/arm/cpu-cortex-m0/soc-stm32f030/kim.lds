@@ -41,6 +41,12 @@ SECTIONS
 		__start_tsks = .;
 		*(tsks)
 		__stop_tsks = .;
+		__start_drvs = .;
+		*(drvs);
+		__stop_drvs = .;
+		__start_devs = .;
+		*(devs);
+		__stop_devs = .;
 	} > sram AT > flash
 	__end_data_sram = .;
 
