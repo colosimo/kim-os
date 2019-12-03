@@ -18,14 +18,14 @@ static const char hex[] = "0123456789abcdef";
 static char *buf_putchar_buf;
 static int buf_putchar_buflen;
 
-int buf_putchar(int c)
+static int buf_putchar(int c)
 {
 	buf_putchar_buf[buf_putchar_buflen++] = c;
 	return 0;
 }
 
 static int _fprintf_fd;
-int _fprintf(int c)
+static int _fprintf(int c)
 {
 	k_write(_fprintf_fd, &c, 1);
 	return 0;
