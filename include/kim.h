@@ -50,4 +50,13 @@ void task_stop(task_t *t);
 /* task_done: task ended spontaneously */
 void task_done(task_t *t);
 
+struct __attribute__((packed)) cli_cmd_t {
+	int narg;
+	int (*cmd)(int argc, char *argv[], int fdout);
+	const char *name;
+	const char *descr;
+};
+
+typedef struct cli_cmd_t cli_cmd_t;
+
 #endif /* _KIM_H_ */

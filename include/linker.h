@@ -24,6 +24,7 @@
 #define attr_devs attr_sect("devs")
 #define attr_drvs attr_sect("drvs")
 #define attr_tasks attr_sect("tsks")
+#define attr_cli attr_sect("cli")
 
 /* Section Tasks: "tsks" */
 extern struct task_t __start_tsks, __stop_tsks;
@@ -36,6 +37,10 @@ extern struct k_dev_t __start_devs, __stop_devs;
 /* Section Drivers: "drvs" */
 extern struct k_drv_t __start_drvs, __stop_drvs;
 #define drvs(i) (&((&__start_drvs)[i]))
+
+/* Section CLI: "cli" */
+extern struct cli_cmd_t __start_cli, __stop_cli;
+#define cli(i) (&((&__start_cli)[i]))
 
 extern unsigned char __start_data_flash, __end_data_flash;
 extern unsigned char __start_data_sram, __end_data_sram;
