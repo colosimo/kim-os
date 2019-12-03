@@ -78,12 +78,9 @@ static void printint(int _x, int sgnd, int ndigits)
 		putchar(buf[i]);
 }
 
-/* Minimal printf function. Supports strings, chars and hex numbers. */
-void kprint(const char *fmt, ...)
+static void vkprint(const char *fmt, va_list args)
 {
-	va_list args;
 	char *s;
-	va_start(args, fmt);
 	int ndigits = 0;
 	int fmt_prefix = 0;
 
@@ -144,6 +141,13 @@ void kprint(const char *fmt, ...)
 			break;
 		}
 	}
+}
 
+/* Minimal printf function. Supports strings, chars and hex numbers. */
+void kprint(const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	vkprint(fmt, args);
 	va_end(args);
 }
