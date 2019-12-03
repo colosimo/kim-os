@@ -12,7 +12,7 @@
 
 extern int putchar(int c);
 
-const char hex[] = "0123456789abcdef";
+static const char hex[] = "0123456789abcdef";
 
 static void printhex(int x, int ndigits)
 {
