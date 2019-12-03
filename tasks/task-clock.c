@@ -10,23 +10,32 @@
 #include <linker.h>
 #include <log.h>
 #include <kim-io.h>
+#include <kim-io-defs.h>
 
 typedef struct tclock_priv_t {
 	int last;
 	int uart_fd;
 } tclock_priv_t;
 
-static tclock_priv_t tclock_priv[2] = {
-	{0, 0},
-	{0, 1},
-};
+static tclock_priv_t tclock_priv = {0, 0};
 
 void tclock_start(struct task_t *t)
 {
 	tclock_priv_t *p = (tclock_priv_t*)t->priv;
+	int i;
 	p->last = 0;
-	p->uart_fd = k_fd_byname("uart1");
-	log("%s on uart id=%d\n", __func__, p->uart_fd);
+	p->uart_fd = -1;
+
+	for (i = 0; i < 8; i++) {
+		p->uart_fd = k_fd(MAJ_SOC_UART, i);
+		if (p->uart_fd >= 0) {
+			log("%s on uart id=%d\n", __func__, p->uart_fd);
+			break;
+		}
+	}
+
+	if (p->uart_fd < 0)
+		err("%s could not find any UART\n", __func__);
 }
 
 void tclock_stop(struct task_t *t)
@@ -37,6 +46,11 @@ void tclock_step(struct task_t *t)
 {
 	char c[2];
 	tclock_priv_t *p = (tclock_priv_t*)t->priv;
+
+	if (p->uart_fd < 0) {
+		task_done(t);
+		return;
+	}
 
 	/* Reset when a char is received (a key is pressed on minicom) */
 	if (k_avail(p->uart_fd)) {
@@ -63,18 +77,10 @@ done:
 	p->last++;
 }
 
-task_t attr_tasks tclock_uart1 = {
+task_t attr_tasks tclock_uart = {
 	.start = tclock_start,
 	.stop = tclock_stop,
 	.step = tclock_step,
-	.priv = &tclock_priv[0],
-	.intvl_ms = 100,
-};
-
-task_t attr_tasks tclock_uart2 = {
-	.start = tclock_start,
-	.stop = tclock_stop,
-	.step = tclock_step,
-	.priv = &tclock_priv[1],
+	.priv = &tclock_priv,
 	.intvl_ms = 100,
 };

@@ -13,8 +13,11 @@
 #include <linker.h>
 #include <basic.h>
 #include <kim.h>
+#include <kim-io.h>
+#include <kim-io-defs.h>
 #include <log.h>
 #include <gpio.h>
+#include <uart.h>
 
 #define DEFAULT_UART_BR 115200
 
@@ -86,3 +89,8 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 
 	dbg("%s done\n", __func__);
 }
+
+const k_dev_t attr_devs uart3_dev = {
+	.id = dev_id(MAJ_SOC_UART, MINOR_UART3),
+	.name = "uart3",
+};
