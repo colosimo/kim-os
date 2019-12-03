@@ -49,7 +49,7 @@ void isr_usart3(void)
 	u8 c;
 	while (rd32(R_USART3_ISR) & (BIT5 | BIT3)) {
 		c = rd32(R_USART3_RDR);
-		cbuf_write(&uart_cbuf[1], &c, 1);
+		cbuf_write(&uart_cbuf[2], &c, 1);
 		or32(R_USART3_ICR, BIT3);
 	}
 }
