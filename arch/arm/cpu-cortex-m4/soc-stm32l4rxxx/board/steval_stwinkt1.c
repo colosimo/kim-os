@@ -16,13 +16,66 @@
 #include <log.h>
 #include <gpio.h>
 
+#define DEFAULT_UART_BR 115200
+
 int putchar(int c)
 {
-	/* FIXME TODO */
+	/* Write byte to tx register (DR) */
+	wr32(R_USART3_TDR, c);
+	/* Wait for data sent (TC bit in ISR register becomes 1) */
+	while (!(rd32(R_USART3_ISR) & BIT6));
 	return 0;
 }
 
+
 void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 {
-	/* FIXME TODO */
+	/* Enable HSE (16MHz external oscillator) */
+	or32(R_RCC_CR, BIT16);
+	while (!(rd32(R_RCC_CR) & BIT17));
+
+	/* PLL configuration: output < 120MHz; xtal is 16MHz
+	 * HSE: 16MHz
+	 * PLLM: 4,  VCO_IN:   4MHz
+	 * PLLN=60, VCO_OUT: 240MHz
+	 * PLLR=4 (0b00), PLLCLK: 60MHz */
+	and32(R_RCC_PLLCFGR, ~0xff737ff3);
+	or32(R_RCC_PLLCFGR, (30 << 8) | ((4 - 1) << 4) | 0b11);
+	or32(R_RCC_PLLCFGR, BIT24);
+	or32(R_RCC_CR, BIT24);
+	while (!(rd32(R_RCC_CR) & BIT25));
+
+	/* Flash latency */
+	and32(R_FLASH_ACR, ~0b1111);
+	or32(R_FLASH_ACR, 0b1111);
+	while ((rd32(R_FLASH_ACR) & 0b1111) != 0b1111);
+
+
+	/* Use PLL as system clock, with AHB prescaler set to 2 */
+	wr32(R_RCC_CFGR, (0b1000 << 4));
+	or32(R_RCC_CFGR, 0b11);
+	while (((rd32(R_RCC_CFGR) >> 2) & 0b11) != 0b11);
+
+	*cpu_freq = 60000000;
+	*apb_freq = *ahb_freq = 30000000;
+
+	/* Enable desired peripherals */
+	or32(R_RCC_APB1ENR1, BIT18); /* USART3 */
+	or32(R_RCC_AHB2ENR, 0x1ff); /* All GPIOs */
+
+	/* Configure USART3 on PD8 and PD9 at 115.2kbps */
+	gpio_func(IO(PORTD, 8), 7);
+	gpio_func(IO(PORTD, 9), 7);
+
+	/* Set baudrate to DEFAULT_UART_BR and enable USART3 */
+	wr32(R_USART3_BRR, *apb_freq / DEFAULT_UART_BR);
+	or32(R_USART3_CR1, BIT5 | BIT3 | BIT2 | BIT0);
+	or32(R_NVIC_ISER(1), BIT7); /* USART3 is irq 39 */
+
+	/* Enable USART3 TX and RX on STMOD2 and STMOD3:
+	 * PG0 must be held HIGH */
+	gpio_dir(IO(PORTG, 0), 1);
+	gpio_wr(IO(PORTG, 0), 1);
+
+	dbg("%s done\n", __func__);
 }
