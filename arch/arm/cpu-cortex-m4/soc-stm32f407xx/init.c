@@ -10,6 +10,7 @@
 #include <cpu.h>
 #include <reg.h>
 #include <log.h>
+#include <uart.h>
 
 #define SYSTICKS_FREQ 1000
 
@@ -18,17 +19,17 @@ extern void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq);
 extern void isr_none(void);
 
 /* dummy USART behavior: echo char */
-void attr_weak isr_uart1(void)
+void attr_weak isr_usart1(void)
 {
 	wr32(R_USART1_DR, rd32(R_USART1_DR));
 }
 
-void attr_weak isr_uart2(void)
+void attr_weak isr_usart2(void)
 {
 	wr32(R_USART2_DR, rd32(R_USART2_DR));
 }
 
-void attr_weak isr_uart3(void)
+void attr_weak isr_usart3(void)
 {
 	wr32(R_USART3_DR, rd32(R_USART3_DR));
 }
@@ -72,9 +73,9 @@ static const void *attr_isrv_irq _isrv_irq[] = {
 	isr_none, /* I2C2_ER */
 	isr_none, /* SPI1 */
 	isr_none, /* SPI2 */
-	isr_uart1, /* USART1 */
-	isr_uart2, /* USART2 */
-	isr_uart3, /* USART3 */
+	isr_usart1, /* USART1 */
+	isr_usart2, /* USART2 */
+	isr_usart3, /* USART3 */
 	isr_none, /* EXTI15_10 */
 	isr_none, /* RTC_Alarm */
 	isr_none, /* OTG_FS WKUP */
@@ -137,6 +138,8 @@ void attr_used init(void)
 	wr32(R_SYST_CSR, BIT0 | BIT1 | BIT2);
 
 	log("ahb freq is %d\n", (uint)ahb_freq);
+
+	uart_init();
 
 	/* Skip to main */
 	k_main();

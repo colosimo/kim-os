@@ -13,8 +13,13 @@
 #include <linker.h>
 #include <basic.h>
 #include <kim.h>
+#include <kim-io.h>
+#include <kim-io-defs.h>
 #include <log.h>
 #include <gpio.h>
+#include <uart.h>
+
+#define UART_BAUDRATE 115200
 
 /* NOTE on clock setting for discovery-f407vg board
  * Crystal is 8MHz. PLL is configured to provide a 168MHz clock. This clock
@@ -50,6 +55,9 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	wr32(R_RCC_CFGR, (0x9 << 4) | 0x2);
 	while (((rd32(R_RCC_CFGR) >> 2) & 0x3) != 0x2);
 
+	*cpu_freq = 168000000;
+	*apb_freq = *ahb_freq = 42000000;
+
 	or32(R_RCC_AHB1ENR, BIT0); /* GPIOA */
 	or32(R_RCC_APB1ENR, BIT17); /* USART2 */
 
@@ -59,12 +67,14 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	gpio_mode(IO(PORTA, 2), PULL_NO);
 	gpio_mode(IO(PORTA, 3), PULL_NO);
 
-	/* fPCLK=42MHz, br=38.4KBps, USARTDIV=68.375, see table 80 pag. 519 */
-	wr32(R_USART2_BRR, (68 << 4) | 6);
+	wr32(R_USART2_BRR, ((*apb_freq / 16) << 4) / UART_BAUDRATE);
 	or32(R_USART2_CR1, BIT13 | BIT5 | BIT3 | BIT2);
 	or32(R_NVIC_ISER(1), BIT6); /* USART2 is irq 38 */
 
-	*cpu_freq = 168000000;
-	*apb_freq = *ahb_freq = 42000000;
 	dbg("%s done\n", __func__);
 }
+
+const k_dev_t attr_devs uart2_dev = {
+	.id = dev_id(MAJ_SOC_UART, MINOR_UART2),
+	.name = "uart2",
+};
