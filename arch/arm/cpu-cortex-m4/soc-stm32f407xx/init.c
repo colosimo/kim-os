@@ -34,6 +34,10 @@ void attr_weak isr_usart3(void)
 	wr32(R_USART3_DR, rd32(R_USART3_DR));
 }
 
+void attr_weak isr_otgfs(void)
+{
+}
+
 static const void *attr_isrv_irq _isrv_irq[] = {
 	/* STM32F407 peripheral IRQs */
 	isr_none, /* WWDG */
@@ -103,7 +107,7 @@ static const void *attr_isrv_irq _isrv_irq[] = {
 	isr_none, /* CAN2_RX0 */
 	isr_none, /* CAN2_RX1 */
 	isr_none, /* CAN2_SCE */
-	isr_none, /* OTG_FS */
+	isr_otgfs, /* OTG_FS */
 	isr_none, /* DMA2_Stream5 */
 	isr_none, /* DMA2_Stream6 */
 	isr_none, /* DMA2_Stream7 */
