@@ -72,6 +72,8 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	or32(R_USART2_CR1, BIT13 | BIT5 | BIT3 | BIT2);
 	or32(R_NVIC_ISER(1), BIT6); /* USART2 is irq 38 */
 
+	uart_init();
+
 	/* USB on PA11/PA12 */
 	gpio_func(IO(PORTA, 11), 10);
 	gpio_func(IO(PORTA, 12), 10);

@@ -10,7 +10,6 @@
 #include <cpu.h>
 #include <reg.h>
 #include <log.h>
-#include <uart.h>
 
 #define SYSTICKS_FREQ 1000
 
@@ -142,8 +141,6 @@ void attr_used init(void)
 	wr32(R_SYST_CSR, BIT0 | BIT1 | BIT2);
 
 	log("ahb freq is %d\n", (uint)ahb_freq);
-
-	uart_init();
 
 	/* Skip to main */
 	k_main();
