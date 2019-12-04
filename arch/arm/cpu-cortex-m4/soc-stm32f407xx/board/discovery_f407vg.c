@@ -56,8 +56,7 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	wr32(R_RCC_CFGR, (0x9 << 4) | 0x2);
 	while (((rd32(R_RCC_CFGR) >> 2) & 0x3) != 0x2);
 
-	*cpu_freq = 168000000;
-	*apb_freq = *ahb_freq = 42000000;
+	*cpu_freq = *apb_freq = *ahb_freq = 42000000;
 
 	or32(R_RCC_AHB1ENR, BIT2 | BIT0); /* GPIOC, GPIOA */
 	or32(R_RCC_AHB2ENR, BIT7); /* OTGFS */
