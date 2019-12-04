@@ -94,18 +94,19 @@ int k_ioctl(int fd, int cmd, void *buf, size_t count)
 	return ptr(fd, cmd, buf, count);
 }
 
-int dev_enum(int (*dev_cb)(k_dev_t *))
+int dev_enum(int (*dev_cb)(k_dev_t *, int), int arg)
 {
 	k_dev_t *dev;
 
 	for (dev = devs(0); dev != &__stop_devs; dev++)
-		dev_cb(dev);
+		dev_cb(dev, arg);
 
 	return 0;
 }
 
-int dev_dump(k_dev_t *dev)
+int dev_dump(k_dev_t *dev, int fd)
 {
-	log("id=%02x name=%s\n", dev->id, dev->name);
+	k_fprintf(fd, "%02x\t%02x\t%s\n", dev_major(dev->id), dev_minor(dev->id),
+	    dev->name);
 	return 0;
 }

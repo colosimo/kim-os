@@ -26,9 +26,6 @@ void tclock_start(struct task_t *t)
 	p->last = 0;
 	p->uart_fd = -1;
 
-	log("List of available devices:\n");
-	dev_enum(dev_dump);
-
 	for (i = 0; i < 8; i++) {
 		p->uart_fd = k_fd(MAJ_SOC_UART, i);
 		if (p->uart_fd >= 0) {
