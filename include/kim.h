@@ -32,6 +32,7 @@ struct task_t {
 	u32 intvl_ms;
 	const char *name;
 	int running: 1;
+	int no_autorun: 1;
 };
 
 typedef struct task_t task_t;

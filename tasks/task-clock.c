@@ -85,4 +85,5 @@ task_t attr_tasks tclock_uart = {
 	.priv = &tclock_priv,
 	.intvl_ms = 100,
 	.name = "clock",
+	.no_autorun = 1,
 };

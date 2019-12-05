@@ -77,8 +77,10 @@ void attr_weak k_main(void)
 {
 	struct task_t *t = tasks(0);
 
-	for (;t != &__stop_tsks; t++)
-		task_start(t);
+	for (;t != &__stop_tsks; t++) {
+		if (!t->no_autorun)
+			task_start(t);
+	}
 
 	while(1) {
 		sleep();
