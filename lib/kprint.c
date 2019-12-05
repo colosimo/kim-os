@@ -67,12 +67,12 @@ static void printhex(int x, int ndigits, int (*_putchar)(int))
 
 static void printint(int _x, int sgnd, int ndigits, int (*_putchar)(int))
 {
-	char buf[13];
+	char buf[20];
 	unsigned int x;
 	int i = sizeof(buf) - 1;
 	int d = 0;
 
-	if (_x == 0)
+	if (!_x && !ndigits)
 		buf[i--] = '0';
 
 	if (sgnd)
@@ -125,9 +125,11 @@ static void vkprint(const char *fmt, va_list args, int (*_putchar)(int))
 			_putchar(va_arg(args, int));
 			break;
 		case 's':
-			while (ndigits--)
-				_putchar(' ');
 			s = va_arg(args, char *);
+
+			while (ndigits-- > strlen(s))
+				_putchar(' ');
+
 			while (*s)
 				_putchar(*s++);
 			ndigits = 0;
@@ -144,10 +146,12 @@ static void vkprint(const char *fmt, va_list args, int (*_putchar)(int))
 
 		case 'd':
 			printint(va_arg(args, unsigned int), 1, ndigits, _putchar);
+			ndigits = 0;
 			break;
 
 		case 'u':
 			printint(va_arg(args, unsigned int), 0, ndigits, _putchar);
+			ndigits = 0;
 			break;
 
 		default:
