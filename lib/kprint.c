@@ -125,11 +125,14 @@ static void vkprint(const char *fmt, va_list args, int (*_putchar)(int))
 		case 's':
 			s = va_arg(args, char *);
 
-			while (ndigits-- > strlen(s))
-				_putchar(' ');
+			ndigits -= strlen(s);
 
 			while (*s)
 				_putchar(*s++);
+
+			while (ndigits-- > 0)
+				_putchar(' ');
+
 			ndigits = 0;
 			break;
 
