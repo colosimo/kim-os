@@ -53,13 +53,6 @@ void tclock_step(struct task_t *t)
 		return;
 	}
 
-	/* Reset when a char is received (a key is pressed on minicom) */
-	if (k_avail(p->uart_fd)) {
-		k_read(p->uart_fd, c, 1);
-		k_write(p->uart_fd, c, 1);
-		p->last = 0;
-	}
-
 	/* it is counting on 100ms interval, so consider 1 out of 10 steps */
 	if (p->last % 10)
 		goto done;
