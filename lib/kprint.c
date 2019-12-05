@@ -99,23 +99,21 @@ static void vkprint(const char *fmt, va_list args, int (*_putchar)(int))
 {
 	char *s;
 	int ndigits = 0;
-	int fmt_prefix = 0;
+	int perc = 0;
 
 	for (; *fmt; fmt++) {
 
-		if (*fmt == '%') {
-			fmt_prefix = 1;
+		if (*fmt == '%' && !perc) {
+			perc = 1;
 			continue;
 		}
 
-		if (!fmt_prefix) {
+		if (!perc) {
 			if (*fmt == '\n')
 				_putchar('\r');
 			_putchar(*fmt);
 			continue;
 		}
-
-		fmt_prefix = 0;
 
 		switch (*fmt) {
 		case '%':
@@ -155,12 +153,13 @@ static void vkprint(const char *fmt, va_list args, int (*_putchar)(int))
 			break;
 
 		default:
-			if (isdigit(*fmt)) {
-				fmt_prefix = 1;
+			if (isdigit(*fmt))
 				ndigits = ndigits * 10 + *fmt - '0';
-			}
 			break;
 		}
+
+		if (!isdigit(*fmt))
+			perc = 0;
 	}
 }
 
