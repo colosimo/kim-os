@@ -227,4 +227,5 @@ struct task_t attr_tasks task_cli = {
 	.step = cli_step,
 	.intvl_ms = 100,
 	.priv = &cli_priv,
+	.name = "cli",
 };

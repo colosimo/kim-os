@@ -12,6 +12,11 @@
 
 extern void sleep(void);
 
+int task_id(struct task_t *t)
+{
+	return t - tasks(0);
+}
+
 void task_start(task_t *t) {
 	if (!t)
 		return;
@@ -38,14 +43,21 @@ void task_done(task_t *t)
 	t->running = 0;
 }
 
-task_t *task_find(int id)
+task_t *task_find(const char *name)
 {
 	struct task_t *t = tasks(0);
 	for (;t != &__stop_tsks; t++) {
-		if (id == t->id)
+		if (!strcmp(t->name, name))
 			return t;
 	}
 	return NULL;
+}
+
+task_t *task_get(int id)
+{
+	if (tasks(id) >= &__stop_tsks)
+		return NULL;
+	return tasks(id);
 }
 
 void task_stepall(void)

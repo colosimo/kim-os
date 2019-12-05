@@ -10,6 +10,7 @@
 #define _KIM_H_
 
 #include <intdefs.h>
+#include <linker.h>
 
 /* Main Function */
 void k_main(void);
@@ -23,13 +24,13 @@ u32 k_ticks_freq(void);
 static inline u32 k_elapsed(u32 tprev) {return k_ticks() - tprev;}
 
 struct task_t {
-	int id;
 	void (*start)(struct task_t *t);
 	void (*step)(struct task_t *t);
 	void (*stop)(struct task_t *t);
 	void *priv;
 	u32 last_run;
 	u32 intvl_ms;
+	const char *name;
 	int running: 1;
 };
 
@@ -38,8 +39,14 @@ typedef struct task_t task_t;
 /* tasks_step: to be called in the main loop */
 void task_stepall();
 
-/* tasks_find: find a task from a known id */
-struct task_t *task_find(int id);
+/* tasks_id: returns the id, being the index of task inside tsks section*/
+int task_id(struct task_t *t);
+
+/* tasks_find: find a task from a known name */
+task_t *task_find(const char *name);
+
+/* tasks_get: find a task from a known id */
+task_t *task_get(int id);
 
 /* task_start: start the desired task */
 void task_start(task_t *t);

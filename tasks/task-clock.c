@@ -84,4 +84,5 @@ task_t attr_tasks tclock_uart = {
 	.step = tclock_step,
 	.priv = &tclock_priv,
 	.intvl_ms = 100,
+	.name = "clock",
 };
