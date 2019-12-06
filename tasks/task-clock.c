@@ -39,10 +39,6 @@ void tclock_start(struct task_t *t)
 		err("%s could not find any UART\n", __func__);
 }
 
-void tclock_stop(struct task_t *t)
-{
-}
-
 void tclock_step(struct task_t *t)
 {
 	char c[2];
@@ -73,7 +69,6 @@ done:
 
 task_t attr_tasks tclock_uart = {
 	.start = tclock_start,
-	.stop = tclock_stop,
 	.step = tclock_step,
 	.priv = &tclock_priv,
 	.intvl_ms = 100,
