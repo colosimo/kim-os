@@ -58,7 +58,7 @@ int uart_init(void)
 {
 	cbuf_init(&uart_cbuf[0], buf1, sizeof(buf1));
 	cbuf_init(&uart_cbuf[1], buf2, sizeof(buf2));
-	cbuf_init(&uart_cbuf[2], buf2, sizeof(buf3));
+	cbuf_init(&uart_cbuf[2], buf3, sizeof(buf3));
 	return 0;
 }
 
