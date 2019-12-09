@@ -17,7 +17,7 @@
 #include <errcode.h>
 
 #define BUF_MAXLEN 80
-#define MAX_PARAMS 8
+#define MAX_PARAMS 32
 
 #define CLI_PROMPT "kim> "
 #define CLI_BYE "\nBye!\n"
