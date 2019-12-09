@@ -89,7 +89,4 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	dbg("%s done\n", __func__);
 }
 
-const k_dev_t attr_devs uart3_dev = {
-	.id = dev_id(MAJ_SOC_UART, MINOR_UART3),
-	.name = "uart3",
-};
+declare_dev(MAJ_SOC_UART, MINOR_UART3, NULL, uart3);
