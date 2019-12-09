@@ -10,11 +10,18 @@
 #define _KIM_IO_H_
 
 #include <intdefs.h>
+#include <basic.h>
 
 /* dev id <-> (major, minor) conversions */
 #define dev_id(maj, min) ((uint16_t)((uint16_t)(maj) << 8 | (min)))
 #define dev_major(did) ((uint8_t)(did >> 8))
 #define dev_minor(did) ((uint8_t)(did & 0xff))
+
+#define declare_dev(maj, min, priv, _name) \
+	const k_dev_t attr_devs dev_##_name = { \
+	.id = dev_id(maj, min), \
+	.name = str(_name), \
+};
 
 /* Device handling */
 int k_fd(u8 maj, u8 min);
