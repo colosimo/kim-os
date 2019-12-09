@@ -22,6 +22,9 @@
 #define msb(x) (((x) >> 8) & 0xff)
 #define lsb(x) ((x) & 0xff)
 
+#define _str(s) #s
+#define str(s) _str(s)
+
 #define array_size(x) (sizeof((x)) / sizeof((x)[0]))
 
 static inline u32 abs(i32 a)
