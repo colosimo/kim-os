@@ -62,7 +62,7 @@ int uart_init(void)
 	return 0;
 }
 
-int uart_avail(int fd)
+static int uart_avail(int fd)
 {
 	int uart_id = dev_minor(devs(fd)->id);
 
@@ -71,7 +71,7 @@ int uart_avail(int fd)
 	return cbuf_avail(&uart_cbuf[uart_id]);
 }
 
-int uart_read(int fd, void *buf, size_t count)
+static int uart_read(int fd, void *buf, size_t count)
 {
 	int uart_id = dev_minor(devs(fd)->id);
 
@@ -84,7 +84,7 @@ int uart_read(int fd, void *buf, size_t count)
 	return cbuf_read(&uart_cbuf[uart_id], buf, count);
 }
 
-int uart_write(int fd, const void *buf, size_t count)
+static int uart_write(int fd, const void *buf, size_t count)
 {
 	int i;
 	volatile u32 *tdr;
@@ -123,7 +123,7 @@ int uart_write(int fd, const void *buf, size_t count)
 	return count;
 }
 
-const k_drv_t attr_drvs uart_drv = {
+static const k_drv_t attr_drvs uart_drv = {
 	.maj = MAJ_SOC_UART,
 	.name = "stm32-uart",
 	.read = uart_read,
