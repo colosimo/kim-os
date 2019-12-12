@@ -20,6 +20,8 @@
 
 static struct cbuf_t uart_cbuf[3];
 
+/* FIXME: ugly, better move buffers to priv field of uart devices
+ * (define uart_data_t in uart.h) */
 static u8 buf1[UART_BUF_SIZE];
 static u8 buf2[UART_BUF_SIZE];
 static u8 buf3[UART_BUF_SIZE];
