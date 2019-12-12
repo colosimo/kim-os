@@ -38,6 +38,7 @@ SECTIONS
 		__start_data_flash = LOADADDR(.data);
 		__start_data_sram = .;
 		*(.data);
+		. = ALIGN(4);
 		__start_tsks = .;
 		*(tsks)
 		__stop_tsks = .;
