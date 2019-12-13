@@ -64,7 +64,6 @@ static inline void gpio_func(u16 io, u8 f)
 	reg_afr = GPIOx_AFR(io);
 	reg_moder = GPIOx_MODER(io);
 
-	v = rd32(R_GPIOA_MODER);
 	v = rd32(reg_moder);
 	v &= ~(0b11 << (2 * PIN(io)));
 	wr32(reg_moder, v);
