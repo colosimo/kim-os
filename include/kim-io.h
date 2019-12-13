@@ -17,9 +17,10 @@
 #define dev_major(did) ((uint8_t)(did >> 8))
 #define dev_minor(did) ((uint8_t)(did & 0xff))
 
-#define declare_dev(maj, min, priv, _name) \
+#define declare_dev(maj, min, _priv, _name) \
 	const k_dev_t attr_devs dev_##_name = { \
 	.id = dev_id(maj, min), \
+	.priv = _priv, \
 	.name = str(_name), \
 };
 
