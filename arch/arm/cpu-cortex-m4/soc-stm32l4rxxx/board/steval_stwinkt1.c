@@ -69,8 +69,10 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	*cpu_freq = *apb_freq = *ahb_freq = 30000000;
 
 	/* Enable desired peripherals */
-	or32(R_RCC_APB1ENR1, BIT18); /* USART3 */
+	or32(R_RCC_APB1ENR1, BIT28 | BIT18 | BIT14); /* USART3, PWR and SPI2 */
 	or32(R_RCC_AHB2ENR, 0x1ff); /* All GPIOs */
+
+	or32(R_PWR_CR2, BIT9); /* Enable VDDIO_2, for PG[15..2] GPIOS */
 
 	/* Configure USART3 on PD8 and PD9 at 115.2kbps */
 	gpio_func(IO(PORTD, 8), 7);
