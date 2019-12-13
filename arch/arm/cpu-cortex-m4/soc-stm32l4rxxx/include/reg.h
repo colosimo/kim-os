@@ -18,6 +18,34 @@
 #error Unhandled SOC_VARIANT: $(SOC_VARIANT)
 #endif
 
+/* PWR registers */
+#define R_PWR_CR1          reg32(0x40007000)
+#define R_PWR_CR2          reg32(0x40007004)
+#define R_PWR_CR3          reg32(0x40007008)
+#define R_PWR_CR4          reg32(0x4000700c)
+#define R_PWR_SR1          reg32(0x40007010)
+#define R_PWR_SR2          reg32(0x40007014)
+#define R_PWR_SCR          reg32(0x40007018)
+#define R_PWR_PUCRA        reg32(0x40007020)
+#define R_PWR_PDCRA        reg32(0x40007024)
+#define R_PWR_PUCRB        reg32(0x40007028)
+#define R_PWR_PDCRB        reg32(0x4000702c)
+#define R_PWR_PUCRC        reg32(0x40007030)
+#define R_PWR_PDCRC        reg32(0x40007034)
+#define R_PWR_PUCRD        reg32(0x40007038)
+#define R_PWR_PDCRD        reg32(0x4000703c)
+#define R_PWR_PUCRE        reg32(0x40007040)
+#define R_PWR_PDCRE        reg32(0x40007044)
+#define R_PWR_PUCRF        reg32(0x40007048)
+#define R_PWR_PDCRF        reg32(0x4000704c)
+#define R_PWR_PUCRG        reg32(0x40007050)
+#define R_PWR_PDCRG        reg32(0x40007054)
+#define R_PWR_PUCRH        reg32(0x40007058)
+#define R_PWR_PDCRH        reg32(0x4000705c)
+#define R_PWR_PUCRI        reg32(0x40007060)
+#define R_PWR_PDCRI        reg32(0x40007064)
+#define R_PWR_PCR5         reg32(0x40007080)
+
 /* RCC registers */
 #define R_RCC_CR           reg32(0x40021000)
 #define R_RCC_ICSCR        reg32(0x40021004)
@@ -122,7 +150,7 @@
 #define R_GPIOA_ODR        reg32(0x48000014)
 #define R_GPIOA_BSRR       reg32(0x48000018)
 #define R_GPIOA_LCKR       reg32(0x4800001c)
-#define R_GPIOA_AFRL       reg32(0x48000000)
+#define R_GPIOA_AFRL       reg32(0x48000020)
 #define R_GPIOA_AFRH       reg32(0x48000024)
 #define R_GPIOA_BRR        reg32(0x48000028)
 
@@ -135,7 +163,7 @@
 #define R_GPIOB_ODR        reg32(0x48000414)
 #define R_GPIOB_BSRR       reg32(0x48000418)
 #define R_GPIOB_LCKR       reg32(0x4800041c)
-#define R_GPIOB_AFRL       reg32(0x48000400)
+#define R_GPIOB_AFRL       reg32(0x48000420)
 #define R_GPIOB_AFRH       reg32(0x48000424)
 #define R_GPIOB_BRR        reg32(0x48000428)
 
@@ -148,7 +176,7 @@
 #define R_GPIOC_ODR        reg32(0x48000814)
 #define R_GPIOC_BSRR       reg32(0x48000818)
 #define R_GPIOC_LCKR       reg32(0x4800081c)
-#define R_GPIOC_AFRL       reg32(0x48000800)
+#define R_GPIOC_AFRL       reg32(0x48000820)
 #define R_GPIOC_AFRH       reg32(0x48000824)
 #define R_GPIOC_BRR        reg32(0x48000828)
 
@@ -161,7 +189,7 @@
 #define R_GPIOD_ODR        reg32(0x48000c14)
 #define R_GPIOD_BSRR       reg32(0x48000c18)
 #define R_GPIOD_LCKR       reg32(0x48000c1c)
-#define R_GPIOD_AFRL       reg32(0x48000c00)
+#define R_GPIOD_AFRL       reg32(0x48000c20)
 #define R_GPIOD_AFRH       reg32(0x48000c24)
 #define R_GPIOD_BRR        reg32(0x48000c28)
 
@@ -174,7 +202,7 @@
 #define R_GPIOE_ODR        reg32(0x48001014)
 #define R_GPIOE_BSRR       reg32(0x48001018)
 #define R_GPIOE_LCKR       reg32(0x4800101c)
-#define R_GPIOE_AFRL       reg32(0x48001000)
+#define R_GPIOE_AFRL       reg32(0x48001020)
 #define R_GPIOE_AFRH       reg32(0x48001024)
 #define R_GPIOE_BRR        reg32(0x48001028)
 
@@ -187,7 +215,7 @@
 #define R_GPIOF_ODR        reg32(0x48001414)
 #define R_GPIOF_BSRR       reg32(0x48001418)
 #define R_GPIOF_LCKR       reg32(0x4800141c)
-#define R_GPIOF_AFRL       reg32(0x48001400)
+#define R_GPIOF_AFRL       reg32(0x48001420)
 #define R_GPIOF_AFRH       reg32(0x48001424)
 #define R_GPIOF_BRR        reg32(0x48001428)
 
@@ -200,7 +228,7 @@
 #define R_GPIOG_ODR        reg32(0x48001814)
 #define R_GPIOG_BSRR       reg32(0x48001818)
 #define R_GPIOG_LCKR       reg32(0x4800181c)
-#define R_GPIOG_AFRL       reg32(0x48001800)
+#define R_GPIOG_AFRL       reg32(0x48001820)
 #define R_GPIOG_AFRH       reg32(0x48001824)
 #define R_GPIOG_BRR        reg32(0x48001828)
 
@@ -213,7 +241,7 @@
 #define R_GPIOH_ODR        reg32(0x48001c14)
 #define R_GPIOH_BSRR       reg32(0x48001c18)
 #define R_GPIOH_LCKR       reg32(0x48001c1c)
-#define R_GPIOH_AFRL       reg32(0x48001c00)
+#define R_GPIOH_AFRL       reg32(0x48001c20)
 #define R_GPIOH_AFRH       reg32(0x48001c24)
 #define R_GPIOH_BRR        reg32(0x48001c28)
 
@@ -226,7 +254,7 @@
 #define R_GPIOI_ODR        reg32(0x48002014)
 #define R_GPIOI_BSRR       reg32(0x48002018)
 #define R_GPIOI_LCKR       reg32(0x4800201c)
-#define R_GPIOI_AFRL       reg32(0x48002000)
+#define R_GPIOI_AFRL       reg32(0x48002020)
 #define R_GPIOI_AFRH       reg32(0x48002024)
 #define R_GPIOI_BRR        reg32(0x48002028)
 
