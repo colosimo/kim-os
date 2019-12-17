@@ -127,6 +127,10 @@ int atoi(const char *p)
 int atoi_hex(const char *p)
 {
 	int ret = 0;
+
+	if (p[0] == '0' && p[1] == 'x') /* Skip initial 0x, if any */
+		p += 2;
+
 	while(ishexdigit(*p)) {
 		ret *= 16;
 		if (isdigit(*p))
