@@ -9,7 +9,7 @@ A:=arch/$(ARCH)
 
 CFLAGS += -Werror -Wall -mcpu=$(CPU) -mthumb -Os -mfloat-abi=soft \
   -nostartfiles -ggdb
-CROSS_COMPILE=/opt/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-
+CROSS_COMPILE=arm-none-eabi-
 INCFLAGS += -I$A
 INCFLAGS += -I$A/cpu-$(CPU)/include
 INCFLAGS += -I$A/cpu-$(CPU)/soc-$(SOC)/include
