@@ -12,6 +12,7 @@
 #define PORTB 1
 #define PORTC 2
 #define PORTD 3
+#define PORTE 4
 #define PORTF 5
 
 #define IO(port, pin) (((port) << 8) | (pin))
