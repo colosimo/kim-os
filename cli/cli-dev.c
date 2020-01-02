@@ -82,7 +82,10 @@ static int r_cmd_cb(int argc, char *argv[], int fdout)
 		return -ERRINVAL;
 	}
 
-	n = atoi(argv[2]);
+	if (argc > 2)
+		n = atoi(argv[2]);
+	else
+		n = 1;
 
 	while (n) {
 		rd = k_read(fd, buf, min(IO_BUF_LEN, n));
@@ -97,7 +100,7 @@ static int r_cmd_cb(int argc, char *argv[], int fdout)
 }
 
 const struct cli_cmd_t attr_cli cli_r = {
-	.narg = 2,
+	.narg = 1,
 	.cmd = r_cmd_cb,
 	.name = "r",
 	.descr = "Read data from a device and dump it.\r\n"
