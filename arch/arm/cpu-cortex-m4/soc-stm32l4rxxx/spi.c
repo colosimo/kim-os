@@ -71,7 +71,8 @@ static int spi_dev_write(int fd, const void *buf, size_t len)
 		return -ERRINVAL;
 	}
 
-	gpio_wr(spi_priv(fd)->cs_io, 0); /* manually handle CS (set to 0) */
+	if (spi_priv(fd)->cs_io != IO_NULL)
+		gpio_wr(spi_priv(fd)->cs_io, 0); /* manually handle CS (set to 0) */
 	or32(cr1r, BIT6);
 
 	for (i = 0; i < len; i++) {
@@ -89,7 +90,8 @@ static int spi_dev_write(int fd, const void *buf, size_t len)
 		cbuf_write(&spi_cbuf[minor], &c, 1);
 	}
 
-	gpio_wr(spi_priv(fd)->cs_io, 1); /* manually handle CS (set to 1) */
+	if (spi_priv(fd)->cs_io != IO_NULL)
+		gpio_wr(spi_priv(fd)->cs_io, 1); /* manually handle CS (set to 1) */
 
 	while (rd32(srr) & (0b11 << 11));
 	while (rd32(srr) & BIT7);
