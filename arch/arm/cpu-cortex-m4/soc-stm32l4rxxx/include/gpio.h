@@ -35,6 +35,9 @@
 #define PULL_NO   0b00
 #define PULL_DOWN 0b10
 
+#define DIR_OUT 1
+#define DIR_IN  0
+
 #define PINSEL(io) (PINSEL0 + 2 * PORT(io) + PIN(io) / 16)
 #define PINMODE(io) (PINMODE0 + 2 * PORT(io) + PIN(io) / 16)
 
@@ -87,5 +90,21 @@ static inline void gpio_odrain(u16 io, int odrain)
 	if (odrain)
 		or32(reg, (1 << PIN(io)));
 }
+
+/* I/O device/driver interface for kim-os: declare a device, having priv
+ * field assigned to gpio_data_t, for each pin which will be used as generic
+ * I/O pin (no AF handled here) */
+void gpio_init(void);
+
+struct gpio_data_t {
+	u16 io; /* GPIO io(port, pin) */
+	u8 dir; /* 1: out, 0: in */
+	u8 pull_mode;
+};
+
+#define declare_gpio_dev(minor, _io, _dir, _pull_mode, _name) \
+	static struct gpio_data_t attr_used gpio##minor = \
+	{.io = _io, .dir = _dir, .pull_mode = _pull_mode}; \
+	declare_dev(MAJ_SOC_GPIO, minor, &gpio##minor, _name);
 
 #endif /* _GPIO_H_ */
