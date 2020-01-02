@@ -22,6 +22,8 @@
 #define PORT(io) ((io) >> 8)
 #define PIN(io) ((io) & 0xff)
 
+#define IO_NULL IO(0xff, 0xff)
+
 #define GPIOx_MODER(x) (R_GPIOA_MODER + (0x400 * PORT(x)) / 4)
 #define GPIOx_OTYPER(x) (R_GPIOA_OTYPER + (0x400 * PORT(x)) / 4)
 #define GPIOx_IDR(x)   (R_GPIOA_IDR   + (0x400 * PORT(x)) / 4)
