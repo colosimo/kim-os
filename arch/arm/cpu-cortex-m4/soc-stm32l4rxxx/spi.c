@@ -30,11 +30,14 @@ static u8 buf1[SPI_BUF_SIZE];
 static u8 buf2[SPI_BUF_SIZE];
 static u8 buf3[SPI_BUF_SIZE];
 
-int spi_init(void)
+int spi_dev_init(int fd)
 {
-	cbuf_init(&spi_cbuf[0], buf1, sizeof(buf1));
-	cbuf_init(&spi_cbuf[1], buf2, sizeof(buf2));
-	cbuf_init(&spi_cbuf[2], buf2, sizeof(buf3));
+	/* FIXME: very ugly */
+	switch (dev_minor(devs(fd)->id)) {
+		case 0: cbuf_init(&spi_cbuf[0], buf1, sizeof(buf1)); break;
+		case 1: cbuf_init(&spi_cbuf[1], buf2, sizeof(buf2)); break;
+		case 2: cbuf_init(&spi_cbuf[2], buf3, sizeof(buf3)); break;
+	}
 	return 0;
 }
 
@@ -125,6 +128,7 @@ static int spi_dev_read(int fd, void *buf, size_t count)
 
 static const k_drv_t attr_drvs spi_dev_drv = {
 	.maj = MAJ_SOC_SPI,
+	.init = spi_dev_init,
 	.read = spi_dev_read,
 	.write = spi_dev_write,
 	.avail = spi_dev_avail,

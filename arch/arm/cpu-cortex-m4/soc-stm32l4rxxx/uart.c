@@ -56,11 +56,14 @@ void isr_usart3(void)
 	}
 }
 
-int uart_init(void)
+int uart_init(int fd)
 {
-	cbuf_init(&uart_cbuf[0], buf1, sizeof(buf1));
-	cbuf_init(&uart_cbuf[1], buf2, sizeof(buf2));
-	cbuf_init(&uart_cbuf[2], buf3, sizeof(buf3));
+	/* FIXME: very ugly */
+	switch (dev_minor(devs(fd)->id)) {
+		case 0: cbuf_init(&uart_cbuf[0], buf1, sizeof(buf1)); break;
+		case 1: cbuf_init(&uart_cbuf[1], buf2, sizeof(buf2)); break;
+		case 2: cbuf_init(&uart_cbuf[2], buf3, sizeof(buf3)); break;
+	}
 	return 0;
 }
 
@@ -128,6 +131,7 @@ static int uart_write(int fd, const void *buf, size_t count)
 static const k_drv_t attr_drvs uart_drv = {
 	.maj = MAJ_SOC_UART,
 	.name = "stm32-uart",
+	.init = uart_init,
 	.read = uart_read,
 	.write = uart_write,
 	.avail = uart_avail,
