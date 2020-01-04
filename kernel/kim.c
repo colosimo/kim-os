@@ -8,7 +8,9 @@
 
 #include <basic.h>
 #include <kim.h>
+#include <kim-io.h>
 #include <linker.h>
+#include <log.h>
 
 extern void sleep(void);
 
@@ -76,6 +78,18 @@ void task_stepall(void)
 void attr_weak k_main(void)
 {
 	struct task_t *t = tasks(0);
+	struct k_dev_t *d = devs(0);
+	int fd;
+
+	for (; d != &__stop_devs; d++) {
+		fd = k_fd(dev_major(d->id), dev_minor(d->id));
+		if (fd < 0 || !d->drv) {
+			err("Could not open %s (%04x)\n", d->name, d->id);
+			continue;
+		}
+		if (d->drv->init)
+			d->drv->init(fd);
+	}
 
 	for (;t != &__stop_tsks; t++) {
 		if (!t->no_autorun)
