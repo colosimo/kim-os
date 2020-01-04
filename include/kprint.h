@@ -18,4 +18,7 @@ void k_fprintf(int fd, const char *fmt, ...) __attribute__((format(printf,2,3)))
 
 #define kprint k_printf
 
+/* Dump a hex buffer byte by byte */
+void k_dumphex(const char *descr, void *buf, int len);
+
 #endif

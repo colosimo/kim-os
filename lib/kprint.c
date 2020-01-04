@@ -195,3 +195,16 @@ void k_fprintf(int fd, const char *fmt, ...)
 	vkprint(fmt, args, _fprintf);
 	va_end(args);
 }
+
+void k_dumphex(const char *descr, void *buf, int len)
+{
+	int i;
+	if (descr)
+		k_printf("-- begin %s --\n", descr);
+	for (i = 0; i < len; i++) {
+		k_printf("%02x ", ((u8*)buf)[i]);
+		if (i % 8 == 7)
+			k_printf("\n");
+	}
+	k_printf("\n-- end %s --\n", descr);
+}
