@@ -22,7 +22,6 @@ int spi_init(void);
 
 struct spi_data_t {
 	u16 cs_io; /* io(port, pin) of GPIO used as chip select */
-	int fd;
 };
 
 #define declare_spi_dev(minor, _cs_io, _name) \
