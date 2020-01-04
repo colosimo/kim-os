@@ -18,13 +18,10 @@
 
 #define UART_BUF_SIZE 96
 
-static struct cbuf_t uart_cbuf[3];
-
-/* FIXME: ugly, better move buffers to priv field of uart devices
+/* FIXME: ugly, better move uart_cbuf to priv field of uart devices
  * (define uart_data_t in uart.h) */
-static u8 buf1[UART_BUF_SIZE];
-static u8 buf2[UART_BUF_SIZE];
-static u8 buf3[UART_BUF_SIZE];
+static struct cbuf_t uart_cbuf[3];
+static u8 buf[3][UART_BUF_SIZE];
 
 void isr_usart1(void)
 {
@@ -58,12 +55,8 @@ void isr_usart3(void)
 
 int uart_init(int fd)
 {
-	/* FIXME: very ugly */
-	switch (dev_minor(devs(fd)->id)) {
-		case 0: cbuf_init(&uart_cbuf[0], buf1, sizeof(buf1)); break;
-		case 1: cbuf_init(&uart_cbuf[1], buf2, sizeof(buf2)); break;
-		case 2: cbuf_init(&uart_cbuf[2], buf3, sizeof(buf3)); break;
-	}
+	u8 min = dev_minor(devs(fd)->id);
+	cbuf_init(&uart_cbuf[min], buf[min], sizeof(buf[min]));
 	return 0;
 }
 
