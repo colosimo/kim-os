@@ -12,7 +12,6 @@
 #include <kim-io-defs.h>
 #include <reg.h>
 #include <spi.h>
-#include <cbuf.h>
 #include <linker.h>
 #include <errcode.h>
 #include <gpio.h>
@@ -24,20 +23,12 @@
 
 #define spi_priv(fd) ((struct spi_data_t*)(devs(fd)->priv))
 
-static struct cbuf_t spi_cbuf[3]; /* FIXME: ugly, better move buffers to
-    spi_data_t (see spi.h)*/
-static u8 buf1[SPI_BUF_SIZE];
-static u8 buf2[SPI_BUF_SIZE];
-static u8 buf3[SPI_BUF_SIZE];
+static u8 buf[3][SPI_BUF_SIZE];
 
 int spi_dev_init(int fd)
 {
-	/* FIXME: very ugly */
-	switch (dev_minor(devs(fd)->id)) {
-		case 0: cbuf_init(&spi_cbuf[0], buf1, sizeof(buf1)); break;
-		case 1: cbuf_init(&spi_cbuf[1], buf2, sizeof(buf2)); break;
-		case 2: cbuf_init(&spi_cbuf[2], buf3, sizeof(buf3)); break;
-	}
+	u8 min = dev_minor(devs(fd)->id);
+	cbuf_init(&spi_priv(fd)->cbuf, buf[min], sizeof(buf[min]));
 	return 0;
 }
 
@@ -90,7 +81,7 @@ static int spi_dev_write(int fd, const void *buf, size_t len)
 
 		c = rd8(drr) & 0xff;
 		while((rd32(srr) & BIT0)); /* read */
-		cbuf_write(&spi_cbuf[minor], &c, 1);
+		cbuf_write(&spi_priv(fd)->cbuf, &c, 1);
 	}
 
 	if (spi_priv(fd)->cs_io != IO_NULL)
@@ -106,24 +97,15 @@ static int spi_dev_write(int fd, const void *buf, size_t len)
 
 static int spi_dev_avail(int fd)
 {
-	int minor = dev_minor(devs(fd)->id);
-
-	if (minor > array_size(spi_cbuf))
-		return -ERRINVAL;
-	return cbuf_avail(&spi_cbuf[minor]);
+	return cbuf_avail(&spi_priv(fd)->cbuf);
 }
 
 static int spi_dev_read(int fd, void *buf, size_t count)
 {
-	int minor = dev_minor(devs(fd)->id);
-
-	if (minor > array_size(spi_cbuf))
-		return -ERRINVAL;
-
 	if (!buf || count < 0)
 		return -ERRINVAL;
 
-	return cbuf_read(&spi_cbuf[minor], buf, count);
+	return cbuf_read(&spi_priv(fd)->cbuf, buf, count);
 }
 
 static const k_drv_t attr_drvs spi_dev_drv = {
