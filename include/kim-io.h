@@ -30,7 +30,7 @@ int k_fd_byname(const char *name);
 int k_read(int fd, void *buf, size_t count);
 int k_write(int fd, const void *buf, size_t count);
 int k_avail(int fd);
-int k_ioctl(int d, int cmd, void *buf, size_t count);
+int k_ioctl(int fd, int cmd, void *buf, size_t count);
 
 struct __attribute__((packed)) k_drv_t {
 	int (*read)(int fd, void *buf, size_t count);
