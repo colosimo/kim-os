@@ -83,11 +83,25 @@ static int cli_exec(char *cmdline, int fdout)
 					argc++;
 					status = 1;
 				}
+
 			case 1: /* Searching space */
+				if (*cmdline == '"') {
+					argv[argc - 1]++;
+					status = 2;
+					break;
+				}
+
 				if (isspace(*cmdline)) {
 					*cmdline = '\0';
 					status = 0;
 				}
+
+			case 2: /* Inside double quotes " " */
+				if (*cmdline == '"') {
+					*cmdline = '\0';
+					status = 1;
+				}
+
 			default:
 				break;
 		}
