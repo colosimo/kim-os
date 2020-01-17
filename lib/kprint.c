@@ -24,6 +24,13 @@ static int buf_putchar(int c)
 	return 0;
 }
 
+static int log_putchar(int c)
+{
+	if (c == '\n')
+		log_putchar('\r');
+	return putchar(c);
+}
+
 static int _fprintf_fd;
 static int _fprintf(int c)
 {
@@ -109,8 +116,6 @@ static void vkprint(const char *fmt, va_list args, int (*_putchar)(int))
 		}
 
 		if (!perc) {
-			if (*fmt == '\n')
-				_putchar('\r');
 			_putchar(*fmt);
 			continue;
 		}
@@ -172,7 +177,7 @@ void k_printf(const char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	vkprint(fmt, args, putchar);
+	vkprint(fmt, args, log_putchar);
 	va_end(args);
 }
 
