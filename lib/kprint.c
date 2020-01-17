@@ -34,6 +34,8 @@ static int log_putchar(int c)
 static int _fprintf_fd;
 static int _fprintf(int c)
 {
+	if (c == '\n')
+		_fprintf('\r');
 	k_write(_fprintf_fd, &c, 1);
 	return 0;
 }
