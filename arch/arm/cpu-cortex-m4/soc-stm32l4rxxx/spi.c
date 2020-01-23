@@ -19,7 +19,7 @@
 
 #include <kim.h>
 
-#define SPI_BUF_SIZE 32
+#define SPI_BUF_SIZE 256
 
 #define spi_priv(fd) ((struct spi_data_t*)(devs(fd)->priv))
 
