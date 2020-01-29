@@ -285,6 +285,56 @@
 #define R_SPI3_RXCRCR      reg32(0x40003c14)
 #define R_SPI3_TXCRCR      reg32(0x40003c18)
 
-/* SPIx generic define registers */
+/* I2C1 registers */
+#define R_I2C1_CR1         reg32(0x40005400)
+#define R_I2C1_CR2         reg32(0x40005404)
+#define R_I2C1_OAR1        reg32(0x40005408)
+#define R_I2C1_OAR2        reg32(0x4000540c)
+#define R_I2C1_TIMINGR     reg32(0x40005410)
+#define R_I2C1_TIMEOUTR    reg32(0x40005414)
+#define R_I2C1_ISR         reg32(0x40005418)
+#define R_I2C1_ICR         reg32(0x4000541c)
+#define R_I2C1_PECR        reg32(0x40005420)
+#define R_I2C1_RXDR        reg32(0x40005424)
+#define R_I2C1_TXDR        reg32(0x40005428)
+
+/* I2C2 registers */
+#define R_I2C2_CR1         reg32(0x40005800)
+#define R_I2C2_CR2         reg32(0x40005804)
+#define R_I2C2_OAR1        reg32(0x40005808)
+#define R_I2C2_OAR2        reg32(0x4000580c)
+#define R_I2C2_TIMINGR     reg32(0x40005810)
+#define R_I2C2_TIMEOUTR    reg32(0x40005814)
+#define R_I2C2_ISR         reg32(0x40005818)
+#define R_I2C2_ICR         reg32(0x4000581c)
+#define R_I2C2_PECR        reg32(0x40005820)
+#define R_I2C2_RXDR        reg32(0x40005824)
+#define R_I2C2_TXDR        reg32(0x40005828)
+
+/* I2C3 registers */
+#define R_I2C3_CR1         reg32(0x40005c00)
+#define R_I2C3_CR2         reg32(0x40005c04)
+#define R_I2C3_OAR1        reg32(0x40005c08)
+#define R_I2C3_OAR2        reg32(0x40005c0c)
+#define R_I2C3_TIMINGR     reg32(0x40005c10)
+#define R_I2C3_TIMEOUTR    reg32(0x40005c14)
+#define R_I2C3_ISR         reg32(0x40005c18)
+#define R_I2C3_ICR         reg32(0x40005c1c)
+#define R_I2C3_PECR        reg32(0x40005c20)
+#define R_I2C3_RXDR        reg32(0x40005c24)
+#define R_I2C3_TXDR        reg32(0x40005c28)
+
+/* I2C4 registers */
+#define R_I2C4_CR1         reg32(0x40008400)
+#define R_I2C4_CR2         reg32(0x40008404)
+#define R_I2C4_OAR1        reg32(0x40008408)
+#define R_I2C4_OAR2        reg32(0x4000840c)
+#define R_I2C4_TIMINGR     reg32(0x40008410)
+#define R_I2C4_TIMEOUTR    reg32(0x40008414)
+#define R_I2C4_ISR         reg32(0x40008418)
+#define R_I2C4_ICR         reg32(0x4000841c)
+#define R_I2C4_PECR        reg32(0x40008420)
+#define R_I2C4_RXDR        reg32(0x40008424)
+#define R_I2C4_TXDR        reg32(0x40008428)
 
 #endif /* _REG_H_ */
