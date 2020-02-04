@@ -26,6 +26,7 @@
 
 #define GPIOx_MODER(x) (R_GPIOA_MODER + (0x400 * PORT(x)) / 4)
 #define GPIOx_OTYPER(x) (R_GPIOA_OTYPER + (0x400 * PORT(x)) / 4)
+#define GPIOx_OSPEEDR(x) (R_GPIOA_OSPEEDR + (0x400 * PORT(x)) / 4)
 #define GPIOx_IDR(x)   (R_GPIOA_IDR   + (0x400 * PORT(x)) / 4)
 #define GPIOx_BSRR(x)  (R_GPIOA_BSRR  + (0x400 * PORT(x)) / 4)
 #define GPIOx_AFRL(x)  (R_GPIOA_AFRL  + (0x400 * PORT(x)) / 4)
@@ -47,8 +48,14 @@ static inline void gpio_dir(u16 io, int out)
 {
 	volatile u32 *reg = GPIOx_MODER(io);
 	and32(reg, ~(0b11 << (2 * PIN(io))));
-	if (out)
+	if (out) {
 		or32(reg, (0b01 << (2 * PIN(io))));
+
+		/* Very high speed */
+		reg = GPIOx_OSPEEDR(io);
+		and32(reg, ~(0b11 << (2 * PIN(io))));
+		or32(reg, ~(0b11 << (2 * PIN(io))));
+	}
 }
 
 static inline int gpio_rd(u16 io)
