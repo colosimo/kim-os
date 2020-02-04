@@ -337,4 +337,22 @@
 #define R_I2C4_RXDR        reg32(0x40008424)
 #define R_I2C4_TXDR        reg32(0x40008428)
 
+/* Generic I2C register defines */
+#define I2C1 0x40005400  /* base for I2C1 */
+#define I2C2 0x40005800  /* base for I2C2 */
+#define I2C3 0x40005c00  /* base for I2C3 */
+#define I2C4 0x40008400  /* base for I2C4 */
+
+#define R_I2C_CR1(base)      reg32(base)
+#define R_I2C_CR2(base)      reg32(base + 0x04)
+#define R_I2C_OAR1(base)     reg32(base + 0x08)
+#define R_I2C_OAR2(base)     reg32(base + 0x0c)
+#define R_I2C_TIMINGR(base)  reg32(base + 0x10)
+#define R_I2C_TIMEOUTR(base) reg32(base + 0x14)
+#define R_I2C_ISR(base)      reg32(base + 0x18)
+#define R_I2C_ICR(base)      reg32(base + 0x1c)
+#define R_I2C_PECR(base)     reg32(base + 0x20)
+#define R_I2C_RXDR(base)     reg32(base + 0x24)
+#define R_I2C_TXDR(base)     reg32(base + 0x28)
+
 #endif /* _REG_H_ */
