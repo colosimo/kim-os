@@ -108,7 +108,8 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 	    k_elapsed(tstart) < I2C_TOUT);
 
 	/* Stop */
-	or32(R_I2C_CR2(b), BIT14);
+	if (!xfer->nostop)
+		or32(R_I2C_CR2(b), BIT14);
 
 	return cnt;
 
