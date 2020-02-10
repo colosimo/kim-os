@@ -24,8 +24,10 @@ void task_start(task_t *t) {
 		return;
 	t->last_run = 0;
 	t->running = 1;
+	t->tstart = k_ticks();
 	if (t->start)
 		t->start(t);
+	t->hits = 0;
 }
 
 void task_stop(task_t *t) {
@@ -34,13 +36,17 @@ void task_stop(task_t *t) {
 
 	if (t->stop)
 		t->stop(t);
-	t->running = 0;
+
+	task_done(t);
 }
 
 void task_done(task_t *t)
 {
 	if (!t)
 		return;
+
+	log("%s done, %d hits in %dms\n", t->name, (uint)t->hits,
+		(uint)k_elapsed(t->tstart));
 
 	t->running = 0;
 }
@@ -68,10 +74,15 @@ void task_stepall(void)
 	for (;t != &__stop_tsks; t++) {
 		if (!t->running)
 			continue;
+
+		if (t->max_duration && k_elapsed(t->tstart) > t->max_duration)
+			task_done(t);
+
 		if (k_elapsed(t->last_run) < MS_TO_TICKS(t->intvl_ms))
 			continue;
 		t->last_run = k_ticks();
 		t->step(t);
+		t->hits++;
 	}
 }
 

@@ -30,6 +30,9 @@ struct task_t {
 	void *priv;
 	u32 last_run;
 	u32 intvl_ms;
+	u32 tstart;
+	u32 max_duration;
+	u32 hits;
 	const char *name;
 	int running: 1;
 	int no_autorun: 1;
