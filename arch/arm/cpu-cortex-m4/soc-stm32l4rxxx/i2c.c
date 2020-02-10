@@ -50,6 +50,7 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 		and32(R_I2C_CR2(b), ~BIT10);
 	}
 
+	and32(R_I2C_CR2(b), ~0x3ff);
 	or32(R_I2C_CR2(b), ((u32)xfer->addr) << 1);
 
 	/* Start */
