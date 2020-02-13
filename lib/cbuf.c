@@ -27,6 +27,9 @@ int cbuf_read(struct cbuf_t *c, void *buf, size_t size)
 	int i = 0;
 	for (; c->rd != c->wr && size; c->rd = (c->rd + 1) % c->size, size--, i++)
 		((u8*)buf)[i] = c->buf[c->rd];
+
+	if (c->rd == c->wr)
+		c->rd = c->wr = 0;
 	return i;
 }
 
