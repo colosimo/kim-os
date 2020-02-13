@@ -26,4 +26,12 @@ int cbuf_read(struct cbuf_t *c, void *buf, size_t len);
 
 int cbuf_write(struct cbuf_t *c, void *buf, size_t len);
 
+void *cbuf_get_wrpos(struct cbuf_t *c, size_t *size);
+
+void cbuf_wrdone(struct cbuf_t *c, size_t len);
+
+void *cbuf_get_rdpos(struct cbuf_t *c, size_t *size);
+
+void cbuf_rddone(struct cbuf_t *c, size_t len);
+
 #endif /* _CBUF_H_ */

@@ -42,3 +42,34 @@ int cbuf_write(struct cbuf_t *c, void *buf, size_t size)
 	}
 	return i;
 }
+
+void *cbuf_get_wrpos(struct cbuf_t *c, size_t *size)
+{
+	if (c->rd > c->wr)
+		*size = c->rd - c->wr;
+	else
+		*size = c->size - c->wr;
+	return &c->buf[c->wr];
+}
+
+void cbuf_wrdone(struct cbuf_t *c, size_t len)
+{
+	c->wr = (c->wr + len) % c->size;
+}
+
+void *cbuf_get_rdpos(struct cbuf_t *c, size_t *size)
+{
+	if (c->wr > c->rd)
+		*size = min(cbuf_avail(c), c->wr - c->rd);
+	else
+		*size = min(cbuf_avail(c), c->size - c->rd);
+
+	return &c->buf[c->rd];
+}
+
+void cbuf_rddone(struct cbuf_t *c, size_t len)
+{
+	c->rd = (c->rd + len) % c->size;
+	if (c->rd == c->wr)
+		c->rd = c->wr = 0;
+}
