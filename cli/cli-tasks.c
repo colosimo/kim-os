@@ -22,10 +22,10 @@ static int ps_cmd_cb(int argc, char *argv[], int fdout)
 {
 	struct task_t *t = tasks(0);
 
-	k_fprintf(fdout, "id    stat name\n");
+	k_fprintf(fdout, "id    stat name         intvl (theor)\n");
 	for (;t != &__stop_tsks; t++) {
-		k_fprintf(fdout, "%5d %4s %s\n", task_id(t), t->running ? "R" : "S",
-		    t->name);
+		k_fprintf(fdout, "%5d %4s %12s %04d (%04d)  \n", task_id(t), t->running ? "R" : "S",
+		    t->name, (uint)(k_elapsed(t->tstart) / t->hits), (uint)t->intvl_ms);
 	}
 	return 0;
 }
