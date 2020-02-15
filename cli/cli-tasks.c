@@ -54,15 +54,19 @@ static task_t *task_get_by_arg(const char *argv, int fdout)
 
 static int start_cmd_cb(int argc, char *argv[], int fdout)
 {
-	struct task_t *t = task_get_by_arg(argv[1], fdout);
+	int i;
+	for (i = 1; i < argc; i++) {
 
-	if (!t)
-		return 0;
+		struct task_t *t = task_get_by_arg(argv[i], fdout);
 
-	if (t->running)
-		k_fprintf(fdout, "task already running: %s\n", argv[1]);
-	else
-		task_start(t);
+		if (!t)
+			continue;
+
+		if (t->running)
+			k_fprintf(fdout, "task already running: %s\n", argv[i]);
+		else
+			task_start(t);
+	}
 
 	return 0;
 }
@@ -71,20 +75,24 @@ const struct cli_cmd_t attr_cli cli_ = {
 	.narg = 1,
 	.cmd = start_cmd_cb,
 	.name = "start",
-	.descr = "Start task. Usage: start <id> or start <name>"
+	.descr = "Start task(s). Usage: start <id1> <id2>... "
+	    "or start <name1> <name2> <id3>...",
 };
 
 static int stop_cmd_cb(int argc, char *argv[], int fdout)
 {
-	struct task_t *t = task_get_by_arg(argv[1], fdout);
+	int i;
+	for (i = 1; i < argc; i++) {
+		struct task_t *t = task_get_by_arg(argv[i], fdout);
 
-	if (!t)
-		return 0;
+		if (!t)
+			continue;
 
-	if (!t->running)
-		k_fprintf(fdout, "task not running: %s\n", argv[1]);
-	else
-		task_stop(t);
+		if (!t->running)
+			k_fprintf(fdout, "task not running: %s\n", argv[i]);
+		else
+			task_stop(t);
+	}
 
 	return 0;
 }
@@ -93,5 +101,6 @@ const struct cli_cmd_t attr_cli cli_stop = {
 	.narg = 1,
 	.cmd = stop_cmd_cb,
 	.name = "stop",
-	.descr = "Stop task. Usage: stop <id> or stop <name>"
+	.descr = "Stop task(s). Usage: stop <id1> <id2>... "
+	    "or stop <name1> <name2> <id3>...",
 };
