@@ -24,8 +24,13 @@ static int ps_cmd_cb(int argc, char *argv[], int fdout)
 
 	k_fprintf(fdout, "id    stat name         intvl (theor)\n");
 	for (;t != &__stop_tsks; t++) {
-		k_fprintf(fdout, "%5d %4s %12s %04d (%04d)  \n", task_id(t), t->running ? "R" : "S",
-		    t->name, (uint)(k_elapsed(t->tstart) / t->hits), (uint)t->intvl_ms);
+		k_fprintf(fdout, "%5d %4s %12s", task_id(t), t->running ? "R" : "S",
+		    t->name);
+		if (t->running)
+			k_fprintf(fdout, " %04d (%04d)  \n",
+			    (uint)(k_elapsed(t->tstart) / t->hits), (uint)t->intvl_ms);
+		else
+			k_fprintf(fdout, "\n");
 	}
 	return 0;
 }
