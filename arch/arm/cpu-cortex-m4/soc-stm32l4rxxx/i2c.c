@@ -19,7 +19,7 @@
 
 #include <kim.h>
 
-#define I2C_TOUT_MS 200
+#define I2C_TOUT_MS 50
 #define I2C_TOUT MS_TO_TICKS(I2C_TOUT_MS)
 
 static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
