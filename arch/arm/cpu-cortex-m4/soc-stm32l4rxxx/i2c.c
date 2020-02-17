@@ -29,6 +29,7 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 	u32 tstart;
 	int cnt;
 	int timeout;
+	u32 isr;
 
 	dbg("xfer len %d\n", xfer->len);
 
@@ -92,7 +93,13 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 			while (((rd32(R_I2C_ISR(b)) & BIT0) == 0) &&
 			    k_elapsed(tstart) < I2C_TOUT);
 
-			if ((rd32(R_I2C_ISR(b)) & BIT0) == 0)
+			isr = rd32(R_I2C_ISR(b));
+
+			if (isr & BIT4) {
+				err("%s %d\n", __func__, __LINE__);
+				goto done;
+			}
+			else if ((isr & BIT0) == 0)
 			    timeout = 1;
 		}
 
