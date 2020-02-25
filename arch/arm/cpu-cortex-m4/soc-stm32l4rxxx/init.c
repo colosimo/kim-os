@@ -150,7 +150,7 @@ void attr_used init(void)
 	wr32(R_SYST_CVR, 0);
 	wr32(R_SYST_CSR, BIT0 | BIT1 | BIT2);
 
-	log("ahb freq is %d\n", (uint)ahb_freq);
+	dbg("ahb freq is %d\n", (uint)ahb_freq);
 
 	/* Skip to main */
 	k_main();
