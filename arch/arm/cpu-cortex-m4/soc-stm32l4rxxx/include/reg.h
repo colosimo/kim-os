@@ -355,4 +355,27 @@
 #define R_I2C_RXDR(base)     reg32(base + 0x24)
 #define R_I2C_TXDR(base)     reg32(base + 0x28)
 
+/* DFSDM1 registers */
+#define R_DFSDM1_CHyCFGR1(y)   reg32(0x40016000 + ((y) * 0x20))
+#define R_DFSDM1_CHyCFGR2(y)   reg32(0x40016004 + ((y) * 0x20))
+#define R_DFSDM1_CHyAWSCDR(y)  reg32(0x40016008 + ((y) * 0x20))
+#define R_DFSDM1_CHyWDATR(y)   reg32(0x4001600c + ((y) * 0x20))
+#define R_DFSDM1_CHyDATINR(y)  reg32(0x40016010 + ((y) * 0x20))
+#define R_DFSDM1_CHyDLYR(y)    reg32(0x40016014 + ((y) * 0x20))
+#define R_DFSDM1_FLTxCR1(x)    reg32(0x40016100 + ((x) * 0x80))
+#define R_DFSDM1_FLTxCR2(x)    reg32(0x40016104 + ((x) * 0x80))
+#define R_DFSDM1_FLTxISR(x)    reg32(0x40016108 + ((x) * 0x80))
+#define R_DFSDM1_FLTxICR(x)    reg32(0x4001610c + ((x) * 0x80))
+#define R_DFSDM1_FLTxJCHGR(x)  reg32(0x40016110 + ((x) * 0x80))
+#define R_DFSDM1_FLTxFCR(x)    reg32(0x40016114 + ((x) * 0x80))
+#define R_DFSDM1_FLTxJDATAR(x) reg32(0x40016118 + ((x) * 0x80))
+#define R_DFSDM1_FLTxRDATAR(x) reg32(0x4001611c + ((x) * 0x80))
+#define R_DFSDM1_FLTxAWHTR(x)  reg32(0x40016120 + ((x) * 0x80))
+#define R_DFSDM1_FLTxAWLTR(x)  reg32(0x40016124 + ((x) * 0x80))
+#define R_DFSDM1_FLTxAWSR(x)   reg32(0x40016128 + ((x) * 0x80))
+#define R_DFSDM1_FLTxAWCFR(x)  reg32(0x4001612c + ((x) * 0x80))
+#define R_DFSDM1_FLTxEXMAX(x)  reg32(0x40016130 + ((x) * 0x80))
+#define R_DFSDM1_FLTxEXMIN(x)  reg32(0x40016134 + ((x) * 0x80))
+#define R_DFSDM1_FLTxCNVTIMR(x) reg32(0x40016138 + ((x) * 0x80))
+
 #endif /* _REG_H_ */
