@@ -103,14 +103,14 @@ OBJS += $(patsubst %.c,%.o,$(wildcard lib/*.c)) \
         $(patsubst %.c,%.o,$(wildcard kernel/*.c)) \
         $(patsubst %.c,%.o,$(wildcard arch/$(ARCH)/*.c)) \
 
-DEPS := $(OBJS:.o=.d)
-
--include $(DEPS)
 -include arch/$(ARCH)/$(ARCH).mk
-
 -include app/$(APP)/$(APP).mk
 
-INCFLAGS += -Iarch/$(ARCH)/include -Iinclude -Igenerated -Itasks
+DEPS := $(OBJS:.o=.d)
+-include $(DEPS)
+
+INCFLAGS += -Iarch/$(ARCH)/include -Iapp/$(APP) -Iinclude -Igenerated -Itasks \
+    -Idrivers
 CFLAGS += -DSOC_$(SOC) -DSOC_VARIANT_$(SOC_VARIANT)
 
 # The list of files to be cleaned is:
