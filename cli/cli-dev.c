@@ -13,7 +13,6 @@
 #include <basic.h>
 #include <kim.h>
 #include <linker.h>
-#include <version.h>
 #include <kim-io.h>
 #include <kim-io-defs.h>
 #include <errcode.h>
