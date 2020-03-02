@@ -12,5 +12,6 @@
 #define ERRINVAL    1 /* Invalid parameter */
 #define ERRIO       2 /* Error while performing I/O operation */
 #define ERRTIMEOUT  3 /* Timeout error */
+#define ERROVERRUN  4 /* Overrun error */
 
 #endif /* _ERRCODES_ */
