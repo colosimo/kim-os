@@ -18,6 +18,7 @@ void k_main(void);
 /* System ticks */
 
 #define MS_TO_TICKS(ms) ((k_ticks_freq() * (ms)) / 1000)
+#define TICKS_TO_MS(tk) ((1000 * (tk)) / k_ticks_freq())
 
 u32 k_ticks(void);
 u32 k_ticks_freq(void);
