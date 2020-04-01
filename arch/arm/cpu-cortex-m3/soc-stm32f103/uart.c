@@ -59,8 +59,8 @@ int uart_init(u32 _cpu_freq)
 	cbuf_init(&uart_cbuf[2], buf3, sizeof(buf3));
 
 	or32(R_NVIC_ISER(1), BIT5); /* USART1 is irq 37 */
-	or32(R_NVIC_ISER(1), BIT6); /* USART1 is irq 38 */
-	or32(R_NVIC_ISER(1), BIT7); /* USART1 is irq 39 */
+	or32(R_NVIC_ISER(1), BIT6); /* USART2 is irq 38 */
+	or32(R_NVIC_ISER(1), BIT7); /* USART3 is irq 39 */
 
 	return 0;
 }
