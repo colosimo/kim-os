@@ -12,7 +12,7 @@
 #include <basic.h>
 
 #ifdef SOC_VARIANT_stm32f469ai
-#define STACK_TOP ((void*)(0x20000000 + 384 * _K))
+#define STACK_TOP ((void*)(0x20000000 + 320 * _K))
 #else
 #error Unhandled SOC_VARIANT: $(SOC_VARIANT)
 #endif
