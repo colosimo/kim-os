@@ -93,6 +93,8 @@ int isalnum(int c);
 /* Useful constants */
 #define _K 1024
 #define _M (_K * _K)
+#define KHZ 1000
+#define MHZ 1000000
 
 /* Hardware registers definition and manipulation */
 #define reg8(x)  ((volatile uint8_t*)(x))
