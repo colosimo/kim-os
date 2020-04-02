@@ -11,6 +11,15 @@
 #include <linker.h>
 #include <cpu.h>
 #include <reg.h>
+#include <log.h>
+
+void isr_none(void)
+{
+	u32 icsr = rd32(R_SCB_ICSR);
+	crt("Unhandled ICSR %08x, (IRQ %d)\n", (uint)icsr,
+	    ((int)icsr & 0x1ff) - 16);
+	while(1);
+}
 
 static const void *attr_isrv_sys _isrv_sys[] = {
 	/* Cortex-M4 system interrupts */
