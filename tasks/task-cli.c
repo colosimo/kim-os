@@ -154,7 +154,9 @@ static void cli_start(struct task_t *t)
 			}
 		}
 	}
-	priv_reset(t);
+
+	if (cli->fd >= 0)
+		priv_reset(t);
 }
 
 static void cli_step(struct task_t *t)
