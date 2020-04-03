@@ -17,6 +17,11 @@ void cbuf_init(struct cbuf_t *c, void *buf, size_t size)
 	c->rd = 0;
 }
 
+void cbuf_clear(struct cbuf_t *c)
+{
+	c->wr = c->rd = 0;
+}
+
 int cbuf_avail(struct cbuf_t *c)
 {
 	return (c->wr + c->size - c->rd) % c->size;

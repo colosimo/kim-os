@@ -20,6 +20,8 @@ struct cbuf_t {
 
 void cbuf_init(struct cbuf_t *c, void *buf, size_t size);
 
+void cbuf_clear(struct cbuf_t *c);
+
 int cbuf_avail(struct cbuf_t *c);
 
 int cbuf_read(struct cbuf_t *c, void *buf, size_t len);
