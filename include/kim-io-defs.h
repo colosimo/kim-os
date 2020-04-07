@@ -17,4 +17,12 @@
 #define MAJ_SOC_ADC     4
 #define MAJ_SOC_PWM     5
 
+struct i2c_xfer_t {
+	u8 addr;
+	u8 *buf;
+	size_t len;
+	u8 dir;
+	u8 nostop;
+};
+
 #endif /* _KIM_IO_DEFS_H_ */

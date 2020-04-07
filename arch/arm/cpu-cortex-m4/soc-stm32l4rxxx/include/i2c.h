@@ -15,12 +15,4 @@
 #define MINOR_I2C3 2
 #define MINOR_I2C4 3
 
-struct i2c_xfer_t {
-	u8 addr;
-	u8 *buf;
-	size_t len;
-	u8 dir;
-	u8 nostop;
-};
-
 #endif /* _I2C_H_ */
