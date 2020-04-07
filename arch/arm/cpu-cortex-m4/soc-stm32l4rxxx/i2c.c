@@ -41,20 +41,21 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 		default: return -ERRINVAL;
 	}
 
+	/* Set NBYTES */
 	and32(R_I2C_CR2(b), ~(0xff << 16));
 	or32(R_I2C_CR2(b), xfer->len << 16);
 
-	if (xfer->dir == DIR_IN) {
+	/* Set Transfer direction (RD_WRN) */
+	if (xfer->dir == DIR_IN)
 		or32(R_I2C_CR2(b), BIT10);
-	}
-	else {
+	else
 		and32(R_I2C_CR2(b), ~BIT10);
-	}
 
+	/* Set Slave address, SADD */
 	and32(R_I2C_CR2(b), ~0x3ff);
 	or32(R_I2C_CR2(b), ((u32)xfer->addr) << 1);
 
-	/* Start */
+	/* Generate a Start */
 	or32(R_I2C_CR2(b), BIT13);
 	cnt = 0;
 
@@ -62,14 +63,16 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 
 		tstart = k_ticks();
 
+		/* Transmit data (TXDATA) */
 		if (xfer->dir == DIR_OUT)
 			wr32(R_I2C_TXDR(b), xfer->buf[cnt]);
 
-
+		/* Wait for Start + Address success (or fail on timeout) */
 		tstart = k_ticks();
 		while(rd32(R_I2C_CR2(b)) & BIT13 && k_elapsed(tstart) < I2C_TOUT);
 
 		if ((rd32(R_I2C_CR2(b)) & BIT13) != 0) {
+			/* Start + Address failure, send STOP and abort */
 			or32(R_I2C_CR2(b), BIT14);
 			err("%s %d\n", __func__, __LINE__);
 			goto done;
@@ -79,7 +82,7 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 		tstart = k_ticks();
 
 		if (xfer->dir == DIR_IN) {
-
+			/* Wait for RXNE (or fail on timeout) */
 			while (((rd32(R_I2C_ISR(b)) & BIT2) == 0) &&
 			    k_elapsed(tstart) < I2C_TOUT);
 
@@ -87,9 +90,9 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 				xfer->buf[cnt] = rd32(R_I2C_RXDR(b));
 			else
 			    timeout = 1;
-
 		}
 		else {
+			/* Wait for TXE (or fail on timeout) */
 			while (((rd32(R_I2C_ISR(b)) & BIT0) == 0) &&
 			    k_elapsed(tstart) < I2C_TOUT);
 
@@ -112,10 +115,11 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 
 	tstart = k_ticks();
 
+	/* Wait for TC (Transfer Complete) */
 	while (((rd32(R_I2C_ISR(b)) & BIT6) == 0) &&
 	    k_elapsed(tstart) < I2C_TOUT);
 
-	/* Stop */
+	/* Generate a Stop */
 	if (!xfer->nostop)
 		or32(R_I2C_CR2(b), BIT14);
 
