@@ -25,7 +25,9 @@
 #define I2C_TOUT_MS 50
 #define I2C_TOUT MS_TO_TICKS(I2C_TOUT_MS)
 
-static int xfer_start(unsigned int b, const uint8_t addr)
+static int i2c_delay_req[3] = {1, 1, 1};
+
+static int xfer_start(unsigned int b, const uint8_t addr, u8 minor)
 {
 	int ret = 0;
 	u32 t;
@@ -42,30 +44,36 @@ static int xfer_start(unsigned int b, const uint8_t addr)
 		goto done;
 	}
 
+	/* HACK: for some reason, a delay is needed here at first xfer;
+	 * more investigation needed to remove this workaround */
+	if (i2c_delay_req[minor]) {
+		t = k_ticks();
+		wrn("Hack: 2ms wait on I2C%d\n", minor + 1);
+		while(k_elapsed(t) < 2);
+		i2c_delay_req[minor] = 0;
+	}
+
 	/* address */
 	wr32(R_I2C_DR(b), addr);
-
 	while ((rd32(R_I2C_SR1(b)) & BIT1) == 0  && k_elapsed(t) < I2C_TOUT);
 
 	if ((rd32(R_I2C_SR1(b)) & BIT1) == 0) {
 		ret = -ERRIO;
-		err("%s %d\n", __func__, __LINE__);
+		err("%s %d addr <%02x> not acked\n", __func__, __LINE__, addr);
+		or32(R_I2C_CR1(b), BIT9);
 		goto done;
 	}
 
-	while ((rd32(R_I2C_SR2(b)) & BIT0) == 0  &&
-	    k_elapsed(t) < I2C_TOUT);
-
+	while ((rd32(R_I2C_SR2(b)) & BIT0) == 0  && k_elapsed(t) < I2C_TOUT);
 	if ((rd32(R_I2C_SR2(b)) & BIT0) == 0) {
 		ret = -ERRIO;
-		err("%s %d\n", __func__, __LINE__);
+		err("%s %d dev not gone to master mode\n", __func__, __LINE__);
 		goto done;
 	}
 
 done:
 	return ret;
 }
-
 
 static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 {
@@ -85,12 +93,14 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 	}
 
 	if (xfer->dir == DIR_IN)
-		ret = xfer_start(b, I2C_R(xfer->addr));
+		ret = xfer_start(b, I2C_R(xfer->addr), minor);
 	else
-		ret = xfer_start(b, I2C_W(xfer->addr));
+		ret = xfer_start(b, I2C_W(xfer->addr), minor);
 
-	if (ret)
+	if (ret) {
+		i2c_delay_req[minor] = 1;
 		return ret;
+	}
 
 	tstart = k_ticks();
 
