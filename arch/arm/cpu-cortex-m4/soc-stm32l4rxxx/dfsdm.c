@@ -23,14 +23,11 @@ static struct cbuf_t cbuf = {
 	.buf = buf,
 };
 
-static int cnt = 0;
-static u32 tstart;
 void isr_dfsdm_flt0(void)
 {
 	i32 datar;
 	datar = ((i32)rd32(R_DFSDM1_FLTxRDATAR(0))) >> 8;
 	cbuf_write(&cbuf, &datar, sizeof(datar));
-	cnt++;
 }
 
 int dfsdm_dev_init(int fd)
@@ -49,8 +46,6 @@ int dfsdm_dev_init(int fd)
 	or32(R_DFSDM1_FLTxCR1(0), BIT0);
 	or32(R_DFSDM1_CHyCFGR1(0), BIT31); /* DFSDM1 global enable */
 	or32(R_DFSDM1_FLTxCR1(0), BIT17);
-	cnt = 0;
-	tstart = k_ticks();
 
 	return 0;
 }
