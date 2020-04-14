@@ -61,6 +61,7 @@ static int xfer_start(unsigned int b, const uint8_t addr, u8 minor)
 		ret = -ERRIO;
 		err("%s %d addr <%02x> not acked\n", __func__, __LINE__, addr);
 		or32(R_I2C_CR1(b), BIT9);
+		while (rd32(R_I2C1_CR1) & BIT9);
 		goto done;
 	}
 
@@ -80,7 +81,7 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 	u8 minor = dev_minor(devs(fd)->id);
 	unsigned int b;
 	u32 tstart;
-	int cnt;
+	int cnt = 0;
 	int ret = 0;
 
 	dbg("xfer len %d\n", xfer->len);
@@ -92,6 +93,8 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 		default: return -ERRINVAL;
 	}
 
+	or32(R_I2C_CR1(b), BIT0);
+
 	if (xfer->dir == DIR_IN)
 		ret = xfer_start(b, I2C_R(xfer->addr), minor);
 	else
@@ -99,7 +102,7 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 
 	if (ret) {
 		i2c_delay_req[minor] = 1;
-		return ret;
+		goto done;
 	}
 
 	tstart = k_ticks();
@@ -107,7 +110,6 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 	if (xfer->dir == DIR_IN)
 		or32(R_I2C_CR1(b), BIT10); /* FIXME needed? */
 
-	cnt = 0;
 	while (cnt < xfer->len) {
 
 		if (xfer->dir == DIR_IN) {
@@ -120,7 +122,8 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 			if (!(rd32(R_I2C_SR1(b)) & BIT6)) {
 				err("%s %d i2c err sr1=%02x\n", __func__, cnt,
 				    (uint)rd32(R_I2C_SR1(b)));
-				return -ERRIO;
+				ret = -ERRIO;
+				goto done;
 			}
 			xfer->buf[cnt] = rd32(R_I2C_DR(b));
 		}
@@ -134,17 +137,22 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 			if (!(rd32(R_I2C_SR1(b)) & BIT7)) {
 				err("%s %d i2c err sr1=%02x\n", __func__, cnt,
 				    (uint)rd32(R_I2C_SR1(b)));
-				return -ERRIO;
+				ret = -ERRIO;
+				goto done;
 			}
 		}
 		cnt++;
 	}
 
 	/* Generate a Stop */
-	if (!xfer->nostop)
+	if (!xfer->nostop) {
 		or32(R_I2C_CR1(b), BIT9);
+		while (rd32(R_I2C1_CR1) & BIT9);
+	}
 
-	return cnt;
+done:
+	and32(R_I2C_CR1(b), ~BIT0);
+	return ret ? ret : cnt;
 }
 
 static int i2c_dev_ioctl(int fd, int cmd, void *buf, size_t count)
