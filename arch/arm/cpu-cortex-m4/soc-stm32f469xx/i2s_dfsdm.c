@@ -21,37 +21,19 @@
 #include <kim.h>
 #include <cbuf.h>
 
-static u8 buf[512 * 4];
+#define BYTES_PER_SAMPLE (1024 / 8) /* 10 bits are 1024 PDM samples, i.e.
+    1024/8 SPI sampled bytes */
+
+static u8 buf[BYTES_PER_SAMPLE * 32]; /* record up to 32 samples (~6ms @5kHz) */
 static struct cbuf_t cbuf = {
 	.size = sizeof(buf),
 	.buf = buf,
 };
 
-/* Look-up Table, declaring how many 1's are present in a nibble.
- * See isr_spi2 below */
-static u16 lut[] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
-static int smpcnt = 0;
-static u32 d = 0;
-
 void isr_spi2(void) /* FIXME I2S hardcoded on SPI2 */
 {
-	volatile u16 smp = rd16(R_SPI2_DR16);
-	int i;
-
-	/* This function uses the Look-Up Table above, in order to count how many
-	 * 1's are in the 16-bit word, by adding 4bit per cycle */
-	for (i = 0; i < 4; i++) {
-		d += lut[smp & 0xf];
-		smp >>= 4;
-	}
-
-	smpcnt += 16;
-
-	if (smpcnt == 1024) {
-		cbuf_write(&cbuf, &d, sizeof(d));
-		d = 0;
-		smpcnt = 0;
-	}
+	u16 smp = rd16(R_SPI2_DR16);
+	cbuf_write(&cbuf, &smp, sizeof(smp));
 }
 
 int i2s_dfsdm_dev_init(int fd)
@@ -80,12 +62,12 @@ static int i2s_dfsdm_dev_avail(int fd)
 	and32(R_SPI2_CR2, ~BIT6); /* RXNEIE interrupt disable */
 	avail = cbuf_avail(&cbuf);
 	if (avail >= sizeof(buf) - 4) {
-		cbuf_init(&cbuf, buf, sizeof(buf));
+		cbuf_clear(&cbuf);
 		ret = -ERROVERRUN;
 		goto done;
 	}
 
-	ret = avail;
+	ret = avail / BYTES_PER_SAMPLE;
 
 done:
 	or32(R_SPI2_CR2, BIT6); /* RXNEIE interrupt enable */
@@ -94,22 +76,47 @@ done:
 
 static int i2s_dfsdm_dev_read(int fd, void *buf, size_t count)
 {
+	/* Look-up Table, declaring how many 1's are present in a nibble. */
+	u16 lut[] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
 	int ret;
-	u32 d;
+	u32 smp32;
+	i32 d;
+	int avail;
+	int i, j, k;
+	i32 *b;
 
 	if (!buf || count < 0)
 		return -ERRINVAL;
 
+	and32(R_SPI2_CR2, ~BIT6); /* RXNEIE interrupt disable */
+	avail = cbuf_avail(&cbuf);
+	or32(R_SPI2_CR2, BIT6); /* RXNEIE interrupt enable */
+
 	if (count % sizeof(u32))
 		wrn("i2s_dfsdm should be read on multiples of 4-byte words\n");
 
-	and32(R_SPI2_CR2, ~BIT6); /* RXNEIE interrupt disable */
+	b = (i32*)buf;
+	ret = 0;
 
-	ret = cbuf_read(&cbuf, &d, 4);
-	*((u32*)buf) = d;
+	for (i = 0; i < min(avail / BYTES_PER_SAMPLE, count); i++) {
+		d = 0;
 
-	or32(R_SPI2_CR2, BIT6); /* RXNEIE interrupt enable */
+		for (j = 0; j < BYTES_PER_SAMPLE / 4; j++) {
+			and32(R_SPI2_CR2, ~BIT6); /* RXNEIE interrupt disable */
+			cbuf_read(&cbuf, &smp32, 4);
+			or32(R_SPI2_CR2, BIT6); /* RXNEIE interrupt enable */
 
+			/* Use the Look-Up Table above, in order to count how many
+			 * 1's are in the 32-bit smp32 variable, by adding 4bit per cycle */
+			for (k = 0; k < 8; k++) {
+				d += lut[smp32 & 0xf];
+				smp32 >>= 4;
+			}
+		}
+		*b = d;
+		b++;
+		ret++;
+	}
 	return ret;
 }
 
