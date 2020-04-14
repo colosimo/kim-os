@@ -98,7 +98,7 @@ static int i2s_dfsdm_dev_read(int fd, void *buf, size_t count)
 	b = (i32*)buf;
 	ret = 0;
 
-	for (i = 0; i < min(avail / BYTES_PER_SAMPLE, count); i++) {
+	for (i = 0; i < min(avail / BYTES_PER_SAMPLE, count / 4); i++) {
 		d = 0;
 
 		for (j = 0; j < BYTES_PER_SAMPLE / 4; j++) {
