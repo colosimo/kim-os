@@ -145,7 +145,6 @@ void attr_used init(void)
 	board_init(&cpu_freq, &ahb_freq, &apb_freq);
 
 	/* Init system ticks */
-	/* NOTE: Cortex system timer freq is HCLK / 8 */
 	wr32(R_SYST_RVR, cpu_freq / SYSTICKS_FREQ);
 	wr32(R_SYST_CVR, 0);
 	wr32(R_SYST_CSR, BIT0 | BIT1 | BIT2);
