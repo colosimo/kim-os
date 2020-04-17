@@ -13,6 +13,8 @@
 
 #define SYSTICKS_FREQ 1000
 
+static u32 cpu_freq, ahb_freq, apb_freq;
+
 extern void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq);
 
 extern void isr_none(void);
@@ -137,10 +139,27 @@ u32 attr_weak k_ticks_freq(void)
 	return SYSTICKS_FREQ;
 }
 
+void attr_weak k_delay_us(u32 usec)
+{
+	i32 tstart = rd32(R_SYST_CVR);
+	i32 tnow;
+	i32 intvl = usec * (cpu_freq / MHZ);
+	int st = 0;;
+	while (1) {
+		tnow = rd32(R_SYST_CVR);
+		if (tnow < tstart && !st) {
+			intvl -= cpu_freq / SYSTICKS_FREQ;
+			st = 1;
+		}
+		else if (tnow > tstart)
+			st = 0;
+		if (intvl < 0 || tnow > tstart + intvl)
+			break;
+	}
+}
+
 void attr_used init(void)
 {
-	u32 cpu_freq, ahb_freq, apb_freq;
-
 	/* Init board */
 	board_init(&cpu_freq, &ahb_freq, &apb_freq);
 
