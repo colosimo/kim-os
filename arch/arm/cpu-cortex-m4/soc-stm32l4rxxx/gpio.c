@@ -47,9 +47,25 @@ static int gpio_dev_read(int fd, void *buf, size_t count)
 	return 1;
 }
 
+static int gpio_dev_ioctl(int fd, int cmd, void *buf, size_t count)
+{
+	u16 io = gpio_priv(fd)->io;
+	switch(cmd) {
+	case IOCTL_GPIO_PULLNO:
+	case IOCTL_GPIO_PULLUP:
+	case IOCTL_GPIO_PULLDOWN:
+		gpio_mode(io, cmd - IOCTL_GPIO_PULLNO);
+		break;
+	default:
+		return -ERRINVAL;
+	}
+	return 0;
+}
+
 static const k_drv_t attr_drvs gpio_dev_drv = {
 	.maj = MAJ_SOC_GPIO,
 	.init = gpio_dev_init,
 	.read = gpio_dev_read,
 	.write = gpio_dev_write,
+	.ioctl = gpio_dev_ioctl,
 };

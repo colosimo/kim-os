@@ -44,6 +44,10 @@
 #define PINSEL(io) (PINSEL0 + 2 * PORT(io) + PIN(io) / 16)
 #define PINMODE(io) (PINMODE0 + 2 * PORT(io) + PIN(io) / 16)
 
+#define IOCTL_GPIO_PULLNO   IOCTL_USER(0)
+#define IOCTL_GPIO_PULLUP   IOCTL_USER(1)
+#define IOCTL_GPIO_PULLDOWN IOCTL_USER(2)
+
 static inline void gpio_dir(u16 io, int out)
 {
 	volatile u32 *reg = GPIOx_MODER(io);
