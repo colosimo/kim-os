@@ -29,9 +29,10 @@ static int _memcmp(const void *s1, const void *s2, size_t n, int isstring)
 static void *_memcpy(void *dest, const void *src, size_t n, int isstring)
 {
 	while (n--) {
+		*((u8*)dest++) = *((u8*)src);
 		if (isstring && *((u8*)src) == 0)
 			break;
-		*((u8*)dest++) = *((u8*)src++);
+		src++;
 	}
 	return dest;
 }
