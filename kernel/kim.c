@@ -30,6 +30,13 @@ void task_start(task_t *t) {
 	t->hits = 0;
 }
 
+void task_start_async(task_t *t)
+{
+	if (!t || t->running)
+		return;
+	t->async_start = 1;
+}
+
 void task_stop(task_t *t) {
 	if (!t)
 		return;
@@ -72,8 +79,13 @@ void task_stepall(void)
 {
 	struct task_t *t = tasks(0);
 	for (;t != &__stop_tsks; t++) {
-		if (!t->running)
+		if (!t->running) {
+			if (t->async_start) {
+				task_start(t);
+				t->async_start = 0;
+			}
 			continue;
+		}
 
 		if (t->max_duration && k_elapsed(t->tstart) > t->max_duration)
 			task_done(t);

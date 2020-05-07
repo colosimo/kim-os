@@ -38,6 +38,7 @@ struct task_t {
 	const char *name;
 	int running: 1;
 	int no_autorun: 1;
+	int async_start: 1;
 };
 
 typedef struct task_t task_t;
@@ -56,6 +57,10 @@ task_t *task_get(int id);
 
 /* task_start: start the desired task */
 void task_start(task_t *t);
+
+/* task_start_async: start the desired task within the event loop (no
+ * direct call to task start callback */
+void task_start_async(task_t *t);
 
 /* task_stop: stop the desired task */
 void task_stop(task_t *t);
