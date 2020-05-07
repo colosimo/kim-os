@@ -8,12 +8,12 @@
 
 #include <stdint.h>
 #include <log.h>
-#include <basic.h>
 #include <kim.h>
 #include <linker.h>
 #include <kim-io.h>
 #include <kim-io-defs.h>
 #include <errcode.h>
+#include <task-cli.h>
 
 #define BUF_MAXLEN 80
 #define MAX_PARAMS 32
@@ -30,16 +30,11 @@
 #define UART_CLI_FNAME ""
 #endif
 
-
-static struct cli_info_t {
-	int fd;
-	int pos;
-	char buf[BUF_MAXLEN];
-	int escaping;
-	uint16_t escbuf;
-} cli_priv;
-
 #define info(t) ((struct cli_info_t*)t->priv)
+
+static struct cli_info_t cli_priv = {
+	.fname = UART_CLI_FNAME
+};
 
 static int help_cmd_cb(int argc, char *argv[], int fdout)
 {
@@ -132,15 +127,15 @@ static void priv_reset(struct task_t *t)
 	k_fprintf(cli->fd, CLI_PROMPT);
 }
 
-static void cli_start(struct task_t *t)
+void cli_start(struct task_t *t)
 {
 	struct cli_info_t *cli = info(t);
 	int i;
 
-	if (strlen(UART_CLI_FNAME)) {
-		cli->fd = k_fd_byname(UART_CLI_FNAME);
+	if (strlen(cli->fname)) {
+		cli->fd = k_fd_byname(cli->fname);
 		if (cli->fd < 0) {
-			err("Could not open %s", UART_CLI_FNAME);
+			err("Could not open %s", cli->fname);
 			return;
 		}
 	}
@@ -160,7 +155,7 @@ static void cli_start(struct task_t *t)
 		priv_reset(t);
 }
 
-static void cli_step(struct task_t *t)
+void cli_step(struct task_t *t)
 {
 	char c;
 	struct cli_info_t *cli = info(t);
