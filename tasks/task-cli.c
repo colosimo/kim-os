@@ -39,7 +39,7 @@ static struct cli_info_t {
 	uint16_t escbuf;
 } cli_priv;
 
-#define priv(t) ((struct cli_info_t*)t->priv)
+#define info(t) ((struct cli_info_t*)t->priv)
 
 static int help_cmd_cb(int argc, char *argv[], int fdout)
 {
@@ -126,14 +126,15 @@ static int cli_exec(char *cmdline, int fdout)
 
 static void priv_reset(struct task_t *t)
 {
-	priv(t)->pos = 0;
-	memset(priv(t)->buf, 0, sizeof(priv(t)->buf));
-	k_fprintf(priv(t)->fd, CLI_PROMPT);
+	struct cli_info_t *cli = info(t);
+	cli->pos = 0;
+	memset(cli->buf, 0, sizeof(cli->buf));
+	k_fprintf(cli->fd, CLI_PROMPT);
 }
 
 static void cli_start(struct task_t *t)
 {
-	struct cli_info_t *cli = priv(t);
+	struct cli_info_t *cli = info(t);
 	int i;
 
 	if (strlen(UART_CLI_FNAME)) {
@@ -162,7 +163,7 @@ static void cli_start(struct task_t *t)
 static void cli_step(struct task_t *t)
 {
 	char c;
-	struct cli_info_t *cli = priv(t);
+	struct cli_info_t *cli = info(t);
 
 	if (cli->fd < 0) {
 		task_done(t);
@@ -170,7 +171,7 @@ static void cli_step(struct task_t *t)
 	}
 
 	while (k_read(cli->fd, &c, 1) > 0) {
-		if (!cli->escaping && c != ESC && (c != BS || priv(t)->pos))
+		if (!cli->escaping && c != ESC && (c != BS || cli->pos))
 			k_fprintf(cli->fd, "%c", c);
 
 		if (c == ESC && !cli->escaping) {
@@ -180,10 +181,10 @@ static void cli_step(struct task_t *t)
 		}
 
 		if (c == BS) {
-			if (priv(t)->pos == 0)
+			if (cli->pos == 0)
 				continue;
-			priv(t)->pos--;
-			priv(t)->buf[priv(t)->pos] = '\0';
+			cli->pos--;
+			cli->buf[cli->pos] = '\0';
 			k_fprintf(cli->fd, "%c[J", ESC);
 			continue;
 		}
@@ -197,15 +198,15 @@ static void cli_step(struct task_t *t)
 				switch (cli->escbuf & 0xff) {
 
 				case 0x44:
-					if (priv(t)->pos > 0)
-						priv(t)->pos--;
+					if (cli->pos > 0)
+						cli->pos--;
 					else
 						continue;
 					break;
 				case 0x43:
-					if (priv(t)->pos < BUF_MAXLEN &&
-						priv(t)->buf[priv(t)->pos] != '\0')
-						priv(t)->pos++;
+					if (cli->pos < BUF_MAXLEN &&
+						cli->buf[cli->pos] != '\0')
+						cli->pos++;
 					else
 						continue;
 					break;
@@ -220,8 +221,8 @@ static void cli_step(struct task_t *t)
 		}
 
 		if (c >= 0x20) {
-			priv(t)->buf[priv(t)->pos++] = c;
-			if (priv(t)->pos < BUF_MAXLEN - 1)
+			cli->buf[cli->pos++] = c;
+			if (cli->pos < BUF_MAXLEN - 1)
 				continue;
 		}
 
@@ -230,7 +231,7 @@ static void cli_step(struct task_t *t)
 
 		k_fprintf(cli->fd, "\n");
 
-		if (cli_exec(priv(t)->buf, priv(t)->fd))
+		if (cli_exec(cli->buf, cli->fd))
 			k_fprintf(cli->fd, "Invalid cmd\n");
 
 		priv_reset(t);
