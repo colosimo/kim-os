@@ -30,13 +30,13 @@
 #define UART_CLI_FNAME ""
 #endif
 
-static int escaping;
-uint16_t escbuf;
 
 static struct cli_priv_t {
 	int fd;
 	int pos;
 	char buf[BUF_MAXLEN];
+	int escaping;
+	uint16_t escbuf;
 } cli_priv;
 
 #define priv(t) ((struct cli_priv_t*)t->priv)
@@ -170,12 +170,12 @@ static void cli_step(struct task_t *t)
 	}
 
 	while (k_read(cli->fd, &c, 1) > 0) {
-		if (!escaping && c != ESC && (c != BS || priv(t)->pos))
+		if (!cli->escaping && c != ESC && (c != BS || priv(t)->pos))
 			k_fprintf(cli->fd, "%c", c);
 
-		if (c == ESC && !escaping) {
-			escaping = 1;
-			escbuf = 0;
+		if (c == ESC && !cli->escaping) {
+			cli->escaping = 1;
+			cli->escbuf = 0;
 			continue;
 		}
 
@@ -188,13 +188,13 @@ static void cli_step(struct task_t *t)
 			continue;
 		}
 
-		if (escaping) {
-			escbuf = (escbuf << 8) | c;
-			escaping++;
-			if (escaping == 3) {
-				escaping = 0;
+		if (cli->escaping) {
+			cli->escbuf = (cli->escbuf << 8) | c;
+			cli->escaping++;
+			if (cli->escaping == 3) {
+				cli->escaping = 0;
 
-				switch (escbuf & 0xff) {
+				switch (cli->escbuf & 0xff) {
 
 				case 0x44:
 					if (priv(t)->pos > 0)
@@ -214,7 +214,7 @@ static void cli_step(struct task_t *t)
 					continue;
 				}
 
-				k_fprintf(cli->fd, "%c%c%c", ESC, escbuf >> 8, escbuf & 0xff);
+				k_fprintf(cli->fd, "%c%c%c", ESC, cli->escbuf >> 8, cli->escbuf & 0xff);
 			}
 			continue;
 		}
