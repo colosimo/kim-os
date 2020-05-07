@@ -31,7 +31,7 @@
 #endif
 
 
-static struct cli_priv_t {
+static struct cli_info_t {
 	int fd;
 	int pos;
 	char buf[BUF_MAXLEN];
@@ -39,7 +39,7 @@ static struct cli_priv_t {
 	uint16_t escbuf;
 } cli_priv;
 
-#define priv(t) ((struct cli_priv_t*)t->priv)
+#define priv(t) ((struct cli_info_t*)t->priv)
 
 static int help_cmd_cb(int argc, char *argv[], int fdout)
 {
@@ -133,7 +133,7 @@ static void priv_reset(struct task_t *t)
 
 static void cli_start(struct task_t *t)
 {
-	struct cli_priv_t *cli = priv(t);
+	struct cli_info_t *cli = priv(t);
 	int i;
 
 	if (strlen(UART_CLI_FNAME)) {
@@ -162,7 +162,7 @@ static void cli_start(struct task_t *t)
 static void cli_step(struct task_t *t)
 {
 	char c;
-	struct cli_priv_t *cli = priv(t);
+	struct cli_info_t *cli = priv(t);
 
 	if (cli->fd < 0) {
 		task_done(t);
