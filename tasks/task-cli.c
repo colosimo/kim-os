@@ -159,14 +159,23 @@ void cli_step(struct task_t *t)
 {
 	char c;
 	struct cli_info_t *cli = info(t);
+	char buf[BUF_MAXLEN];
+	int n;
+	int i;
 
 	if (cli->fd < 0) {
 		task_done(t);
 		return;
 	}
 
-	while (k_read(cli->fd, &c, 1) > 0) {
-		if (!cli->escaping && c != ESC && (c != BS || cli->pos))
+	n = k_read(cli->fd, buf, sizeof(buf));
+
+	if (n < 0)
+		task_done(t);
+
+	for (i = 0; i < n; i++) {
+		c = buf[i];
+		if (!cli->no_echo && !cli->escaping && c != ESC && (c != BS || cli->pos))
 			k_fprintf(cli->fd, "%c", c);
 
 		if (c == ESC && !cli->escaping) {

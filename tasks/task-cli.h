@@ -15,7 +15,8 @@ struct cli_info_t {
 	int fd;
 	int pos;
 	char buf[CLI_BUF_MAXLEN];
-	int escaping;
+	int escaping: 1;
+	int no_echo: 1;
 	uint16_t escbuf;
 };
 
