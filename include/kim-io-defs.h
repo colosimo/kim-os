@@ -16,6 +16,8 @@
 #define MAJ_SOC_I2C     3
 #define MAJ_SOC_ADC     4
 #define MAJ_SOC_PWM     5
+#define MAJ_SOC_DFSDM   6
+#define MAJ_SOC_NVMPAGE 7
 
 struct i2c_xfer_t {
 	u8 addr;
