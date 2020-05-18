@@ -8,13 +8,17 @@ Welcome to kim-os's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Table of Contents:
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   whatis
+   src-organization
+   quickstart
+   cortex-m-boot
+   arch
+   tasks
+   lib
+   io-system
+   cli
+   app
+   license
+   glossary
