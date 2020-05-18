@@ -74,7 +74,8 @@ cleantools:
 all: tools bin doc
 
 doc:
-	make -C doc
+	make -C doc latexpdf
+	cp doc/_build/latex/kim-os.pdf doc
 
 cleandoc:
 	make -C doc clean
