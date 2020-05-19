@@ -1,6 +1,12 @@
-KIM is a minimal Operating System for MCUs.
+KIM-OS is a minimal Operating System for MCUs.
 
-KIM means "Keep It Minimal". Documentation, at present, is minimal as well:
-just browse into the source code and pick up whatever you're interested in:
-unless otherwise stated inside a file, everything here is released under
-MIT-style license. See COPYING and LICENSE for details.
+KIM means "Keep It Minimal".
+
+Documentation is "work in progress" under the doc/ subfolder; it is written
+in reST/Sphinx. Type make doc from root folder, to get the pdf version.
+
+A compiled pdf is provided for ease of use: doc/kim-os.pdf
+
+You can also just browse into the source code and pick up whatever you're
+interested in: unless otherwise stated inside a file, everything here is
+released under MIT-style license. See COPYING and LICENSE for details.
