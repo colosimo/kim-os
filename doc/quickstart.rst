@@ -40,7 +40,7 @@ before prefix is given by the ``APP`` variable defined in the choosen config
 (*cli* in our example regarding Discovery Board).
 
 .. note::
-  The configuration chosen by ``make CONFIG=etc`` is saved in local *.config* file;
+  The configuration chosen by ``make CONFIG=`` is saved in local *.config* file;
   for this reason, all subsequent compile operations on the same configuration
   do not need ``CONFIG=`` to be specified. Before changing from one configuration
   to another, it is recommended to perform a ``make clean`` operation.

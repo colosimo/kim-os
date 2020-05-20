@@ -53,4 +53,4 @@ subdirectories you can find:
 - *lib*: some useful generic functions; ``k_printf``, a printf-like function,
   is one of the most important, providing a way of writing formatted strings;
 - *tasks*: some generic arch-independent tasks, directly usables and intended
-  as an example about how to write your tasks;
+  as an example about how to write your tasks.

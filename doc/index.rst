@@ -15,8 +15,8 @@ Welcome to kim-os's documentation!
    quickstart
    cortex-m-boot
    arch
-   tasks
    lib
+   tasks
    io-system
    cli
    app
