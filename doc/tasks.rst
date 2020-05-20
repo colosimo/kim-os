@@ -107,7 +107,7 @@ the task name is known:
 	}
 
 
-Tasks can be started *directly* (function ``task_start``) or asynchronously
+Tasks can be started *directly* (function ``task_start``) or *asynchronously*
 (function ``task_start_async``); on direct start, the task ``start`` callback
 is immediately called; on asynchronous start, the main loop calls the ``start``.
 
@@ -166,6 +166,9 @@ and ``task_stepall`` functions, both defined in ``kernel/kim.c``:
 		}
 	}
 
-The ``while(1)`` in ``k_main`` is the core of what is continuously running in
-the system; the whole main is composed of a few lines, according to the
-minimalistic principle KIM is adopting.
+In the first part of ``k_main`` function, the init callback for each device
+is called; see :any:`io-system` for more information.
+
+The subsequent ``while(1)`` in ``k_main`` is the core of what is continuously
+running in the system; the whole main is composed of a few lines, according to
+the minimalistic principle KIM is adopting.
