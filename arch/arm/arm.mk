@@ -23,12 +23,15 @@ OBJS += $(patsubst %.c,%.o,$(wildcard $A/cpu-$(CPU)/*.c))
 OBJS += $(patsubst %.c,%.o,$(wildcard $A/cpu-$(CPU)/soc-$(SOC)/*.c))
 OBJS += $A/cpu-$(CPU)/soc-$(SOC)/board/$(BOARD).o
 
-POST_LD += $(OBJCOPY) -O binary $(EXE) $(patsubst %.elf,%.bin,$(EXE));
-POST_LD += $(OBJCOPY) -O ihex $(EXE) $(patsubst %.elf,%.hex,$(EXE));
+BINNAME = $(patsubst %.elf,%.bin,$(EXE))
+HEXNAME = $(patsubst %.elf,%.hex,$(EXE))
+
+POST_LD += $(OBJCOPY) -O binary $(EXE) $(BINNAME);
+POST_LD += $(OBJCOPY) -O ihex $(EXE) $(HEXNAME);
 
 %.ldscpp: %.lds
 	$(CPP) -P $(CFLAGS) $< -o $@
 
 $(EXE): $(LDSCPP)
 
-CLEAN_LIST += $(LDSCPP)
+CLEAN_LIST += $(LDSCPP) $(BINNAME) $(HEXNAME)
