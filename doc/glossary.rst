@@ -12,3 +12,5 @@ Glossary
     MCU
       Micro Controller Unit
 
+    CLI
+      Command Line Interface
