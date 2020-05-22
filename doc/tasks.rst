@@ -68,7 +68,7 @@ show both sides of UART communication.
 
 To understand how tasks are started, a practical example is given by
 ``cli/cli-tasks.c``, where the CLI command set to handle tasks is implemented
-(see :any:`cli` for more information).
+(see :doc:`cli` for more information).
 
 For instance, this is a portion of code showing how a task is run, assuming
 the task name is known:
@@ -169,7 +169,7 @@ and ``task_stepall`` functions, both defined in ``kernel/kim.c``:
 	}
 
 In the first part of ``k_main`` function, the init callback for each device
-is called; see :any:`io-system` for more information.
+is called; see :doc:`io-system` for more information.
 
 The subsequent ``while(1)`` in ``k_main`` is the core of what is continuously
 running in the system; the whole main is composed of a few lines, according to

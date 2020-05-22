@@ -56,11 +56,11 @@ the subdirectories hieararchy reflects the hardware hierarchy itself:
 
 .. note::
 
-  Despite other context (e.g. the separation between Kernel and User Space in
+  Despite other contexts (e.g. the separation between Kernel and User Space in
   Linux), in KIM there are no hard constraints in having all low-level code in
   arch: registers are accessible from wherever, and it is sometimes quicker to
-  directly  configure a peripherals by writing in its registers instead of
-  writing a driver and use it. This flexibility is left to developer's needs and
-  feelings; the main suggestion is not to abuse of direct register calls,
-  especially if the code is needed to maintained and reused over the time,
-  and/or will run on different hardware platforms.
+  directly configure a peripheral by writing in its registers instead of
+  writing the driver abstraction and use it. This flexibility is left to
+  developer's needs and feelings; the main suggestion is not to abuse of direct
+  register calls, especially if the code is needed to maintained and reused
+  over the time, and/or will run on different hardware platforms.

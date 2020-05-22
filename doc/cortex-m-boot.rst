@@ -252,7 +252,7 @@ Here, three actions are executed:
 
 - call the ``k_main`` function, implemented in ``kernel/kim.c``: it is the place
   where tasks are started and the domain of source code becomes independent on
-  the chip; tasks will be deeply investigated in :any:`tasks`.
+  the chip; tasks will be deeply investigated in :doc:`tasks`.
 
 .. note::
 
