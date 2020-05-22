@@ -1,6 +1,8 @@
 The *lib* library
 =================
 
+.. index:: CRC
+
 In the folder lib are located some common and hw independent facilities for
 the firmware development:
 

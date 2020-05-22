@@ -1,6 +1,8 @@
 Command Line Interface (CLI)
 ============================
 
+.. index:: CLI
+
 The Command Line Interface provides the capability to interact with KIM-OS
 on any device proving read and write callback functions.
 

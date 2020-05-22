@@ -1,6 +1,8 @@
 What is KIM-OS
 ==================
 
+.. index:: KIM
+
 KIM-OS (briefly, KIM) stands for
 "**K**\eep-**I**\t-**M**\inimal **O**\perating **S**\ystem". It is a
 state-machine based operating system targeted to Micro Controller Units. Its

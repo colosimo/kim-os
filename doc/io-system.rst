@@ -1,6 +1,8 @@
 I/O system: devices and drivers
 ===============================
 
+.. index:: device, driver
+
 The I/O model adopted by KIM is similar to the basic one in Linux, according
 to the principle "everything is a file", with a major difference: there is
 no need of *open* and *close* the device: everything is always available,

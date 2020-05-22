@@ -1,6 +1,8 @@
 Cortex-M cores: from power-on to running application
 ====================================================
 
+.. index:: ARM, Cortex-M
+
 I think that one of the most instructive subjects to be mastered by any computer
 programmer, especially if working in embedded scope, is the boot of a
 processor. However, most of software APIs and RTOSes (especially those released

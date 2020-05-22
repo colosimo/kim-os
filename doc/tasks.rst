@@ -1,6 +1,8 @@
 Tasks definition and scheduling
 ===============================
 
+.. index:: task
+
 A *task* inside KIM system is basically defined as a set of callbacks to be
 executed at start, stop and at a periodic interval (called *step* inside KIM
 sources. Basically, this allows to implement a Finit State Machine (FSM).

@@ -14,3 +14,6 @@ Glossary
 
     CLI
       Command Line Interface
+
+    CRC
+      Cyclic Redundancy Code
