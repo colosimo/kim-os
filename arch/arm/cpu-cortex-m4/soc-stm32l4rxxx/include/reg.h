@@ -378,4 +378,9 @@
 #define R_DFSDM1_FLTxEXMIN(x)  reg32(0x40016134 + ((x) * 0x80))
 #define R_DFSDM1_FLTxCNVTIMR(x) reg32(0x40016138 + ((x) * 0x80))
 
+/* Device electronic signature */
+#define R_UUID_0             reg32(0x1fff7590)
+#define R_UUID_1             reg32(0x1fff7594)
+#define R_UUID_2             reg32(0x1fff7594)
+
 #endif /* _REG_H_ */
