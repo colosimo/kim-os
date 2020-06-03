@@ -16,6 +16,7 @@
 #include <kim-io.h>
 #include <kim-io-defs.h>
 #include <errcode.h>
+#include <cpu-cortex-m-common.h>
 
 static int ps_cmd_cb(int argc, char *argv[], int fdout)
 {
@@ -107,4 +108,18 @@ const struct cli_cmd_t attr_cli cli_stop = {
 	.name = "stop",
 	.descr = "Stop task(s). Usage: stop <id1> <id2>... "
 	    "or stop <name1> <name2> <id3>...",
+};
+
+static int reset_cmd_cb(int argc, char *argv[], int fdout)
+{
+	k_fprintf(fdout, "Reset...");
+	cpu_reset(); /* FIXME: Avoid direct call of cortex-m specific function */
+	return 0;
+}
+
+const struct cli_cmd_t attr_cli cli_reset = {
+	.narg = 0,
+	.cmd = reset_cmd_cb,
+	.name = "reset",
+	.descr = "Reset MCU",
 };
