@@ -327,4 +327,9 @@
 #define R_I2C_TRISE(base)    reg32(base + 0x20)
 #define R_I2C_FLTR(base)     reg32(base + 0x24)
 
+/* Device electronic signature */
+#define R_UUID_0             reg32(0x1fff7a10)
+#define R_UUID_1             reg32(0x1fff7a14)
+#define R_UUID_2             reg32(0x1fff7a18)
+
 #endif /* _REG_H_ */
