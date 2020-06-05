@@ -25,8 +25,6 @@
 #define I2C_TOUT_MS 50
 #define I2C_TOUT MS_TO_TICKS(I2C_TOUT_MS)
 
-static int i2c_delay_req[3] = {1, 1, 1};
-
 static int xfer_start(unsigned int b, const uint8_t addr, u8 minor)
 {
 	int ret = 0;
@@ -42,15 +40,6 @@ static int xfer_start(unsigned int b, const uint8_t addr, u8 minor)
 		ret = -ERRIO;
 		err("%s %d\n", __func__, __LINE__);
 		goto done;
-	}
-
-	/* HACK: for some reason, a delay is needed here at first xfer;
-	 * more investigation needed to remove this workaround */
-	if (i2c_delay_req[minor]) {
-		t = k_ticks();
-		wrn("Hack: 2ms wait on I2C%d\n", minor + 1);
-		while(k_elapsed(t) < 2);
-		i2c_delay_req[minor] = 0;
 	}
 
 	/* address */
@@ -100,10 +89,8 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 	else
 		ret = xfer_start(b, I2C_W(xfer->addr), minor);
 
-	if (ret) {
-		i2c_delay_req[minor] = 1;
+	if (ret)
 		goto done;
-	}
 
 	tstart = k_ticks();
 
