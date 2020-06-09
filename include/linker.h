@@ -12,6 +12,7 @@
 /* Misc */
 #define attr_used __attribute__((used))
 #define attr_weak __attribute__((weak))
+#define attr_naked __attribute__((naked))
 #define attr_alias(x) __attribute__((alias(x)))
 #define attr_noret __attribute__((noreturn))
 #define attr_packed __attribute__((packed))
