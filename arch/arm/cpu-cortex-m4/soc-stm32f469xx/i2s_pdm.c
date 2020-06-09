@@ -49,7 +49,7 @@ int i2s_dfsdm_dev_init(int fd)
 	/* Target is 40kHz @16bit.
 	 * When counting 1's and 0's, you'll have a set of 1024 samples (10bit)
 	 * at the frequency: 40kHz/32 = 1.25kHz.
-	 * NOTE: I2SPLL frequency is 64MHz, set in zsensor.c file */
+	 * NOTE: I2SPLL frequency is 128MHz, set in zsensor.c file */
 	wr32(R_SPI2_CR2, BIT6); /* RXNEIE */
 	wr32(R_SPI2_I2SCFGR, BIT11 | (0b11 << 8) | BIT3 | (0b00 << 1) | (0 << 0));
 	i2s_div = 50;
