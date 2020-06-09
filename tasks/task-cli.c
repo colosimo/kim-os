@@ -15,7 +15,6 @@
 #include <errcode.h>
 #include <task-cli.h>
 
-#define BUF_MAXLEN 80
 #define MAX_PARAMS 32
 
 #define CLI_PROMPT "kim> "
@@ -159,7 +158,7 @@ void cli_step(struct task_t *t)
 {
 	char c;
 	struct cli_info_t *cli = info(t);
-	char buf[BUF_MAXLEN];
+	char buf[CLI_BUF_MAXLEN];
 	int n;
 	int i;
 
@@ -168,7 +167,7 @@ void cli_step(struct task_t *t)
 		return;
 	}
 
-	n = k_read(cli->fd, buf, sizeof(buf));
+	n = k_read(cli->fd, buf, sizeof(buf) - 1);
 
 	if (n < 0)
 		task_done(t);
@@ -208,7 +207,7 @@ void cli_step(struct task_t *t)
 						continue;
 					break;
 				case 0x43:
-					if (cli->pos < BUF_MAXLEN &&
+					if (cli->pos < CLI_BUF_MAXLEN &&
 						cli->buf[cli->pos] != '\0')
 						cli->pos++;
 					else
@@ -224,13 +223,10 @@ void cli_step(struct task_t *t)
 			continue;
 		}
 
-		if (c >= 0x20) {
+		if (c >= 0x20)
 			cli->buf[cli->pos++] = c;
-			if (cli->pos < BUF_MAXLEN - 1)
-				continue;
-		}
 
-		if (c != '\r' && c != '\n')
+		if (c != '\r' && c != '\n' && cli->pos < CLI_BUF_MAXLEN - 1)
 			continue;
 
 		k_fprintf(cli->fd, "\n");
