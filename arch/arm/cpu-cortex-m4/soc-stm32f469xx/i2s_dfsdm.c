@@ -24,7 +24,7 @@
 #define BYTES_PER_SAMPLE (1024 / 8) /* 10 bits are 1024 PDM samples, i.e.
     1024/8 SPI sampled bytes */
 
-static u8 buf[BYTES_PER_SAMPLE * 32]; /* record up to 32 samples (~6ms @5kHz) */
+static u8 buf[BYTES_PER_SAMPLE * 32]; /* record up to 32 samples (~24ms @1.25kHz) */
 static struct cbuf_t cbuf = {
 	.size = sizeof(buf),
 	.buf = buf,
@@ -32,22 +32,29 @@ static struct cbuf_t cbuf = {
 
 void isr_spi2(void) /* FIXME I2S hardcoded on SPI2 */
 {
-	u16 smp = rd16(R_SPI2_DR16);
-	cbuf_write(&cbuf, &smp, sizeof(smp));
+	u32 sr;
+	u16 smp;
+	sr = rd32(R_SPI2_SR);
+	smp = rd16(R_SPI2_DR16);
+
+	if (sr & BIT0) {
+		and32(R_SPI2_SR, ~BIT0);
+		cbuf_write(&cbuf, &smp, sizeof(smp));
+	}
 }
 
 int i2s_dfsdm_dev_init(int fd)
 {
 	u32 i2s_div, i2s_odd;
-	/* Target is 160kHz @16bit.
+	/* Target is 40kHz @16bit.
 	 * When counting 1's and 0's, you'll have a set of 1024 samples (10bit)
-	 * at the frequency: 160kHz/32 = 5kHz.
-	 * NOTE: I2SPLL frequency is 128MHz, set in zeppelin.c file */
+	 * at the frequency: 40kHz/32 = 1.25kHz.
+	 * NOTE: I2SPLL frequency is 64MHz, set in zsensor.c file */
 	wr32(R_SPI2_CR2, BIT6); /* RXNEIE */
 	wr32(R_SPI2_I2SCFGR, BIT11 | (0b11 << 8) | BIT3 | (0b00 << 1) | (0 << 0));
-	i2s_div = 12;
-	i2s_odd = 1;
-	/* I2S_FREQ=128MHz; Fs = 128MHz/[(16*2)*((2*i2s_div)+i2s_odd)] = 160KHz */
+	i2s_div = 50;
+	i2s_odd = 0;
+	/* I2S_FREQ=128MHz; Fs = 128MHz/[(16*2)*((2*i2s_div)+i2s_odd)] = 40KHz */
 	wr32(R_SPI2_I2SPR, (i2s_odd << 8) | i2s_div);
 
 	or32(R_SPI2_I2SCFGR, BIT10); /* I2S Enable */
@@ -115,7 +122,7 @@ static int i2s_dfsdm_dev_read(int fd, void *buf, size_t count)
 		}
 		*b = d;
 		b++;
-		ret++;
+		ret += 4;
 	}
 	return ret;
 }
