@@ -24,7 +24,7 @@
 #define BYTES_PER_SAMPLE (1024 / 8) /* 10 bits are 1024 PDM samples, i.e.
     1024/8 SPI sampled bytes */
 
-static u8 buf[BYTES_PER_SAMPLE * 32]; /* record up to 32 samples (~24ms @1.25kHz) */
+static u8 buf[BYTES_PER_SAMPLE * 128]; /* record up to 128 samples (~100ms @1.25kHz) */
 static struct cbuf_t cbuf = {
 	.size = sizeof(buf),
 	.buf = buf,
