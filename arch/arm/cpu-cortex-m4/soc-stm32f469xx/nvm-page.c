@@ -44,7 +44,8 @@ static int nvm_dev_init(int fd)
 {
 	if (nvm_init_once) {
 		unlock_flash_cr();
-		or32(R_FLASH_CR, BIT24 | 0b11 << 8); /* 64-bit parallelism */
+		and32(R_FLASH_CR, ~(0b11 << 8));
+		or32(R_FLASH_CR, BIT24 | 0b10 << 8); /* 32-bit parallelism */
 		or32(R_FLASH_CR, BIT31);
 		or32(R_FLASH_SR, 0x1f3);
 		nvm_init_once = 0;
@@ -75,16 +76,16 @@ u32 nvm_page_size(int x)
 static int nvm_dev_write(int fd, const void *buf, size_t len)
 {
 	int nvm_page = dev_minor(devs(fd)->id);
-	u64 *dst, *src;
+	u32 *dst, *src;
 	int i;
 	u32 sr;
 
-	if (len % 8)
-		wrn("%s len %d should be multiple of 8, "
+	if (len % 4)
+		wrn("%s len %d should be multiple of 4, "
 		    "padding with bytes exceeding len\n", __func__, len);
 
-	if ((int)buf % 8)
-		err("%s buf misaligned (64-bit alignment needed), %p\n", __func__, buf);
+	if ((int)buf % 4)
+		err("%s buf misaligned (32-bit alignment needed), %p\n", __func__, buf);
 
 	unlock_flash_cr();
 
@@ -121,9 +122,10 @@ static int nvm_dev_write(int fd, const void *buf, size_t len)
 	and32(R_FLASH_CR, ~BIT1);
 	or32(R_FLASH_CR, BIT0);
 
-	src = (u64*)buf;
-	dst = (u64*)nvm_page_addr(nvm_page);
-	for (i = 0; i < (len + 7) / 8; i++) {
+	src = (u32*)buf;
+	dst = (u32*)nvm_page_addr(nvm_page);
+
+	for (i = 0; i < (len + 3) / 4; i++) {
 		*dst++ = *src++;
 		wait_no_bsy();
 	}
