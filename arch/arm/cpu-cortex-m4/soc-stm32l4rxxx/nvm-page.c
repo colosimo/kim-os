@@ -45,8 +45,7 @@ static int nvm_dev_init(int fd)
 {
 	if (nvm_init_once) {
 		unlock_flash_cr();
-		and32(R_FLASH_CR, ~(0b11 << 8));
-		or32(R_FLASH_CR, BIT24 | (0b01 << 8));
+		or32(R_FLASH_CR, BIT24);
 		or32(R_FLASH_CR, BIT31);
 		or32(R_FLASH_SR, 0xc3fd);
 		nvm_init_once = 0;
