@@ -43,7 +43,7 @@ void isr_spi2(void) /* FIXME I2S hardcoded on SPI2 */
 	}
 }
 
-int i2s_dfsdm_dev_init(int fd)
+int i2s_pdm_dev_init(int fd)
 {
 	u32 i2s_div, i2s_odd;
 	/* Target is 40kHz @16bit.
@@ -61,7 +61,7 @@ int i2s_dfsdm_dev_init(int fd)
 	return 0;
 }
 
-static int i2s_dfsdm_dev_avail(int fd)
+static int i2s_pdm_dev_avail(int fd)
 {
 	int avail;
 	int ret;
@@ -81,7 +81,7 @@ done:
 	return ret;
 }
 
-static int i2s_dfsdm_dev_read(int fd, void *buf, size_t count)
+static int i2s_pdm_dev_read(int fd, void *buf, size_t count)
 {
 	/* Look-up Table, declaring how many 1's are present in a nibble. */
 	u16 lut[] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
@@ -100,7 +100,7 @@ static int i2s_dfsdm_dev_read(int fd, void *buf, size_t count)
 	or32(R_SPI2_CR2, BIT6); /* RXNEIE interrupt enable */
 
 	if (count % sizeof(u32))
-		wrn("i2s_dfsdm should be read on multiples of 4-byte words\n");
+		wrn("i2s_pdm should be read on multiples of 4-byte words\n");
 
 	b = (i32*)buf;
 	ret = 0;
@@ -127,9 +127,9 @@ static int i2s_dfsdm_dev_read(int fd, void *buf, size_t count)
 	return ret;
 }
 
-static const k_drv_t attr_drvs i2s_dfsdm_dev_drv = {
+static const k_drv_t attr_drvs i2s_pdm_dev_drv = {
 	.maj = MAJ_SOC_DFSDM,
-	.init = i2s_dfsdm_dev_init,
-	.read = i2s_dfsdm_dev_read,
-	.avail = i2s_dfsdm_dev_avail,
+	.init = i2s_pdm_dev_init,
+	.read = i2s_pdm_dev_read,
+	.avail = i2s_pdm_dev_avail,
 };
