@@ -16,7 +16,7 @@
 #include <kim-io.h>
 #include <cpu.h>
 
-#define UART_BUF_SIZE 96
+#define UART_BUF_SIZE 1024
 
 /* FIXME: ugly, better move uart_cbuf to priv field of uart devices
  * (define uart_data_t in uart.h) */
