@@ -70,16 +70,19 @@ static int nvm_dev_write(int fd, const void *buf, size_t len)
 	unlock_flash_cr();
 
 	/* Erase begin */
+	cpsid(); /* Erase (below) will run while interrupts are disabled */
 
 	/* Disable PG (Programming) and enable SER (Sector Erase) */
 	and32(R_FLASH_CR, ~BIT0);
 	or32(R_FLASH_CR, BIT1);
 
 	wait_no_bsy();
+
 	/* Set PNB in FLASH_CR register */
 	and32(R_FLASH_CR, ~(0xff << 3));
 	or32(R_FLASH_CR, ((nvm_page & 0xff) << 3));
-	cpsid(); /* Erase (below) will run while interrupts are disabled */
+	wait_no_bsy();
+
 	or32(R_FLASH_CR, BIT16);
 
 	wait_no_bsy();
