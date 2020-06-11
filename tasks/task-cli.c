@@ -137,21 +137,23 @@ void cli_start(struct task_t *t)
 			err("Could not open %s", cli->fname);
 			return;
 		}
+		log("CLI running on %s\n", cli->fname);
 	}
 	else {
 		/* Search for first available UART */
 		for (i = 0; i < 256; i++) {
 			cli->fd = k_fd(MAJ_SOC_UART, i);
 			if (cli->fd >= 0) {
-				log("%s on <%s> (id %02x)\n", __func__,
-					devs(cli->fd)->name, devs(cli->fd)->id);
 				break;
 			}
 		}
 	}
 
-	if (cli->fd >= 0)
+	if (cli->fd >= 0) {
+		log("%s on <%s> (id %02x)\n", __func__,
+			devs(cli->fd)->name, devs(cli->fd)->id);
 		priv_reset(t);
+	}
 }
 
 void cli_step(struct task_t *t)
