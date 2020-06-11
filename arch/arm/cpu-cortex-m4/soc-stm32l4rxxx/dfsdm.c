@@ -32,6 +32,7 @@ void isr_dfsdm_flt0(void)
 
 int dfsdm_dev_init(int fd)
 {
+	cbuf_init(&cbuf, buf, sizeof(buf));
 	and32(R_DFSDM1_CHyCFGR1(5), ~0xf);
 	or32(R_DFSDM1_CHyCFGR1(5), 0b0101);
 	or32(R_DFSDM1_CHyCFGR1(5), BIT7); 	/* CH5 enable */
