@@ -53,12 +53,15 @@ static int nvm_dev_init(int fd)
 	return 0;
 }
 
+#define MAX_ERASE_RETRY 4
+
 static int nvm_dev_write(int fd, const void *buf, size_t len)
 {
 	int nvm_page = dev_minor(devs(fd)->id);
 	u64 *dst, *src;
 	int i;
 	u32 sr;
+	int retry = MAX_ERASE_RETRY;
 
 	if (len % 8)
 		wrn("%s len %d should be multiple of 8, "
@@ -78,24 +81,33 @@ static int nvm_dev_write(int fd, const void *buf, size_t len)
 
 	wait_no_bsy();
 
-	/* Set PNB in FLASH_CR register */
-	and32(R_FLASH_CR, ~(0xff << 3));
-	or32(R_FLASH_CR, ((nvm_page & 0xff) << 3));
-	wait_no_bsy();
+	while (retry--) {
+		/* Set PNB in FLASH_CR register */
+		and32(R_FLASH_CR, ~(0xff << 3));
+		or32(R_FLASH_CR, ((nvm_page & 0xff) << 3));
+		wait_no_bsy();
 
-	or32(R_FLASH_CR, BIT16);
+		or32(R_FLASH_CR, BIT16);
 
-	wait_no_bsy();
+		wait_no_bsy();
 
-	sr = rd32(R_FLASH_SR);
-	if (!(sr & BIT0)) {
-		err("Erase failed on page %d sr=%08x\n", nvm_page, (uint)sr);
-		or32(R_FLASH_SR, 0xc3fd);
-		cpsie();
-		return -ERRIO;
+		sr = rd32(R_FLASH_SR);
+		if (!(sr & BIT0)) {
+			err("Erase failed on page %d sr=%08x, retry %d\n", nvm_page,
+			    (uint)sr, retry);
+			or32(R_FLASH_SR, 0xc3fd);
+			cpsie();
+			continue;
+		}
+
+		wr32(R_FLASH_SR, BIT0);
+		if (retry < MAX_ERASE_RETRY - 1)
+			err("Erase success on page %d\n", nvm_page);
+		break;
 	}
 
-	wr32(R_FLASH_SR, BIT0);
+	if (!retry)
+		return -ERRIO;
 
 	/* Erase End */
 
