@@ -35,7 +35,8 @@
 #define info(t) ((struct cli_info_t*)t->priv)
 
 static struct cli_info_t cli_priv = {
-	.fname = UART_CLI_FNAME
+	.fname = UART_CLI_FNAME,
+	.no_echo = 0,
 };
 
 static int help_cmd_cb(int argc, char *argv[], int fdout)
