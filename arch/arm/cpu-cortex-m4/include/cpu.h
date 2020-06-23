@@ -20,4 +20,10 @@
 #define R_NVIC_ICPR(x) reg32(0xE000E280 + 4 * (x))
 #define R_NVIC_IPR(x)  reg32(0xE000E400 + 4 * (x))
 
+/* FPU registers */
+#define R_FPU_CPACR    reg32(0xE000ED88)
+#define R_FPU_CPCCR    reg32(0xE000EF34)
+#define R_FPU_CPCAR    reg32(0xE000EF38)
+#define R_FPU_FPDSCR   reg32(0xE000EF3C)
+
 #endif /* _CPU_H_ */
