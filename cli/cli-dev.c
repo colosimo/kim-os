@@ -86,7 +86,7 @@ static int r_cmd_cb(int argc, char *argv[], int fdout)
 	else
 		n = 1;
 
-	while (n) {
+	while (n > 0) {
 		rd = k_read(fd, buf, min(IO_BUF_LEN, n));
 		if (rd <= 0)
 			break;
