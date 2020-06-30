@@ -56,15 +56,28 @@ const struct cli_cmd_t attr_cli cli_help = {
 	.descr = "List CLI commands"
 };
 
-static int cli_exec(char *cmdline, int fdout)
+static int cli_exec(struct cli_info_t *cli, char *cmdline, int fdout)
 {
 	const struct cli_cmd_t *c = cli(0);
 	char *argv[MAX_PARAMS];
 	int argc = 0;
 	int status = 0;
+	struct cli_bridge_t *b = cli->b;
+	int ret;
 
 	while (isspace(*cmdline))
 		cmdline++;
+
+	if (b && b->fd >= 0) {
+		if (b->exit_cmd && !strncmp(cmdline,
+		    b->exit_cmd, strlen(b->exit_cmd))) {
+			b->fd = -1;
+			return 0;
+		}
+		k_write(b->fd, cmdline, strlen(cmdline));
+		k_write(b->fd, "\n", 1);
+		return 0;
+	}
 
 	while (*cmdline != '\0') {
 		switch (status) {
@@ -115,7 +128,13 @@ static int cli_exec(char *cmdline, int fdout)
 	if (c->narg > argc - 1)
 		return -ERRINVAL;
 
-	return c->cmd(argc, argv, fdout);
+	ret = c->cmd(argc, argv, fdout);
+
+	/* On successful bridge command, setup bridging */
+	if (b && !ret && b->enter_cmd && !strcmp(argv[0], b->enter_cmd))
+		b->fd = k_fd_byname(b->fname);
+
+	return ret;
 }
 
 static void priv_reset(struct task_t *t)
@@ -123,7 +142,9 @@ static void priv_reset(struct task_t *t)
 	struct cli_info_t *cli = info(t);
 	cli->pos = 0;
 	memset(cli->buf, 0, sizeof(cli->buf));
-	k_fprintf(cli->fd, CLI_PROMPT);
+
+	if (!cli->b || cli->b->fd < 0)
+		k_fprintf(cli->fd, CLI_PROMPT);
 }
 
 void cli_start(struct task_t *t)
@@ -154,6 +175,9 @@ void cli_start(struct task_t *t)
 			devs(cli->fd)->name, devs(cli->fd)->id);
 		priv_reset(t);
 	}
+
+	if (cli->b)
+		cli->b->fd = -1;
 }
 
 void cli_step(struct task_t *t)
@@ -163,10 +187,19 @@ void cli_step(struct task_t *t)
 	char buf[CLI_BUF_MAXLEN];
 	int n;
 	int i;
+	struct cli_bridge_t *b = cli->b;
 
 	if (cli->fd < 0) {
 		task_done(t);
 		return;
+	}
+
+	buf[sizeof(buf) - 1] = '\0';
+
+	if (b && b->fd >= 0) {
+		n = k_read(b->fd, buf, sizeof(buf) - 1);
+		if (n > 0)
+			k_write(cli->fd, buf, n);
 	}
 
 	n = k_read(cli->fd, buf, sizeof(buf) - 1);
@@ -233,7 +266,7 @@ void cli_step(struct task_t *t)
 
 		k_fprintf(cli->fd, "\n");
 
-		if (cli_exec(cli->buf, cli->fd))
+		if (cli_exec(cli, cli->buf, cli->fd))
 			k_fprintf(cli->fd, "Invalid cmd\n");
 
 		priv_reset(t);

@@ -10,6 +10,13 @@
 
 #define CLI_BUF_MAXLEN 80
 
+struct cli_bridge_t {
+	const char *fname;
+	int fd;
+	const char *enter_cmd;
+	const char *exit_cmd;
+};
+
 struct cli_info_t {
 	const char *fname;
 	int fd;
@@ -18,7 +25,10 @@ struct cli_info_t {
 	int escaping: 1;
 	int no_echo: 1;
 	uint16_t escbuf;
+	struct cli_bridge_t *b;
 };
+
+void cli_set_bridge(struct cli_bridge_t *b);
 
 void cli_step(struct task_t *t);
 
