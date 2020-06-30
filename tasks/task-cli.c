@@ -17,7 +17,10 @@
 
 #define MAX_PARAMS 32
 
+#ifndef CLI_PROMPT
 #define CLI_PROMPT "kim> "
+#endif
+
 #define CLI_BYE "\nBye!\n"
 
 #define STX 0x02

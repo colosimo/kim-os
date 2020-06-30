@@ -45,6 +45,11 @@ endif
 # Board
 CFLAGS += -DBOARD_$(BOARD)
 
+# CLI prompt
+ifdef CLI_PROMPT
+CFLAGS += -DCLI_PROMPT=\"$(CLI_PROMPT)\"
+endif
+
 ifeq ($(NOLOGTIME),y)
 CFLAGS += -DNOLOGTIME
 endif
