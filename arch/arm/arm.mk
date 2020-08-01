@@ -7,8 +7,7 @@
 
 A:=arch/$(ARCH)
 
-CFLAGS += -Werror -Wall -mcpu=$(CPU) -mthumb -Os -mfloat-abi=soft \
-  -nostartfiles -ggdb
+CFLAGS += -Werror -Wall -mcpu=$(CPU) -mthumb -Os -nostartfiles -ggdb
 CROSS_COMPILE=arm-none-eabi-
 INCFLAGS += -I$A
 INCFLAGS += -I$A/cpu-$(CPU)/include
