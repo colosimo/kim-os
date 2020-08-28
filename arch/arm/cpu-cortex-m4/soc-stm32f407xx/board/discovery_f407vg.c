@@ -18,7 +18,6 @@
 #include <log.h>
 #include <gpio.h>
 #include <uart.h>
-#include <usb.h>
 
 #define UART_BAUDRATE 115200
 
@@ -74,14 +73,6 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 
 	uart_init();
 
-	/* USB on PA11/PA12 */
-	gpio_func(IO(PORTA, 11), 10);
-	gpio_func(IO(PORTA, 12), 10);
-
-	gpio_dir(IO(PORTC, 0), 1);
-	gpio_wr(IO(PORTC, 0), 0);
-
-	usbfs_host_init();
 
 	dbg("%s done\n", __func__);
 }
