@@ -18,6 +18,39 @@
 #error Unhandled SOC_VARIANT: $(SOC_VARIANT)
 #endif
 
+/* SPI1 registers */
+#define R_SPI1_CR1         reg32(0x40013000)
+#define R_SPI1_CR2         reg32(0x40013004)
+#define R_SPI1_SR          reg32(0x40013008)
+#define R_SPI1_DR          reg8 (0x4001300c)
+#define R_SPI1_CRCPR       reg32(0x40013010)
+#define R_SPI1_RXCRCR      reg32(0x40013014)
+#define R_SPI1_TXCRCR      reg32(0x40013018)
+#define R_SPI1_I2SCFGR     reg32(0x4001301c)
+#define R_SPI1_I2SPR       reg32(0x40013020)
+
+/* SPI2 registers */
+#define R_SPI2_CR1         reg32(0x40003800)
+#define R_SPI2_CR2         reg32(0x40003804)
+#define R_SPI2_SR          reg32(0x40003808)
+#define R_SPI2_DR          reg8 (0x4000380c)
+#define R_SPI2_CRCPR       reg32(0x40003810)
+#define R_SPI2_RXCRCR      reg32(0x40003814)
+#define R_SPI2_TXCRCR      reg32(0x40003818)
+#define R_SPI2_I2SCFGR     reg32(0x4000381c)
+#define R_SPI2_I2SPR       reg32(0x40003820)
+
+/* SPI3 registers */
+#define R_SPI3_CR1         reg32(0x40003c00)
+#define R_SPI3_CR2         reg32(0x40003c04)
+#define R_SPI3_SR          reg32(0x40003c08)
+#define R_SPI3_DR          reg8 (0x40003c0c)
+#define R_SPI3_CRCPR       reg32(0x40003c10)
+#define R_SPI3_RXCRCR      reg32(0x40003c14)
+#define R_SPI3_TXCRCR      reg32(0x40003c18)
+#define R_SPI3_I2SCFGR     reg32(0x40003c1c)
+#define R_SPI3_I2SPR       reg32(0x40003c20)
+
 /* RCC registers */
 #define R_RCC_CR       reg32(0x40023800)
 #define R_RCC_PLLCFGR  reg32(0x40023804)
