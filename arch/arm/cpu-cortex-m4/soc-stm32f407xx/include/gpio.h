@@ -19,8 +19,11 @@
 #define PORT(io) ((io) >> 8)
 #define PIN(io) ((io) & 0xff)
 
+#define IO_NULL IO(0xff, 0xff)
+
 #define GPIOx_MODER(x) (R_GPIOA_MODER + (0x400 * PORT(x)) / 4)
 #define GPIOx_OTYPER(x) (R_GPIOA_OTYPER + (0x400 * PORT(x)) / 4)
+#define GPIOx_OSPEEDR(x) (R_GPIOA_OSPEEDR + (0x400 * PORT(x)) / 4)
 #define GPIOx_IDR(x)   (R_GPIOA_IDR   + (0x400 * PORT(x)) / 4)
 #define GPIOx_BSRR(x)  (R_GPIOA_BSRR  + (0x400 * PORT(x)) / 4)
 #define GPIOx_AFRL(x)  (R_GPIOA_AFRL  + (0x400 * PORT(x)) / 4)
@@ -38,12 +41,22 @@
 #define PINSEL(io) (PINSEL0 + 2 * PORT(io) + PIN(io) / 16)
 #define PINMODE(io) (PINMODE0 + 2 * PORT(io) + PIN(io) / 16)
 
+#define IOCTL_GPIO_PULLNO   IOCTL_USER(0)
+#define IOCTL_GPIO_PULLUP   IOCTL_USER(1)
+#define IOCTL_GPIO_PULLDOWN IOCTL_USER(2)
+
 static inline void gpio_dir(u16 io, int out)
 {
 	volatile u32 *reg = GPIOx_MODER(io);
 	and32(reg, ~(0b11 << (2 * PIN(io))));
-	if (out)
+	if (out) {
 		or32(reg, (0b01 << (2 * PIN(io))));
+
+		/* Very high speed */
+		reg = GPIOx_OSPEEDR(io);
+		and32(reg, ~(0b11 << (2 * PIN(io))));
+		or32(reg, ~(0b11 << (2 * PIN(io))));
+	}
 }
 
 static inline int gpio_rd(u16 io)
@@ -64,7 +77,6 @@ static inline void gpio_func(u16 io, u8 f)
 	reg_afr = GPIOx_AFR(io);
 	reg_moder = GPIOx_MODER(io);
 
-	v = rd32(R_GPIOA_MODER);
 	v = rd32(reg_moder);
 	v &= ~(0b11 << (2 * PIN(io)));
 	wr32(reg_moder, v);
