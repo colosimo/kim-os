@@ -123,6 +123,58 @@
 #define R_GPIOA_AFRL    reg32(0x40020020)
 #define R_GPIOA_AFRH    reg32(0x40020024)
 
+/* I2C1 registers */
+#define R_I2C1_CR1         reg32(0x40005400)
+#define R_I2C1_CR2         reg32(0x40005404)
+#define R_I2C1_OAR1        reg32(0x40005408)
+#define R_I2C1_OAR2        reg32(0x4000540c)
+#define R_I2C1_DR          reg32(0x40005410)
+#define R_I2C1_SR1         reg32(0x40005414)
+#define R_I2C1_SR2         reg32(0x40005418)
+#define R_I2C1_CCR         reg32(0x4000541c)
+#define R_I2C1_TRISE       reg32(0x40005420)
+#define R_I2C1_FLTR        reg32(0x40005424)
+
+/* I2C2 registers */
+#define R_I2C2_CR1         reg32(0x40005800)
+#define R_I2C2_CR2         reg32(0x40005804)
+#define R_I2C2_OAR1        reg32(0x40005808)
+#define R_I2C2_OAR2        reg32(0x4000580c)
+#define R_I2C2_DR          reg32(0x40005810)
+#define R_I2C2_SR1         reg32(0x40005814)
+#define R_I2C2_SR2         reg32(0x40005818)
+#define R_I2C2_CCR         reg32(0x4000581c)
+#define R_I2C2_TRISE       reg32(0x40005820)
+#define R_I2C2_FLTR        reg32(0x40005824)
+
+/* I2C3 registers */
+#define R_I2C3_CR1         reg32(0x40005c00)
+#define R_I2C3_CR2         reg32(0x40005c04)
+#define R_I2C3_OAR1        reg32(0x40005c08)
+#define R_I2C3_OAR2        reg32(0x40005c0c)
+#define R_I2C3_DR          reg32(0x40005c10)
+#define R_I2C3_SR1         reg32(0x40005c14)
+#define R_I2C3_SR2         reg32(0x40005c18)
+#define R_I2C3_CCR         reg32(0x40005c1c)
+#define R_I2C3_TRISE       reg32(0x40005c20)
+#define R_I2C3_FLTR        reg32(0x40005c24)
+
+/* Generic I2C register defines */
+#define I2C1 0x40005400  /* base for I2C1 */
+#define I2C2 0x40005800  /* base for I2C2 */
+#define I2C3 0x40005c00  /* base for I2C3 */
+
+#define R_I2C_CR1(base)      reg32(base)
+#define R_I2C_CR2(base)      reg32(base + 0x04)
+#define R_I2C_OAR1(base)     reg32(base + 0x08)
+#define R_I2C_OAR2(base)     reg32(base + 0x0c)
+#define R_I2C_DR(base)       reg32(base + 0x10)
+#define R_I2C_SR1(base)      reg32(base + 0x14)
+#define R_I2C_SR2(base)      reg32(base + 0x18)
+#define R_I2C_CCR(base)      reg32(base + 0x1c)
+#define R_I2C_TRISE(base)    reg32(base + 0x20)
+#define R_I2C_FLTR(base)     reg32(base + 0x24)
+
 /* OTG_FS core global registers */
 #define R_OTG_FS_GOTGCTL   reg32(0x50000000)
 #define R_OTG_FS_GOTGINT   reg32(0x50000004)
