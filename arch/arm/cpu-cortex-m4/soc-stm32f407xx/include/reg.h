@@ -175,6 +175,28 @@
 #define R_I2C_TRISE(base)    reg32(base + 0x20)
 #define R_I2C_FLTR(base)     reg32(base + 0x24)
 
+/* TIM1 registers */
+#define R_TIM1_CR1      reg16(0x40010000)
+#define R_TIM1_CR2      reg16(0x40010004)
+#define R_TIM1_SMCR     reg16(0x40010008)
+#define R_TIM1_DIER     reg16(0x4001000c)
+#define R_TIM1_SR       reg16(0x40010010)
+#define R_TIM1_EGR      reg16(0x40010014)
+#define R_TIM1_CCMR1    reg16(0x40010018)
+#define R_TIM1_CCMR2    reg16(0x4001001c)
+#define R_TIM1_CCER     reg16(0x40010020)
+#define R_TIM1_CNT      reg16(0x40010024)
+#define R_TIM1_PSC      reg16(0x40010028)
+#define R_TIM1_ARR      reg16(0x4001002c)
+#define R_TIM1_RCR      reg16(0x40010030)
+#define R_TIM1_CCR1     reg16(0x40010034)
+#define R_TIM1_CCR2     reg16(0x40010038)
+#define R_TIM1_CCR3     reg16(0x4001003c)
+#define R_TIM1_CCR4     reg16(0x40010040)
+#define R_TIM1_BDTR     reg16(0x40010044)
+#define R_TIM1_DCR      reg16(0x40010048)
+#define R_TIM1_DMAR     reg16(0x4001004c)
+
 /* OTG_FS core global registers */
 #define R_OTG_FS_GOTGCTL   reg32(0x50000000)
 #define R_OTG_FS_GOTGINT   reg32(0x50000004)
