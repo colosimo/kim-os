@@ -41,7 +41,7 @@ struct attr_packed spi_dev_xfer_t {
 };
 
 struct i2c_xfer_t {
-	u8 addr;
+	u8 addr; /* 7bit address */
 	u8 *buf;
 	size_t len;
 	u8 dir;
