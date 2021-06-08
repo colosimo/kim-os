@@ -29,6 +29,8 @@
 #define IOCTL_DEV_SET    5
 #define IOCTL_DEV_XFER   6
 
+#define IOCTL_USER(x)    (32 + x)
+
 struct attr_packed spi_dev_xfer_t {
 	u8 addr;
 	u8 *buf;
