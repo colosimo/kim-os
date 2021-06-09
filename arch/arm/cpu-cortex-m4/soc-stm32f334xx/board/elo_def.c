@@ -100,10 +100,22 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	or32(R_TIM3_CR1, BIT0);
 
 	or32(R_PWR_CR, BIT8);
-	wr32(R_RCC_BDCR, BIT0);
-	while (!(rd32(R_RCC_BDCR) & 0b10)); /* FIXME Use LSI if LSE not available */
 
+//#define LSE_PRESENT /* In v5.1 only */
+#ifdef LSE_PRESENT
+	wr32(R_RCC_BDCR, BIT0);
+	while (!(rd32(R_RCC_BDCR) & 0b10));
 	or32(R_RCC_BDCR, BIT15 | BIT8);
+#else
+	//or32(R_RCC_BDCR, BIT16);
+	wr32(R_RCC_CSR, BIT0);
+	log("CSR %08x\n", (uint)rd32(R_RCC_CSR));
+	while (!(rd32(R_RCC_CSR) & 0b10));
+	log("bdcr prima %08x\n", (uint)rd32(R_RCC_BDCR));
+	or32(R_RCC_BDCR, BIT15 | BIT9);
+	log("bdcr dopo  %08x\n", (uint)rd32(R_RCC_BDCR));
+	//and32(R_RCC_BDCR, ~BIT16);
+#endif
 
 #if 0 /* Sample code showing how to set an arbitrary date, e.g. Tue 2021-06-08 13:39:00 */
 	log("DELAY?\n");
