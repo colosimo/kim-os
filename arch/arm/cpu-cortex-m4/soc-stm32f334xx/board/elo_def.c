@@ -6,8 +6,6 @@
  * as long as you retain this notice.
  */
 
-/* STM32F407VG / STM32F407G-DISC1 board */
-
 #include <cpu.h>
 #include <reg.h>
 #include <linker.h>
