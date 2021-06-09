@@ -160,18 +160,6 @@ void attr_used init(void)
 
 	log("ahb freq is %d\n", (uint)ahb_freq);
 
-	gpio_dir(IO(PORTC, 1), 1);
-	gpio_dir(IO(PORTC, 15), 1);
-
-
-		gpio_wr(IO(PORTC, 1), 0);
-		gpio_wr(IO(PORTC, 15), 1);
-		k_delay_us(500000);
-		gpio_wr(IO(PORTC, 1), 1);
-		gpio_wr(IO(PORTC, 15), 0);
-		k_delay_us(500000);
-		putchar('A');
-
 	/* Skip to main */
 	k_main();
 }
