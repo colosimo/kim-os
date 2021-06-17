@@ -13,6 +13,7 @@
 
 #include "lcd.h"
 #include "pwm.h"
+#include "eeprom.h"
 
 /* DEF Main task */
 
@@ -34,8 +35,9 @@ int get_alarm()
 
 const char zero = 0;
 const char one = 1;
+
 u32 last_time_inc;
-u32 hours_cum = 0; /* FIXME read from flash */
+u32 hours = 0; /* FIXME read from flash */
 
 static void def_step(struct task_t *t);
 
@@ -43,17 +45,19 @@ static void write_funz(void)
 {
 	char buf[24];
 	int gg, hh;
-	gg = hours_cum / 24;
-	hh = hours_cum % 24;
+	gg = hours / 24;
+	hh = hours % 24;
 	k_sprintf(buf, STR_FUNZ, gg, hh);
 	lcd_write_string(buf, 1);
 }
 
 static void def_start(struct task_t *t)
 {
+	eeprom_init();
 	lcd_init();
 	pwm_init();
 	lcd_write_string(STR_ELO_BANNER, 0);
+	eeprom_read(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
 	write_funz();
 	last_time_inc = k_ticks();
 	def_step(t);
@@ -63,8 +67,9 @@ static void def_step(struct task_t *t)
 {
 	if (k_elapsed(last_time_inc) >= MS_TO_TICKS(MS_IN_HOUR)) {
 		last_time_inc = k_ticks();
-		hours_cum++;
+		hours++;
 		write_funz();
+		eeprom_write(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
 	}
 }
 

@@ -16,6 +16,7 @@
 #include <log.h>
 #include <gpio.h>
 #include <uart.h>
+#include <i2c.h>
 
 #define UART_BAUDRATE 115200
 
@@ -148,7 +149,7 @@ declare_gpio_dev(18, IO(PORTC, 13), DIR_OUT, PULL_NO, e);
 declare_gpio_dev(19, IO(PORTC, 14), DIR_OUT, PULL_NO, rs);
 declare_gpio_dev(20, IO(PORTB, 7), DIR_OUT, PULL_NO, rw);
 
-/* declare_dev(MAJ_SOC_I2C, MINOR_I2C1, NULL, i2c1); */
+declare_dev(MAJ_SOC_I2C, MINOR_I2C1, NULL, i2c1);
 
 const k_dev_t attr_devs uart1_dev = {
 	.id = dev_id(MAJ_SOC_UART, MINOR_UART1),

@@ -8,6 +8,7 @@
 #include <gpio.h>
 #include <log.h>
 
+#include "eeprom.h"
 #include "pwm.h"
 
 #define MIN_FREQ 20
@@ -19,6 +20,8 @@ static u32 freq, duty;
 
 void pwm_init(void)
 {
+	struct pwm_cfg_t p;
+
 	/* TIM3_CH1 on PA6 */
 	gpio_func(IO(PORTA, 6), 2);
 	and32(R_TIM3_CCMR1, ~0x7f);
@@ -26,12 +29,9 @@ void pwm_init(void)
 	or32(R_TIM3_CCER, BIT0);
 	wr32(R_TIM3_PSC, 200);
 
-	pwm_set(MIN_FREQ, MIN_DUTY);
-#if 0
-	arr = 320000 / MIN_FREQ;
-	wr32(R_TIM3_ARR, arr - 1);
-	wr32(R_TIM3_CCR1, (arr * (100 - MIN_DUTY)) / 100);
-#endif
+	eeprom_read(EEPROM_PWM_CFG_ADDR, (u8*)&p, sizeof(p));
+	pwm_set(p.freq, p.duty);
+
 	or32(R_TIM3_CR1, BIT0);
 	or32(R_PWR_CR, BIT8);
 }
@@ -39,6 +39,10 @@ void pwm_init(void)
 void pwm_set(u32 freq, u32 duty)
 {
 	u32 arr;
+	struct pwm_cfg_t p;
+
+	log("pwm set %d %d\n", (uint)freq, (uint)duty);
+
 	if (freq < MIN_FREQ) {
 		wrn("Min freq %d\n", MIN_FREQ);
 		freq = MIN_FREQ;
@@ -57,9 +61,13 @@ void pwm_set(u32 freq, u32 duty)
 		duty = MAX_DUTY;
 	}
 
-	arr = 320000 / freq;
+	arr = 320000 / freq; /* 320000 is 64MHz / Prescaler */
 	wr32(R_TIM3_ARR, arr - 1);
 	wr32(R_TIM3_CCR1, (arr * (100 - duty)) / 100);
+
+	p.duty = duty;
+	p.freq = freq;
+	eeprom_write(EEPROM_PWM_CFG_ADDR, (u8*)&p, sizeof(p));
 }
 
 void pwm_get(u32 *_freq, u32 *_duty)
