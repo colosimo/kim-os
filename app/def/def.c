@@ -18,6 +18,7 @@
 
 #define STR_ELO_BANNER "ELO Srl 0536/844420"
 #define STR_FUNZ "Funz: g:%03d h:%02d"
+#define MS_IN_HOUR (3600 * 1000)
 
 static int alrm = 0;
 
@@ -33,22 +34,38 @@ int get_alarm()
 
 const char zero = 0;
 const char one = 1;
+u32 last_time_inc;
+u32 hours_cum = 0; /* FIXME read from flash */
 
-void def_step(struct task_t *t);
+static void def_step(struct task_t *t);
 
-void def_start(struct task_t *t)
+static void write_funz(void)
 {
-	char buf[20];
+	char buf[24];
+	int gg, hh;
+	gg = hours_cum / 24;
+	hh = hours_cum % 24;
+	k_sprintf(buf, STR_FUNZ, gg, hh);
+	lcd_write_string(buf, 1);
+}
+
+static void def_start(struct task_t *t)
+{
 	lcd_init();
 	pwm_init();
 	lcd_write_string(STR_ELO_BANNER, 0);
-	k_sprintf(buf, STR_FUNZ, 0, 0);
-	lcd_write_string(buf, 1);
+	write_funz();
+	last_time_inc = k_ticks();
 	def_step(t);
 }
 
-void def_step(struct task_t *t)
+static void def_step(struct task_t *t)
 {
+	if (k_elapsed(last_time_inc) >= MS_TO_TICKS(MS_IN_HOUR)) {
+		last_time_inc = k_ticks();
+		hours_cum++;
+		write_funz();
+	}
 }
 
 struct task_t attr_tasks task_def = {
