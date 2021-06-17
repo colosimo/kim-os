@@ -92,3 +92,23 @@ struct task_t attr_tasks task_ant_check = {
 	.intvl_ms = 1,
 	.name = "ant_check",
 };
+
+/* PWM out manual command */
+
+static int pwm_cmd_cb(int argc, char *argv[], int fdout)
+{
+	u32 freq;
+	u32 duty;
+	freq = atoi(argv[1]);
+	duty = atoi(argv[2]);
+
+	pwm_set(freq, duty);
+	return 0;
+}
+
+const struct cli_cmd_t attr_cli cli_pwm = {
+	.narg = 2,
+	.cmd = pwm_cmd_cb,
+	.name = "pwm",
+	.descr = "pwm {freq} {duty}",
+};
