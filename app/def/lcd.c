@@ -12,9 +12,7 @@
 #include <errcode.h>
 
 #include "lcd.h"
-
-static const char zero = 0;
-static const char one = 1;
+#include "def.h"
 
 void lcd_init()
 {
