@@ -105,18 +105,6 @@ void attr_weak k_main(void)
 	struct k_dev_t *d = devs(0);
 	int fd;
 
-	/* Switch LEDs on */
-	gpio_dir(IO(PORTC, 1), 1);
-	gpio_dir(IO(PORTC, 15), 1);
-	gpio_wr(IO(PORTC, 1), 0);
-	gpio_wr(IO(PORTC, 15), 1);
-	k_delay_us(10000);
-	gpio_wr(IO(PORTC, 1), 1);
-	gpio_wr(IO(PORTC, 15), 0);
-	k_delay_us(10000);
-
-	log("%s %d\n", __FILE__, __LINE__);
-
 	for (; d != &__stop_devs; d++) {
 		fd = k_fd(dev_major(d->id), dev_minor(d->id));
 		if (fd < 0 || !d->drv) {
@@ -126,10 +114,8 @@ void attr_weak k_main(void)
 		if (d->drv->init)
 			d->drv->init(fd);
 	}
-	log("%s %d\n", __FILE__, __LINE__);
 
 	for (;t != &__stop_tsks; t++) {
-		log("t=%p\n", t);
 		if (!t->no_autorun)
 			task_start(t);
 	}
