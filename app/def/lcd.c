@@ -16,12 +16,11 @@
 
 void lcd_init()
 {
-	lcd_backlight(0);
+	lcd_set_backlight(0);
 	lcd_write(0x38, 0);
 	lcd_cursor(0, 0, 0);
 	lcd_write(0x06, 0);
 	lcd_write(0x01, 0);
-	lcd_backlight(1);
 }
 
 void lcd_write(u8 ch, int isdata)
@@ -67,9 +66,16 @@ void lcd_cursor(int line, int pos, int show)
 	lcd_write(0x0c | (show ? BIT1 : 0), 0);
 }
 
-void lcd_backlight(int en)
+void lcd_set_backlight(int en)
 {
 	k_write(k_fd_byname("lcd_backlight"), en ? &one : &zero, 1);
+}
+
+int lcd_get_backlight(void)
+{
+	char b;
+	k_read(k_fd_byname("lcd_backlight"), &b, 1);
+	return b;
 }
 
 static int hc_cmd_cb(int argc, char *argv[], int fdout)

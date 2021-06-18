@@ -11,4 +11,6 @@ void lcd_write_string(const char *str, int line);
 
 void lcd_cursor(int line, int pos, int show);
 
-void lcd_backlight(int en);
+void lcd_set_backlight(int en);
+
+int lcd_get_backlight();

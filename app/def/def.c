@@ -19,7 +19,11 @@
 
 #define STR_ELO_BANNER "ELO Srl 0536/844420"
 #define STR_FUNZ "Funz: g:%03d h:%02d"
-#define MS_IN_HOUR (3600 * 1000)
+#define MS_IN_MIN (60 * 1000)
+#define MS_IN_HOUR (60 * MS_IN_MIN)
+
+const char zero = 0;
+const char one = 1;
 
 static int alrm = 0;
 
@@ -33,11 +37,10 @@ int get_alarm()
 	return alrm;
 }
 
-const char zero = 0;
-const char one = 1;
-
 u32 last_time_inc;
-u32 hours = 0; /* FIXME read from flash */
+u32 last_time_key;
+u32 hours = 0;
+
 
 static void def_step(struct task_t *t);
 
@@ -51,15 +54,29 @@ static void write_funz(void)
 	lcd_write_string(buf, 1);
 }
 
+void set_standby(int stdby)
+{
+	lcd_set_backlight(!stdby);
+	if (stdby) {
+		lcd_write_string(STR_ELO_BANNER, 0);
+		eeprom_read(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
+		write_funz();
+	}
+}
+
+int is_standby(void)
+{
+	return lcd_get_backlight();
+}
+
 static void def_start(struct task_t *t)
 {
 	eeprom_init();
 	lcd_init();
 	pwm_init();
-	lcd_write_string(STR_ELO_BANNER, 0);
-	eeprom_read(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
-	write_funz();
-	last_time_inc = k_ticks();
+	set_standby(1);
+	set_standby(0);
+	last_time_key = last_time_inc = k_ticks();
 	def_step(t);
 }
 
@@ -71,6 +88,9 @@ static void def_step(struct task_t *t)
 		write_funz();
 		eeprom_write(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
 	}
+
+	if (k_elapsed(last_time_key) >= MS_TO_TICKS(MS_IN_MIN))
+		lcd_set_backlight(0);
 }
 
 struct task_t attr_tasks task_def = {
