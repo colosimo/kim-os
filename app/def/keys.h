@@ -10,4 +10,4 @@
 
 u32 keys_get_evts(void);
 
-void keys_clear_evts(u32 evts);
+void keys_clear_evts(u32 evts_bitfield);

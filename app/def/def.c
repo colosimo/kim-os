@@ -42,27 +42,28 @@ u32 last_time_inc;
 u32 last_time_key;
 u32 hours = 0;
 
-
 static void def_step(struct task_t *t);
 
-static void write_funz(void)
+void show_home(void)
 {
 	char buf[24];
 	int gg, hh;
+
+	lcd_write_string(STR_ELO_BANNER, 0, 0);
+	eeprom_read(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
+
 	gg = hours / 24;
 	hh = hours % 24;
 	k_sprintf(buf, STR_FUNZ, gg, hh);
-	lcd_write_string(buf, 1);
+	lcd_write_string(buf, 1, 0);
 }
 
 void set_standby(int stdby)
 {
 	lcd_set_backlight(!stdby);
-	if (stdby) {
-		lcd_write_string(STR_ELO_BANNER, 0);
-		eeprom_read(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
-		write_funz();
-	}
+	show_home();
+	if (stdby)
+		last_time_key = 0;
 }
 
 int get_standby(void)
@@ -80,7 +81,6 @@ static void def_start(struct task_t *t)
 	eeprom_init();
 	lcd_init();
 	pwm_init();
-	set_standby(1);
 	set_standby(0);
 	last_time_key = last_time_inc = k_ticks();
 	def_step(t);
@@ -91,7 +91,6 @@ static void def_step(struct task_t *t)
 	if (k_elapsed(last_time_inc) >= MS_TO_TICKS(MS_IN_HOUR)) {
 		last_time_inc = k_ticks();
 		hours++;
-		write_funz();
 		eeprom_write(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
 	}
 

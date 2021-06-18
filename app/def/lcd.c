@@ -52,12 +52,20 @@ void lcd_write(u8 ch, int isdata)
 	k_write(k_fd_byname("e"), &zero, 1);
 }
 
-void lcd_write_string(const char *str, int line)
+void lcd_write_string(const char *str, int line, int centered)
 {
 	int i;
 	lcd_cursor(line, 0, 0);
-	for (i = 0; i < strlen(str); i++)
-		lcd_write(str[i], 1);
+	if (centered) {
+		for (i = 0; i < (20 - strlen(str)) / 2; i++)
+			lcd_write(' ', 1);
+	}
+	for (i = 0; i < 20; i++) {
+		if (i < strlen(str))
+			lcd_write(str[i], 1);
+		else
+			lcd_write(' ', 1);
+	}
 }
 
 void lcd_cursor(int line, int pos, int show)

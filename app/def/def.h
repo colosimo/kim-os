@@ -9,6 +9,8 @@ extern const char one;
 void set_alarm(int alrm);
 int get_alarm(void);
 
+void show_home(void);
+
 void set_standby(int stdby);
 int get_standby(void);
 void rearm_standby(void);

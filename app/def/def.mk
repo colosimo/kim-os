@@ -8,4 +8,5 @@ OBJS += $(APP)/pwm.o
 OBJS += $(APP)/eeprom.o
 OBJS += $(APP)/keys.o
 OBJS += $(APP)/rtc.o
+OBJS += $(APP)/menu.o
 OBJS += $(patsubst %.c,%.o,$(wildcard cli/*.c))

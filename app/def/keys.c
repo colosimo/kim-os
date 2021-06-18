@@ -22,6 +22,7 @@ u32 keys_evts;
 void keys_start(struct task_t *t)
 {
 	int i;
+	keys_evts = 0;
 	for (i = KEY_UP; i <= KEY_ENTER; i++) {
 		fd_keys[i] = k_fd_byname(fname_keys[i]);
 		keys_stat[i] = 0;
@@ -38,8 +39,10 @@ void keys_step(struct task_t *t)
 
 		if (tmp[i] && !keys_stat[i]) {
 			rearm_standby();
-			if (get_standby())
-				set_standby(0);
+			if (get_standby()) {
+				if (i != KEY_ESC)
+					set_standby(0);
+			}
 			else
 				keys_evts |= (1 << i);
 		}
