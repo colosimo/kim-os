@@ -27,7 +27,7 @@ void pwm_init(void)
 	and32(R_TIM3_CCMR1, ~0x7f);
 	or32(R_TIM3_CCMR1, 0b1111000);
 	or32(R_TIM3_CCER, BIT0);
-	wr32(R_TIM3_PSC, 200);
+	wr32(R_TIM3_PSC, 160); /* Prescaler is 160 */
 
 	eeprom_read(EEPROM_PWM_CFG_ADDR, (u8*)&p, sizeof(p));
 	pwm_set(p.freq, p.duty);
@@ -61,7 +61,7 @@ void pwm_set(u32 freq, u32 duty)
 		duty = MAX_DUTY;
 	}
 
-	arr = 320000 / freq; /* 320000 is 64MHz / Prescaler */
+	arr = 400000 / freq; /* 400000 is 64MHz / Prescaler */
 	wr32(R_TIM3_ARR, arr - 1);
 	wr32(R_TIM3_CCR1, (arr * (100 - duty)) / 100);
 
