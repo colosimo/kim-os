@@ -33,7 +33,6 @@ void pwm_init(void)
 	pwm_set(p.freq, p.duty);
 
 	or32(R_TIM3_CR1, BIT0);
-	or32(R_PWR_CR, BIT8);
 }
 
 void pwm_set(u32 freq, u32 duty)

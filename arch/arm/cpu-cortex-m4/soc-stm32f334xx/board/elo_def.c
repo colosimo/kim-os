@@ -85,35 +85,29 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	wr32(R_I2C1_TIMINGR, (3 << 28) | (4 << 20) | (2 << 16) | (0xf << 8) | 0x13);
 	or32(R_I2C1_CR1, 0b1);
 
-//#define LSE_PRESENT /* In v5.1 only */
+	/* RTC initialization */
+	or32(R_PWR_CR, BIT8);
+
+/* #define LSE_PRESENT In v5.1 only */
 #ifdef LSE_PRESENT
 	wr32(R_RCC_BDCR, BIT0);
 	while (!(rd32(R_RCC_BDCR) & 0b10));
 	or32(R_RCC_BDCR, BIT15 | BIT8);
 #else
-	//or32(R_RCC_BDCR, BIT16);
 	wr32(R_RCC_CSR, BIT0);
-	log("CSR %08x\n", (uint)rd32(R_RCC_CSR));
 	while (!(rd32(R_RCC_CSR) & 0b10));
-	log("bdcr prima %08x\n", (uint)rd32(R_RCC_BDCR));
 	or32(R_RCC_BDCR, BIT15 | BIT9);
-	log("bdcr dopo  %08x\n", (uint)rd32(R_RCC_BDCR));
-	//and32(R_RCC_BDCR, ~BIT16);
-#endif
 
-#if 0 /* Sample code showing how to set an arbitrary date, e.g. Tue 2021-06-08 13:39:00 */
-	log("DELAY?\n");
 	wr32(R_RTC_WPR, 0xca);
 	wr32(R_RTC_WPR, 0x53);
-	log("DELAY?\n");
+
 	or32(R_RTC_ISR, BIT7);
-	or32(R_RTC_ISR, BIT6);
-	log("DELAY?\n");
-	wr32(R_RTC_TR, 0x145830);
-	wr32(R_RTC_DR, 0x214608);
-	log("DELAY?\n");
+	while (!(rd32(R_RTC_ISR) & BIT6));
+	wr32(R_RTC_PRER, (127 << 16) | 311);
 	and32(R_RTC_ISR, ~BIT7);
-	log("DELAY?\n");
+
+	wr32(R_RTC_WPR, 0xff);
+
 #endif
 
 	date = rd32(R_RTC_DR);
