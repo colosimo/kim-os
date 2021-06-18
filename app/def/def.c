@@ -14,6 +14,7 @@
 #include "lcd.h"
 #include "pwm.h"
 #include "eeprom.h"
+#include "keys.h"
 
 /* DEF Main task */
 
@@ -64,9 +65,14 @@ void set_standby(int stdby)
 	}
 }
 
-int is_standby(void)
+int get_standby(void)
 {
-	return lcd_get_backlight();
+	return !lcd_get_backlight();
+}
+
+void rearm_standby(void)
+{
+	last_time_key = k_ticks();
 }
 
 static void def_start(struct task_t *t)
@@ -90,7 +96,7 @@ static void def_step(struct task_t *t)
 	}
 
 	if (k_elapsed(last_time_key) >= MS_TO_TICKS(MS_IN_MIN))
-		lcd_set_backlight(0);
+		set_standby(1);
 }
 
 struct task_t attr_tasks task_def = {

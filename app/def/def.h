@@ -11,3 +11,4 @@ int get_alarm(void);
 
 void set_standby(int stdby);
 int get_standby(void);
+void rearm_standby(void);

@@ -6,4 +6,5 @@ OBJS += $(APP)/lcd.o
 OBJS += $(APP)/leds.o
 OBJS += $(APP)/pwm.o
 OBJS += $(APP)/eeprom.o
+OBJS += $(APP)/keys.o
 OBJS += $(patsubst %.c,%.o,$(wildcard cli/*.c))
