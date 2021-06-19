@@ -88,8 +88,11 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	/* RTC initialization */
 	or32(R_PWR_CR, BIT8);
 
-/* #define LSE_PRESENT In v5.1 only */
+//#define LSE_PRESENT /* In v5.1 only */
 #ifdef LSE_PRESENT
+	if (((rd32(R_RCC_BDCR) >> 8) & 0b11) != 0b01)
+		wr32(R_RCC_BDCR, BIT16);
+
 	wr32(R_RCC_BDCR, BIT0);
 	while (!(rd32(R_RCC_BDCR) & 0b10));
 	or32(R_RCC_BDCR, BIT15 | BIT8);
