@@ -218,7 +218,7 @@ static void update_screen_pwm()
 
 	k_sprintf(buf, "Freq: %03d", (uint)f);
 	lcd_write_line(buf, 0, 0);
-	k_sprintf(buf, "D.C.: %02d", (uint)d);
+	k_sprintf(buf, "D.C.:  %02d", (uint)d);
 	lcd_write_line(buf, 1, 0);
 
 	switch(status) {
