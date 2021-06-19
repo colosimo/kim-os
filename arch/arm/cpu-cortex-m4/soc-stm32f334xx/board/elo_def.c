@@ -112,7 +112,7 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 
 	date = rd32(R_RTC_DR);
 	time = rd32(R_RTC_TR);
-	log("%s done, date is %s 20%d%d-%d%d-%d%d %d%d:%d%d:%d%d\n", __func__,
+	log("%s done, date is %s %d%d-%d%d-%d%d %d%d:%d%d:%d%d\n", __func__,
 		days[((date >> 13) & 0x7) - 1],
 	    (date >> 20) & 0xf, (date >> 16) & 0xf, (date >> 12) & 0x1, (date >> 8) & 0xf,
 		(date >> 4) & 0x3, date & 0xf,

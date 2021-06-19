@@ -4,7 +4,7 @@
  */
 
 struct rtc_t {
-	u16 year;
+	u8 year;
 	u8 month;
 	u8 day;
 	u8 hour;
@@ -18,3 +18,5 @@ void rtc_set(const struct rtc_t *r);
 void rtc_get(struct rtc_t *r);
 
 void rtc_dump(const struct rtc_t *r);
+
+int rtc_valid(const struct rtc_t *r);

@@ -43,7 +43,7 @@ void rtc_get(struct rtc_t *r)
 	tr = rd32(R_RTC_TR);
 	dr = rd32(R_RTC_DR);
 
-	r->year = 2000 + 10 * ((dr >> 20) & 0xf) + ((dr >> 16) & 0xf);
+	r->year = 10 * ((dr >> 20) & 0xf) + ((dr >> 16) & 0xf);
 	r->month = 10 * ((dr >> 12) & 0x1) + ((dr >> 8) & 0xf);
 	r->day = 10 * ((dr >> 4) & 0x3) + (dr & 0xf);
 	r->wdu = (dr >> 13) & 0x7;
@@ -51,6 +51,15 @@ void rtc_get(struct rtc_t *r)
 	r->hour = 10 * ((tr >> 20) & 0x3) + ((tr >> 16) & 0xf);
 	r->min = 10 * ((tr >> 12) & 0x7) + ((tr >> 8) & 0xf);
 	r->sec = 10 * ((tr >> 4) & 0x7) + (tr & 0xf);
+}
+
+int rtc_valid(const struct rtc_t *r)
+{
+	int days_in_month[23] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+	if (r->year % 4 == 0)
+		days_in_month[1] = 29;
+
+	return r->day <= days_in_month[r->month - 1];
 }
 
 void rtc_dump(const struct rtc_t *r)

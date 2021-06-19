@@ -49,13 +49,13 @@ void show_home(void)
 	char buf[24];
 	int gg, hh;
 
-	lcd_write_string(STR_ELO_BANNER, 0, 0);
+	lcd_write_line(STR_ELO_BANNER, 0, 0);
 	eeprom_read(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
 
 	gg = hours / 24;
 	hh = hours % 24;
 	k_sprintf(buf, STR_FUNZ, gg, hh);
-	lcd_write_string(buf, 1, 0);
+	lcd_write_line(buf, 1, 0);
 }
 
 void set_standby(int stdby)
