@@ -16,8 +16,6 @@
 #define MIN_DUTY 2
 #define MAX_DUTY 10
 
-static u32 freq, duty;
-
 void pwm_init(void)
 {
 	struct pwm_cfg_t p;
@@ -71,6 +69,12 @@ void pwm_set(u32 freq, u32 duty)
 
 void pwm_get(u32 *_freq, u32 *_duty)
 {
-	*_freq = freq;
-	*_duty = duty;
+	u32 arr;
+	u32 ccr1;
+
+	arr = rd32(R_TIM3_ARR);
+	ccr1 = rd32(R_TIM3_CCR1);
+
+	*_freq = 400000 / (arr + 1);
+	*_duty = 100 - (ccr1 * 100) / arr;
 }
