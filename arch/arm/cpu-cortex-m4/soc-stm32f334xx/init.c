@@ -36,6 +36,10 @@ void attr_weak isr_usart3(void)
 	wr32(R_USART3_TDR, rd32(R_USART3_RDR));
 }
 
+void attr_weak isr_exti15_10(void)
+{
+}
+
 static const void *attr_isrv_irq _isrv_irq[] = {
 	/* STM32F334 peripheral IRQs */
 	isr_none, /* WWDG */
@@ -78,7 +82,7 @@ static const void *attr_isrv_irq _isrv_irq[] = {
 	isr_usart1, /* USART1 */
 	isr_usart2, /* USART2 */
 	isr_usart3, /* USART3 */
-	isr_none, /* EXTI15_10 */
+	isr_exti15_10, /* EXTI15_10 */
 	isr_none, /* RTC_Alarm */
 	isr_none, /* Reserved */
 	isr_none, /* Reserved */

@@ -55,8 +55,8 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	*cpu_freq = *apb_freq = *ahb_freq = 64000000;
 
 	or32(R_RCC_AHBENR, BIT22 | BIT20 | BIT19 | BIT18 | BIT17); /* All GPIOs */
-	or32(R_RCC_APB2ENR, BIT14); /* USART1 */
-	or32(R_RCC_APB1ENR, BIT28 | BIT21 | BIT1); /* PWR, I2C1, TIM3 */
+	or32(R_RCC_APB2ENR, BIT14 | BIT0); /* USART1, SYSCFG */
+	or32(R_RCC_APB1ENR, BIT28 | BIT21 | BIT1 | BIT0); /* PWR, I2C1, TIM3, TIM2 */
 
 	/* USART1 on PC4/PC5 */
 	gpio_func(IO(PORTC, 4), 7);
@@ -87,6 +87,8 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 
 	/* RTC initialization */
 	or32(R_PWR_CR, BIT8);
+
+	wr32(R_SYSCFG_EXTICR4, 0b001 << 8); /* PB14 on EXTI */
 
 //#define LSE_PRESENT /* In v5.1 only */
 #ifdef LSE_PRESENT
