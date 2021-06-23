@@ -14,3 +14,9 @@ struct rfrx_frame_t {
 };
 
 void rfrx_frame_dump(struct rfrx_frame_t *f);
+
+void rfrx_frame_display(struct rfrx_frame_t *f);
+
+void rfrx_clear_lastframe(void);
+
+struct rfrx_frame_t *rfrx_get_lastframe(void);

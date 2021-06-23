@@ -16,6 +16,8 @@
 #include "lcd.h"
 #include "rtc.h"
 #include "pwm.h"
+#include "rfrx.h"
+
 
 static int status = 0; /* Generic state machine variable */
 
@@ -277,12 +279,27 @@ static void on_evt_pwm(int key)
 	keys_clear_evts(1 << key);
 }
 
+static void refresh_realtimesens(void)
+{
+	struct rfrx_frame_t *f;
+	if (status == 0) {
+		rfrx_clear_lastframe();
+		status = 1;
+	}
+
+	f = rfrx_get_lastframe();
+	if (f) {
+		rfrx_frame_display(f);
+		rfrx_clear_lastframe();
+	}
+}
+
 static struct menu_voice_t menu[] = {
 	{0, {"MENU", "IMPOSTAZIONI"}, on_evt_def, NULL, {4, 1, -1, 5}},
 	{1, {"VISUALIZZA", "STORICO AVVII"}, on_evt_def, NULL, {0, 2, -1, -1}},
 	{2, {"VISUALIZZA", "SEGNALAZIONI"}, on_evt_def, NULL, {1, 3, -1, -1}},
 	{3, {"VISUALIZZA", "STORICO LETTURE"}, on_evt_def, NULL, {2, 4, -1, -1}},
-	{4, {"VISUALIZZA", "REALTIME SENSORI"}, on_evt_def, NULL, {3, 0, -1, -1}},
+	{4, {"VISUALIZZA", "REALTIME SENSORI"}, on_evt_def, NULL, {3, 0, -1, 16}},
 	{5, {"IMPOSTAZIONI", "PARAMETRI F."}, on_evt_def, NULL, {13, 6, 0, 15}},
 	{6, {"IMPOSTAZIONI", "MODALITA'"}, on_evt_def, NULL, {5, 7, 0, -1}},
 	{7, {"IMPOSTAZIONI", "DATA E ORA"}, on_evt_def, NULL, {6, 8, 0, 14}},
@@ -294,6 +311,7 @@ static struct menu_voice_t menu[] = {
 	{13, {"IMPOSTAZIONI", "TEST PWM"}, on_evt_def, NULL, {12, 5, 0, -1}},
 	{14, {"", ""}, on_evt_datetime, refresh_datetime, {-1, -1, 7, 7}},
 	{15, {"", ""}, on_evt_pwm, refresh_pwm, {-1, -1, 5, 5}},
+	{16, {"ATTENDERE...", "COMUNICAZIONE"}, on_evt_def, refresh_realtimesens, {-1, -1, 4, 4}},
 	{-1}
 };
 

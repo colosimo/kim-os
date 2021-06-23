@@ -16,6 +16,7 @@
 
 #include "rfrx.h"
 #include "def.h"
+#include "lcd.h"
 
 #define RXRF_MINPULSESHORT     625
 #define RXRF_MAXPULSESHORT     2699
@@ -41,7 +42,10 @@ static int end_ok;
 static u32 evts[512];
 static u32 evts_val[512];
 static int evts_sym[512];
+static u8 last_msg_id = 0xff;
 
+static struct rfrx_frame_t lastf;
+static struct rfrx_frame_t *lastf_ptr;
 
 void rfrx_frame_dump(struct rfrx_frame_t *f)
 {
@@ -51,6 +55,22 @@ void rfrx_frame_dump(struct rfrx_frame_t *f)
 	log("HUM:   %d\n", f->hum);
 	log("VREAD: %d\n", f->vread);
 	log("VBAT:  %d\n", f->vbat);
+}
+
+void rfrx_frame_display(struct rfrx_frame_t *f)
+{
+	char buf[24];
+
+	k_sprintf(buf, "S:%d mV:%c%d  B:%d.%d",
+	    f->addr + 1, (f->vread < 0) ? '-' : ' ',
+	    (uint)abs(f->vread), f->vbat / 10, f->vbat % 10);
+	lcd_write_line(buf, 0, 0);
+
+	k_sprintf(buf, "H:%s%d T:%c%d.%d P:%d",
+	    f->hum < 100 ? " " : "", f->hum, f->temp < 0 ? '-': ' ',
+(uint)abs(f->temp / 10),
+	    (uint)abs(f->temp % 10), f->msg_id);
+	lcd_write_line(buf, 1, 0);
 }
 
 void isr_exti15_10(void)
@@ -109,6 +129,16 @@ void isr_exti15_10(void)
 	}
 }
 
+void rfrx_clear_lastframe()
+{
+	lastf_ptr = NULL;
+}
+
+struct rfrx_frame_t *rfrx_get_lastframe()
+{
+	return lastf_ptr;
+}
+
 static void rfrx_start(struct task_t *t)
 {
 	fd = k_fd_byname(fname_rfrx);
@@ -122,6 +152,7 @@ static void rfrx_start(struct task_t *t)
 	or32(R_EXTI_IMR1, BIT14);
 	or32(R_NVIC_ISER(1), BIT8); /* EXTI15_10 is irq 40 */
 
+	rfrx_clear_lastframe();
 	cnt = 0;
 	end_ok = 0;
 }
@@ -141,15 +172,14 @@ static void rfrx_step(struct task_t *t)
 	}
 
 	if (end_ok) {
-		log("\nfound %d\n", cnt);
+		dbg("\nNew rxrf frame\n");
 		memset(&f, 0, sizeof(f));
 
 		for (i = 0; i < cnt; i++) {
 			if (i < cnt - 1 && evts_val[i] == evts_val[i + 1]) {
-				log("ERROR!\n");
+				err("rxrf frame error\n");
 				k_delay_us(1000);
 			}
-
 		}
 
 		pos = 0;
@@ -187,10 +217,12 @@ static void rfrx_step(struct task_t *t)
 			else if (pos == 49)
 				f.parity = bit;
 
-			f.temp *= sign_temp;
-			f.vread *= sign_vread;
 			pos++;
+
 		}
+		f.temp *= sign_temp;
+		f.vread *= sign_vread;
+
 		end_ok = 0;
 		cnt = 0;
 
@@ -200,7 +232,12 @@ static void rfrx_step(struct task_t *t)
 		or32(R_EXTI_FTSR1, BIT14);
 		and32(R_EXTI_RTSR1, ~BIT14);
 
-		rfrx_frame_dump(&f);
+		/* debug only rfrx_frame_dump(&f); */
+		if (f.msg_id != last_msg_id) {
+			memcpy(&lastf, &f, sizeof(f));
+			lastf_ptr = &lastf;
+			last_msg_id = f.msg_id;
+		}
 	}
 }
 
