@@ -94,11 +94,11 @@ static void update_screen_datetime()
 
 	switch(status) {
 		case 0:
-		case 1: cur_line = 0; cur_pos = 6; cur_show = 1; break;
-		case 2: cur_line = 0; cur_pos = 9; cur_show = 1; break;
-		case 3: cur_line = 0; cur_pos = 12; cur_show = 1; break;
-		case 4: cur_line = 1; cur_pos = 6; cur_show = 1; break;
-		case 5: cur_line = 1; cur_pos = 9; cur_show = 1; break;
+		case 1: cur_line = 0; cur_pos = 7; cur_show = 1; break;
+		case 2: cur_line = 0; cur_pos = 10; cur_show = 1; break;
+		case 3: cur_line = 0; cur_pos = 13; cur_show = 1; break;
+		case 4: cur_line = 1; cur_pos = 7; cur_show = 1; break;
+		case 5: cur_line = 1; cur_pos = 10; cur_show = 1; break;
 		case 6: cur_line = 1; cur_pos = 17; cur_show = 0; break;
 		case 101: cur_show = 0;
 		default: cur_line = cur_pos = cur_show = 0; break; /* Never happens */
@@ -225,8 +225,8 @@ static void update_screen_pwm()
 
 	switch(status) {
 		case 0:
-		case 1: cur_line = 0; cur_pos = 6; cur_show = 1; break;
-		case 2: cur_line = 1; cur_pos = 6; cur_show = 1; break;
+		case 1: cur_line = 0; cur_pos = 8; cur_show = 1; break;
+		case 2: cur_line = 1; cur_pos = 8; cur_show = 1; break;
 		default: cur_line = cur_pos = cur_show = 0; break; /* Never happens */
 	}
 	lcd_cursor(cur_line, cur_pos, cur_show);
