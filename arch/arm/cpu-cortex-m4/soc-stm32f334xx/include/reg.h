@@ -32,6 +32,30 @@
 #define R_RCC_CFGR2        reg32(0x4002102c)
 #define R_RCC_CFGR3        reg32(0x40021030)
 
+/* System Configuration Controller registers */
+#define R_SYSCFG_CFGR1     reg32(0x40010000)
+#define R_SYSCFG_RCR       reg32(0x40010004)
+#define R_SYSCFG_EXTICR1   reg32(0x40010008)
+#define R_SYSCFG_EXTICR2   reg32(0x4001000c)
+#define R_SYSCFG_EXTICR3   reg32(0x40010010)
+#define R_SYSCFG_EXTICR4   reg32(0x40010014)
+#define R_SYSCFG_CFGR2     reg32(0x40010018)
+#define R_SYSCFG_CFGR3     reg32(0x40010050)
+
+/* EXTI Registers */
+#define R_EXTI_IMR1        reg32(0x40010400)
+#define R_EXTI_EMR1        reg32(0x40010404)
+#define R_EXTI_RTSR1       reg32(0x40010408)
+#define R_EXTI_FTSR1       reg32(0x4001040c)
+#define R_EXTI_SWIER1      reg32(0x40010410)
+#define R_EXTI_PR1         reg32(0x40010414)
+#define R_EXTI_IMR2        reg32(0x40010420)
+#define R_EXTI_EMR2        reg32(0x40010424)
+#define R_EXTI_RTSR2       reg32(0x40010428)
+#define R_EXTI_FTSR2       reg32(0x4001042c)
+#define R_EXTI_SWIER2      reg32(0x40010430)
+#define R_EXTI_PR2         reg32(0x40010434)
+
 /* Flash interface registers */
 #define R_FLASH_ACR        reg32(0x40022000)
 #define R_FLASH_KEYR       reg32(0x40022004)
@@ -145,6 +169,26 @@
 #define R_GPIOF_AFRL       reg32(0x48001420)
 #define R_GPIOF_AFRH       reg32(0x48001424)
 #define R_GPIOF_BRR        reg32(0x48001428)
+
+/* TIM2 registers */
+#define R_TIM2_CR1         reg32(0x40000000)
+#define R_TIM2_CR2         reg32(0x40000004)
+#define R_TIM2_SMCR        reg32(0x40000008)
+#define R_TIM2_DIER        reg32(0x4000000c)
+#define R_TIM2_SR          reg32(0x40000010)
+#define R_TIM2_EGR         reg32(0x40000014)
+#define R_TIM2_CCMR1       reg32(0x40000018)
+#define R_TIM2_CCMR2       reg32(0x4000001c)
+#define R_TIM2_CCER        reg32(0x40000020)
+#define R_TIM2_CNT         reg32(0x40000024)
+#define R_TIM2_PSC         reg32(0x40000028)
+#define R_TIM2_ARR         reg32(0x4000002c)
+#define R_TIM2_CCR1        reg32(0x40000034)
+#define R_TIM2_CCR2        reg32(0x40000038)
+#define R_TIM2_CCR3        reg32(0x4000003c)
+#define R_TIM2_CCR4        reg32(0x40000040)
+#define R_TIM2_DCR         reg32(0x40000048)
+#define R_TIM2_DMAR        reg32(0x4000004c)
 
 /* TIM3 registers */
 #define R_TIM3_CR1         reg32(0x40000400)
