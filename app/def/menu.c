@@ -17,7 +17,7 @@
 #include "rtc.h"
 #include "pwm.h"
 #include "rfrx.h"
-
+#include "db.h"
 
 static int status = 0; /* Generic state machine variable */
 
@@ -80,10 +80,12 @@ static void update_screen_datetime()
 	if (status == 100) {
 		lcd_write_line("ANNULLATO", 0, 0);
 		lcd_write_line("", 1, 0);
+		status = 103;
 		return;
 	} else if (status == 102) {
 		lcd_write_line("DATA NON VALIDA", 0, 0);
 		lcd_write_line("", 1, 0);
+		status = 103;
 		return;
 	}
 
@@ -279,6 +281,8 @@ static void on_evt_pwm(int key)
 	keys_clear_evts(1 << key);
 }
 
+static u32 ticks_exec;
+
 static void refresh_realtimesens(void)
 {
 	struct rfrx_frame_t *f;
@@ -294,6 +298,48 @@ static void refresh_realtimesens(void)
 	}
 }
 
+static void refresh_reset_storici(void)
+{
+	if (status == 100) {
+		status = 102;
+		lcd_write_line("ESEGUITO", 0, 1);
+	}
+	else if (status == 101) {
+		status = 102;
+		lcd_write_line("ANNULLATO", 0, 1);
+	}
+
+	else if (status >= 100 && k_elapsed(ticks_exec) > MS_TO_TICKS(1000))
+		on_evt_def(KEY_ESC);
+
+}
+
+static void on_evt_reset_storici(int key)
+{
+	switch (status) {
+
+		case 0:
+			if (key == KEY_ENTER) {
+				status = 100;
+				db_alarm_reset();
+				ticks_exec = k_ticks();
+			}
+			else if (key == KEY_ESC) {
+				status = 101;
+				ticks_exec = k_ticks();
+			}
+			break;
+
+		case 100:
+
+		default:
+			break;
+	}
+
+	keys_clear_evts(1 << key);
+
+}
+
 static struct menu_voice_t menu[] = {
 	{0, {"MENU", "IMPOSTAZIONI"}, on_evt_def, NULL, {4, 1, -1, 5}},
 	{1, {"VISUALIZZA", "STORICO AVVII"}, on_evt_def, NULL, {0, 2, -1, -1}},
@@ -304,7 +350,7 @@ static struct menu_voice_t menu[] = {
 	{6, {"IMPOSTAZIONI", "MODALITA'"}, on_evt_def, NULL, {5, 7, 0, -1}},
 	{7, {"IMPOSTAZIONI", "DATA E ORA"}, on_evt_def, NULL, {6, 8, 0, 14}},
 	{8, {"IMPOSTAZIONI", "RESET CONTATORE"}, on_evt_def, NULL, {7, 9, 0, -1}},
-	{9, {"IMPOSTAZIONI", "RESET STORICI"}, on_evt_def, NULL, {8, 10, 0, -1}},
+	{9, {"IMPOSTAZIONI", "RESET STORICI"}, on_evt_def, NULL, {8, 10, 0, 17}},
 	{10, {"IMPOSTAZIONI", "BLUETOOTH"}, on_evt_def, NULL, {9, 11, 0, -1}},
 	{11, {"IMPOSTAZIONI", "COMUNICAZIONI RF"}, on_evt_def, NULL, {10, 12, 0, -1}},
 	{12, {"IMPOSTAZIONI", "VERSIONE FW"}, on_evt_def, NULL, {11, 13, 0, -1}},
@@ -312,6 +358,7 @@ static struct menu_voice_t menu[] = {
 	{14, {"", ""}, on_evt_datetime, refresh_datetime, {-1, -1, 7, 7}},
 	{15, {"", ""}, on_evt_pwm, refresh_pwm, {-1, -1, 5, 5}},
 	{16, {"ATTENDERE...", "COMUNICAZIONE"}, on_evt_def, refresh_realtimesens, {-1, -1, 4, 4}},
+	{17, {"CONFERMA?", "RESET STORICI"}, on_evt_reset_storici, refresh_reset_storici, {8, 10, 9, 9}},
 	{-1}
 };
 

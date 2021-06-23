@@ -16,6 +16,10 @@ struct pwm_cfg_t {
 
 #define EEPROM_PWM_CFG_ADDR  0x000c
 
+#define EEPROM_ALARMS_CUR_POS    0x0014
+
+#define EEPROM_ALARMS_START_ADDR 0x0100
+#define EEPROM_ALARMS_END_ADDR   0x0500
 
 void eeprom_init(void);
 

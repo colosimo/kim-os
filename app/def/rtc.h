@@ -3,7 +3,7 @@
  * Copyright: Elo System srl
  */
 
-struct rtc_t {
+struct attr_packed rtc_t {
 	u8 year;
 	u8 month;
 	u8 day;

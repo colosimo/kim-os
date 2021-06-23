@@ -17,6 +17,7 @@
 #include "rfrx.h"
 #include "def.h"
 #include "lcd.h"
+#include "db.h"
 
 #define RXRF_MINPULSESHORT     625
 #define RXRF_MAXPULSESHORT     2699
@@ -33,6 +34,8 @@
 #define RXRF_LONG_ONE             3
 #define RXRF_START_ZERO           4
 #define RXRF_START_ONE            5
+
+#define BATTERY_THRES            90 /* 9V */
 
 static char *fname_rfrx = "rf_rx";
 static int fd;
@@ -237,6 +240,9 @@ static void rfrx_step(struct task_t *t)
 			memcpy(&lastf, &f, sizeof(f));
 			lastf_ptr = &lastf;
 			last_msg_id = f.msg_id;
+
+			if (f.vbat < BATTERY_THRES)
+				db_alarm_add(ALRM_TYPE_BATTERY, f.addr);
 		}
 	}
 }

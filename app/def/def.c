@@ -15,6 +15,7 @@
 #include "pwm.h"
 #include "eeprom.h"
 #include "keys.h"
+#include "db.h"
 
 /* DEF Main task */
 
@@ -78,12 +79,23 @@ void rearm_standby(void)
 
 static void def_start(struct task_t *t)
 {
+	struct alarm_t a;
+	int i;
 	eeprom_init();
 	lcd_init();
 	pwm_init();
+	db_init();
 	set_standby(0);
 	last_time_key = last_time_inc = k_ticks();
 	def_step(t);
+
+	for (i = 0; i < ALRM_MAX_NUM; i++) {
+		db_alarm_get(&a, i);
+		if (a.type != ALRM_TYPE_INVALID) {
+			db_alarm_dump(&a);
+		}
+	}
+
 }
 
 static void def_step(struct task_t *t)
@@ -129,8 +141,10 @@ void ant_check_step(struct task_t *t)
 			set_alarm(0);
 	}
 
-	if (!get_alarm() && k_elapsed(t_last_on) > MS_TO_TICKS(ANTENNA_CHECK_DELAY_MS))
+	if (!get_alarm() && k_elapsed(t_last_on) > MS_TO_TICKS(ANTENNA_CHECK_DELAY_MS)) {
 		set_alarm(1);
+		db_alarm_add(ALRM_TYPE_ANT, 0);
+	}
 }
 
 struct task_t attr_tasks task_ant_check = {

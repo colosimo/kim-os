@@ -9,6 +9,7 @@
 #include <log.h>
 #include <errcode.h>
 
+#include "db.h"
 #include "pwm.h"
 #include "eeprom.h"
 
@@ -21,15 +22,11 @@ int i2c_fd;
 
 void eeprom_reset(void)
 {
-	u32 tmp;
+	u32 tmp = 0;
 	struct pwm_cfg_t p;
 
-	/* Write signature */
-	eeprom_write(EEPROM_SIGN_ADDR, EEPROM_SIGN, 4);
-
-	/* Write Format Version */
-	tmp = EEPROM_FMT_VER;
-	eeprom_write(EEPROM_FMT_VER_ADDR, &tmp, sizeof(tmp));
+	/* Invalidate signature (in order to recover in case it reboots during reset) */
+	eeprom_write(EEPROM_SIGN_ADDR, &tmp, 4);
 
 	/* Reset hours */
 	tmp = 0;
@@ -39,12 +36,23 @@ void eeprom_reset(void)
 	p.freq = PWM_DEF_FREQ;
 	p.duty = PWM_DEF_DUTY;
 	eeprom_write(EEPROM_PWM_CFG_ADDR, (u8*)&p, sizeof(p));
+
+	/* Write Format Version */
+	tmp = EEPROM_FMT_VER;
+	eeprom_write(EEPROM_FMT_VER_ADDR, &tmp, sizeof(tmp));
+
+	/* Reset alarms current position */
+	db_alarm_reset();
+
+	/* Everything is ok, now write signature */
+	eeprom_write(EEPROM_SIGN_ADDR, EEPROM_SIGN, 4);
 }
 
 void eeprom_init(void)
 {
 	u32 tmp;
 	i2c_fd = k_fd_byname("i2c1");
+
 	eeprom_read(EEPROM_SIGN_ADDR, &tmp, 4);
 	if (tmp != *((u32*)EEPROM_SIGN))
 		eeprom_reset();
