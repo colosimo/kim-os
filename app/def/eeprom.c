@@ -9,19 +9,51 @@
 #include <log.h>
 #include <errcode.h>
 
+#include "pwm.h"
 #include "eeprom.h"
 
 #define EEPROM_I2C_ADDR_7BIT 0b1010110
 
+#define EEPROM_SIGN     "ELOS"
+#define EEPROM_FMT_VER  1
+
 int i2c_fd;
+
+void eeprom_reset(void)
+{
+	u32 tmp;
+	struct pwm_cfg_t p;
+
+	/* Write signature */
+	eeprom_write(EEPROM_SIGN_ADDR, EEPROM_SIGN, 4);
+
+	/* Write Format Version */
+	tmp = EEPROM_FMT_VER;
+	eeprom_write(EEPROM_FMT_VER_ADDR, &tmp, sizeof(tmp));
+
+	/* Reset hours */
+	tmp = 0;
+	eeprom_write(EEPROM_HOURS_ADDR, &tmp, sizeof(tmp));
+
+	/* Reset PWM */
+	p.freq = PWM_DEF_FREQ;
+	p.duty = PWM_DEF_DUTY;
+	eeprom_write(EEPROM_PWM_CFG_ADDR, (u8*)&p, sizeof(p));
+}
 
 void eeprom_init(void)
 {
-	/* FIXME Check eeprom integrity with checksum, especially in key values */
+	u32 tmp;
 	i2c_fd = k_fd_byname("i2c1");
+	eeprom_read(EEPROM_SIGN_ADDR, &tmp, 4);
+	if (tmp != *((u32*)EEPROM_SIGN))
+		eeprom_reset();
+	eeprom_read(EEPROM_FMT_VER_ADDR, &tmp, 4);
+	if (tmp > EEPROM_FMT_VER)
+		eeprom_reset();
 }
 
-int eeprom_read(u16 rndm_addr, u8 *val, int _cnt)
+int eeprom_read(u16 rndm_addr, void *val, int _cnt)
 {
 	int ret;
 	u8 addr[2];
@@ -52,9 +84,13 @@ int eeprom_read(u16 rndm_addr, u8 *val, int _cnt)
 	return k_ioctl(i2c_fd, IOCTL_DEV_XFER, &xfer, sizeof(xfer));
 }
 
-int eeprom_write(u16 rndm_addr, u8 *val, int _cnt)
+int eeprom_write(u16 rndm_addr, void *val, int _cnt)
 {
 	u8 data[2 + _cnt];
+	int ret;
+
+	if (rndm_addr / 64 != (rndm_addr + _cnt - 1) / 64)
+		err("%s page overflow %04x %d\n", __func__, rndm_addr, _cnt);
 
 	data[0] = (rndm_addr >> 8) & 0xff;
 	data[1] = rndm_addr & 0xff;
@@ -69,12 +105,16 @@ int eeprom_write(u16 rndm_addr, u8 *val, int _cnt)
 	};
 
 	/* Write addr + data*/
-	return k_ioctl(i2c_fd, IOCTL_DEV_XFER, &xfer, sizeof(xfer));
+	ret = k_ioctl(i2c_fd, IOCTL_DEV_XFER, &xfer, sizeof(xfer));
+	k_delay_us(10000); /* FIXME: substitute with acknowledge polling (datasheet §7.0, page  12) */
+	if (ret <= 0)
+		return ret;
+	return ret - 2;
 }
 
 static int e2p_r_cmd_cb(int argc, char *argv[], int fdout)
 {
-	u8 buf[64];
+	u8 buf[128];
 	char str[32];
 	int ret;
 	u32 count;
@@ -98,4 +138,31 @@ const struct cli_cmd_t attr_cli cli_e2p_r = {
 	.cmd = e2p_r_cmd_cb,
 	.name = "e2p_r",
 	.descr = "Read EEPROM: e2p_r <addr> <count>",
+};
+
+static int e2p_w_cmd_cb(int argc, char *argv[], int fdout)
+{
+	u8 buf[128];
+	int i, ret;
+	u32 count;
+	u32 start;
+
+	start = atoi_hex(argv[1]);
+	count = min(argc - 2, sizeof(buf));
+
+	for (i = 0; i < count; i++)
+		buf[i] = atoi_hex(argv[i + 2]);
+
+	ret = eeprom_write(start, buf, count);
+	if (ret != count)
+		return -ERRIO;
+	return 0;
+
+}
+
+const struct cli_cmd_t attr_cli cli_e2p_w = {
+	.narg = 2,
+	.cmd = e2p_w_cmd_cb,
+	.name = "e2p_w",
+	.descr = "Write EEPROM: e2p_w <addr> <d1> <d2> ...",
 };
