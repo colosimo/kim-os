@@ -16,6 +16,8 @@
 #define MIN_DUTY 2
 #define MAX_DUTY 10
 
+static u32 last_duty, last_freq;
+
 void pwm_init(void)
 {
 	struct pwm_cfg_t p;
@@ -38,7 +40,7 @@ void pwm_set(u32 freq, u32 duty)
 	u32 arr;
 	struct pwm_cfg_t p;
 
-	log("pwm set %d %d\n", (uint)freq, (uint)duty);
+	dbg("pwm set %d %d\n", (uint)freq, (uint)duty);
 
 	if (freq < MIN_FREQ) {
 		wrn("Min freq %d\n", MIN_FREQ);
@@ -65,16 +67,12 @@ void pwm_set(u32 freq, u32 duty)
 	p.duty = duty;
 	p.freq = freq;
 	eeprom_write(EEPROM_PWM_CFG_ADDR, (u8*)&p, sizeof(p));
+	last_duty = duty;
+	last_freq = freq;
 }
 
 void pwm_get(u32 *_freq, u32 *_duty)
 {
-	u32 arr;
-	u32 ccr1;
-
-	arr = rd32(R_TIM3_ARR);
-	ccr1 = rd32(R_TIM3_CCR1);
-
-	*_freq = 400000 / (arr + 1);
-	*_duty = 100 - (ccr1 * 100) / arr;
+	*_freq = last_freq;
+	*_duty = last_duty;
 }
