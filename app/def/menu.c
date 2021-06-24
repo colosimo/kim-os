@@ -328,6 +328,8 @@ static void on_evt_reset_storici(int key)
 			if (key == KEY_ENTER) {
 				status = 100;
 				db_alarm_reset();
+				db_avvii_reset();
+				db_data_reset();
 				ticks_exec = k_ticks();
 			}
 			else if (key == KEY_ESC) {

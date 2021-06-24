@@ -89,6 +89,8 @@ static void def_start(struct task_t *t)
 	last_time_key = last_time_inc = k_ticks();
 	def_step(t);
 
+	db_start_add();
+
 	for (i = 0; i < ALRM_MAX_NUM; i++) {
 		db_alarm_get(&a, i);
 		if (a.type != ALRM_TYPE_INVALID) {
@@ -96,6 +98,12 @@ static void def_start(struct task_t *t)
 		}
 	}
 
+	for (i = 0; i < AVVII_MAX_NUM; i++) {
+		db_avvii_get(&a, i);
+		if (a.type != ALRM_TYPE_INVALID) {
+			db_alarm_dump(&a);
+		}
+	}
 }
 
 static void def_step(struct task_t *t)

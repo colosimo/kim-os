@@ -41,8 +41,11 @@ void eeprom_reset(void)
 	tmp = EEPROM_FMT_VER;
 	eeprom_write(EEPROM_FMT_VER_ADDR, &tmp, sizeof(tmp));
 
-	/* Reset alarms current position */
+	/* Reset alarms */
 	db_alarm_reset();
+
+	/* Reset avvii */
+	db_avvii_reset();
 
 	/* Everything is ok, now write signature */
 	eeprom_write(EEPROM_SIGN_ADDR, EEPROM_SIGN, 4);
