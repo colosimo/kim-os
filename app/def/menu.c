@@ -18,10 +18,12 @@
 #include "pwm.h"
 #include "rfrx.h"
 #include "db.h"
+#include "eeprom.h"
 
 static int status = 0; /* Generic state machine variable */
 
 #define MENU_VOICE_DEFAULT 0
+#define STR_CONFIRM "CONFERMA?"
 
 struct menu_voice_t {
 	int id;
@@ -29,6 +31,7 @@ struct menu_voice_t {
 	void (*on_evt)(int evt);
 	void (*refresh)(void);
 	int id_next[4]; /* Next menu voice to be called on: UP, DOWN, ESC, ENTER */
+	int enabled;
 };
 
 static struct menu_voice_t menu[];
@@ -55,13 +58,16 @@ static void on_evt_def(int key)
 		cur_menu = NULL;
 		goto done;
 	}
-	new_menu = get_menu_voice(cur_menu->id_next[key]);
-	if (new_menu) {
-		status = 0;
-		cur_menu = new_menu;
-		lcd_write_line(cur_menu->text[0], 0, 1);
-		lcd_write_line(cur_menu->text[1], 1, 1);
-	}
+	new_menu = cur_menu;
+	do {
+		new_menu = get_menu_voice(new_menu->id_next[key]);
+		if (new_menu && new_menu->enabled) {
+			status = 0;
+			cur_menu = new_menu;
+			lcd_write_line(cur_menu->text[0], 0, 1);
+			lcd_write_line(cur_menu->text[1], 1, 1);
+		}
+	} while(new_menu && !new_menu->enabled);
 
 done:
 	keys_clear_evts(1 << key);
@@ -298,7 +304,7 @@ static void refresh_realtimesens(void)
 	}
 }
 
-static void refresh_reset_storici(void)
+static void refresh_reset(void)
 {
 	if (status == 100) {
 		status = 102;
@@ -337,28 +343,54 @@ static void on_evt_reset_storici(int key)
 	}
 
 	keys_clear_evts(1 << key);
+}
 
+static void on_evt_reset_contatore(int key)
+{
+	u32 tmp = 0;
+	switch (status) {
+
+		case 0:
+			if (key == KEY_ENTER) {
+				status = 100;
+				eeprom_write(EEPROM_HOURS_ADDR, &tmp, sizeof(tmp));
+				ticks_exec = k_ticks();
+			}
+			else if (key == KEY_ESC) {
+				status = 101;
+				ticks_exec = k_ticks();
+			}
+			break;
+
+		case 100:
+
+		default:
+			break;
+	}
+
+	keys_clear_evts(1 << key);
 }
 
 static struct menu_voice_t menu[] = {
-	{0, {"MENU", "IMPOSTAZIONI"}, on_evt_def, NULL, {4, 1, -1, 5}},
-	{1, {"VISUALIZZA", "STORICO AVVII"}, on_evt_def, NULL, {0, 2, -1, -1}},
-	{2, {"VISUALIZZA", "SEGNALAZIONI"}, on_evt_def, NULL, {1, 3, -1, -1}},
-	{3, {"VISUALIZZA", "STORICO LETTURE"}, on_evt_def, NULL, {2, 4, -1, -1}},
-	{4, {"VISUALIZZA", "REALTIME SENSORI"}, on_evt_def, NULL, {3, 0, -1, 16}},
-	{5, {"IMPOSTAZIONI", "PARAMETRI F."}, on_evt_def, NULL, {13, 6, 0, 15}},
-	{6, {"IMPOSTAZIONI", "MODALITA'"}, on_evt_def, NULL, {5, 7, 0, -1}},
-	{7, {"IMPOSTAZIONI", "DATA E ORA"}, on_evt_def, NULL, {6, 8, 0, 14}},
-	{8, {"IMPOSTAZIONI", "RESET CONTATORE"}, on_evt_def, NULL, {7, 9, 0, -1}},
-	{9, {"IMPOSTAZIONI", "RESET STORICI"}, on_evt_def, NULL, {8, 10, 0, 17}},
-	{10, {"IMPOSTAZIONI", "BLUETOOTH"}, on_evt_def, NULL, {9, 11, 0, -1}},
-	{11, {"IMPOSTAZIONI", "COMUNICAZIONI RF"}, on_evt_def, NULL, {10, 12, 0, -1}},
-	{12, {"IMPOSTAZIONI", "VERSIONE FW"}, on_evt_def, NULL, {11, 13, 0, -1}},
-	{13, {"IMPOSTAZIONI", "TEST PWM"}, on_evt_def, NULL, {12, 5, 0, -1}},
-	{14, {"", ""}, on_evt_datetime, refresh_datetime, {-1, -1, 7, 7}},
-	{15, {"", ""}, on_evt_pwm, refresh_pwm, {-1, -1, 5, 5}},
-	{16, {"ATTENDERE...", "COMUNICAZIONE"}, on_evt_def, refresh_realtimesens, {-1, -1, 4, 4}},
-	{17, {"CONFERMA?", "RESET STORICI"}, on_evt_reset_storici, refresh_reset_storici, {8, 10, 9, 9}},
+	{0, {"MENU", "IMPOSTAZIONI"}, on_evt_def, NULL, {4, 1, -1, 5}, 1},
+	{1, {"VISUALIZZA", "STORICO AVVII"}, on_evt_def, NULL, {0, 2, -1, -1}, 1},
+	{2, {"VISUALIZZA", "SEGNALAZIONI"}, on_evt_def, NULL, {1, 3, -1, -1}, 1},
+	{3, {"VISUALIZZA", "STORICO LETTURE"}, on_evt_def, NULL, {2, 4, -1, -1}, 1},
+	{4, {"VISUALIZZA", "REALTIME SENSORI"}, on_evt_def, NULL, {3, 0, -1, 16}, 1},
+	{5, {"IMPOSTAZIONI", "PARAMETRI F."}, on_evt_def, NULL, {13, 6, 0, 15}, 1},
+	{6, {"IMPOSTAZIONI", "MODALITA'"}, on_evt_def, NULL, {5, 7, 0, -1}, 0},
+	{7, {"IMPOSTAZIONI", "DATA E ORA"}, on_evt_def, NULL, {6, 8, 0, 14}, 1},
+	{8, {"IMPOSTAZIONI", "RESET CONTATORE"}, on_evt_def, NULL, {7, 9, 0, 18}, 1},
+	{9, {"IMPOSTAZIONI", "RESET STORICI"}, on_evt_def, NULL, {8, 10, 0, 17}, 1},
+	{10, {"IMPOSTAZIONI", "BLUETOOTH"}, on_evt_def, NULL, {9, 11, 0, -1}, 0},
+	{11, {"IMPOSTAZIONI", "COMUNICAZIONI RF"}, on_evt_def, NULL, {10, 12, 0, -1}, 0},
+	{12, {"IMPOSTAZIONI", "VERSIONE FW"}, on_evt_def, NULL, {11, 13, 0, -1}, 0},
+	{13, {"IMPOSTAZIONI", "TEST PWM"}, on_evt_def, NULL, {12, 5, 0, -1}, 0},
+	{14, {"", ""}, on_evt_datetime, refresh_datetime, {-1, -1, 7, 7}, 1},
+	{15, {"", ""}, on_evt_pwm, refresh_pwm, {-1, -1, 5, 5}, 1},
+	{16, {"ATTENDERE...", "COMUNICAZIONE"}, on_evt_def, refresh_realtimesens, {-1, -1, 4, 4}, 1},
+	{17, {STR_CONFIRM, "RESET STORICI"}, on_evt_reset_storici, refresh_reset, {-1, -1, 9, 9}, 1},
+	{18, {STR_CONFIRM, "RESET CONTATORE"}, on_evt_reset_contatore, refresh_reset, {-1, -1, 8, 8}, 1},
 	{-1}
 };
 
