@@ -3,11 +3,11 @@
  * Copyright: Elo System srl
  */
 
+#define ALRM_TYPE_ANT      0x00
+#define ALRM_TYPE_BATTERY  0x01
+#define ALRM_TYPE_START    0x02
+#define ALRM_TYPE_STOP     0x03
 #define ALRM_TYPE_INVALID  0xff
-#define ALRM_TYPE_ANT      0x01
-#define ALRM_TYPE_BATTERY  0x02
-#define ALRM_TYPE_START    0x03
-#define ALRM_TYPE_STOP     0x04
 
 attr_packed struct alarm_t
 {
@@ -33,6 +33,8 @@ void db_alarm_add(int type, int sens);
 void db_alarm_get(struct alarm_t *a, int pos);
 
 void db_alarm_dump(struct alarm_t *a);
+
+void db_alarm_display(struct alarm_t *a);
 
 void db_alarm_reset(void);
 

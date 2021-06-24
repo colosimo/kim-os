@@ -94,14 +94,16 @@ static void def_start(struct task_t *t)
 	for (i = 0; i < ALRM_MAX_NUM; i++) {
 		db_alarm_get(&a, i);
 		if (a.type != ALRM_TYPE_INVALID) {
-			db_alarm_dump(&a);
+			db_alarm_display(&a);
+			k_delay_us(500000);
 		}
 	}
 
 	for (i = 0; i < AVVII_MAX_NUM; i++) {
 		db_avvii_get(&a, i);
 		if (a.type != ALRM_TYPE_INVALID) {
-			db_alarm_dump(&a);
+			db_alarm_display(&a);
+			k_delay_us(500000);
 		}
 	}
 }

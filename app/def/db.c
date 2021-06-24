@@ -15,6 +15,7 @@
 #include "db.h"
 #include "eeprom.h"
 #include "rtc.h"
+#include "lcd.h"
 
 void db_init(void)
 {
@@ -78,15 +79,38 @@ void db_alarm_get(struct alarm_t *a, int pos)
 	eeprom_read(addr, a, sizeof(*a));
 }
 
+static const char *alarm_str[ALRM_TYPE_STOP + 1] =
+    {"Err. Antenna", "Batteria Bassa", "Start", "Stop"};
+
 void db_alarm_dump(struct alarm_t *a)
 {
 	char buf[24];
-	const char *str[5] = {"Invalid", "Err. Antenna", "Batteria Bassa", "Start", "Stop"};
-	k_sprintf(buf, "%s\n", str[a->type & 0b11]);
+	if (a->type > ALRM_TYPE_STOP)
+		return;
+	k_sprintf(buf, "%s\n", alarm_str[a->type]);
 	log(buf);
 	k_sprintf(buf, "SEN:%d %02d/%02d/%02d %02d:%02d\n",
 	    a->sens, a->day, a->month, a->year, a->hour, a->min);
 	log(buf);
+}
+
+void db_alarm_display(struct alarm_t *a)
+{
+	char buf[24];
+	if (a->type > ALRM_TYPE_STOP)
+		return;
+
+	if (a->type == ALRM_TYPE_BATTERY)
+		k_sprintf(buf, "%s S:%d", alarm_str[a->type], a->sens);
+	else
+		k_sprintf(buf, "%s", alarm_str[a->type]);
+
+	lcd_write_line(buf, 0, 0);
+
+	k_sprintf(buf, "%02d/%02d/%02d %02d:%02d",
+	    a->day, a->month, a->year, a->hour, a->min);
+
+	lcd_write_line(buf, 1, 0);
 }
 
 void db_alarm_reset(void)

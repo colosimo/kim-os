@@ -23,7 +23,7 @@ struct pwm_cfg_t {
 #define EEPROM_ALARMS_END_ADDR   0x04f8
 
 #define EEPROM_AVVII_START_ADDR  0x0500
-#define EEPROM_AVVII_END_ADDR    0x06f8
+#define EEPROM_AVVII_END_ADDR    0x08f8
 
 void eeprom_init(void);
 
