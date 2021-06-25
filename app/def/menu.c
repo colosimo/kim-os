@@ -10,6 +10,7 @@
 #include <kim-io.h>
 #include <kim-io-defs.h>
 #include <errcode.h>
+#include <version.h>
 
 #include "def.h"
 #include "keys.h"
@@ -485,7 +486,7 @@ static struct menu_voice_t menu[] = {
 	{9, {"IMPOSTAZIONI", "RESET STORICI"}, on_evt_def, NULL, {8, 10, 0, 17}, 1},
 	{10, {"IMPOSTAZIONI", "BLUETOOTH"}, on_evt_def, NULL, {9, 11, 0, -1}, 0},
 	{11, {"IMPOSTAZIONI", "COMUNICAZIONI RF"}, on_evt_def, NULL, {10, 12, 0, -1}, 0},
-	{12, {"IMPOSTAZIONI", "VERSIONE FW"}, on_evt_def, NULL, {11, 13, 0, -1}, 0},
+	{12, {"IMPOSTAZIONI", "VERSIONE FW"}, on_evt_def, NULL, {11, 13, 0, 21}, 1},
 	{13, {"IMPOSTAZIONI", "TEST PWM"}, on_evt_def, NULL, {12, 5, 0, -1}, 0},
 	{14, {"", ""}, on_evt_datetime, refresh_datetime, {-1, -1, 7, 7}, 1},
 	{15, {"", ""}, on_evt_pwm, refresh_pwm, {-1, -1, 5, 5}, 1},
@@ -494,6 +495,7 @@ static struct menu_voice_t menu[] = {
 	{18, {STR_CONFIRM, "RESET CONTATORE"}, on_evt_reset_contatore, refresh_reset, {-1, -1, 8, 8}, 1},
 	{19, {"", ""}, on_evt_show, refresh_show_avvii, {-1, -1, 1, -1}, 1},
 	{20, {"", ""}, on_evt_show, refresh_show_alarms, {-1, -1, 2, -1}, 1},
+	{21, {"Git:  " GIT_VERSION, "Date: " COMPILE_DATE}, on_evt_def, NULL, {-1, -1, 12, -1}, 1},
 	{-1}
 };
 
