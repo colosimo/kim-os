@@ -68,15 +68,32 @@ void db_start_add(void)
 	eeprom_write(EEPROM_AVVII_CUR_POS, &pos, sizeof(pos));
 }
 
-void db_alarm_get(struct alarm_t *a, int pos)
+int db_alarm_get(struct alarm_t *a, int pos)
 {
 	u32 addr;
-	if (pos >= ALRM_MAX_NUM) {
+	u32 p;
+
+	if (pos != DB_POS_INVALID && pos >= ALRM_MAX_NUM) {
 		a->type = ALRM_TYPE_INVALID;
-		return;
+		return DB_POS_INVALID;
 	}
-	addr = EEPROM_ALARMS_START_ADDR + pos * sizeof(struct alarm_t);
+
+	p = pos;
+	if (p == DB_POS_INVALID) {
+		eeprom_read(EEPROM_ALARMS_CUR_POS, &p, sizeof(p));
+		if (p == 0)
+			p = ALRM_MAX_NUM - 1;
+		else
+			p--;
+	}
+
+	addr = EEPROM_ALARMS_START_ADDR + p * sizeof(struct alarm_t);
 	eeprom_read(addr, a, sizeof(*a));
+
+	if (a->type != ALRM_TYPE_INVALID)
+		return p;
+
+	return DB_POS_INVALID;
 }
 
 static const char *alarm_str[ALRM_TYPE_STOP + 1] =

@@ -79,8 +79,6 @@ void rearm_standby(void)
 
 static void def_start(struct task_t *t)
 {
-	struct alarm_t a;
-	int i;
 	eeprom_init();
 	lcd_init();
 	pwm_init();
@@ -90,14 +88,6 @@ static void def_start(struct task_t *t)
 	def_step(t);
 
 	db_start_add();
-
-	for (i = 0; i < ALRM_MAX_NUM; i++) {
-		db_alarm_get(&a, i);
-		if (a.type != ALRM_TYPE_INVALID) {
-			db_alarm_display(&a);
-			k_delay_us(500000);
-		}
-	}
 }
 
 static void def_step(struct task_t *t)

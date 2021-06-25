@@ -24,6 +24,7 @@ static int status = 0; /* Generic state machine variable */
 
 #define MENU_VOICE_DEFAULT 0
 #define STR_CONFIRM "CONFERMA?"
+#define STR_EMPTY "ARCHIVIO VUOTO"
 
 struct menu_voice_t {
 	int id;
@@ -95,9 +96,9 @@ static void update_screen_datetime()
 		return;
 	}
 
-	k_sprintf(buf, "DATA: %02d/%02d/%02d", r.day, r.month, r.year);
+	k_sprintf(buf, "Data: %02d/%02d/%02d", r.day, r.month, r.year);
 	lcd_write_line(buf, 0, 0);
-	k_sprintf(buf, "ORE:  %02d:%02d", r.hour, r.min);
+	k_sprintf(buf, "Ore:  %02d:%02d", r.hour, r.min);
 	lcd_write_line(buf, 1, 0);
 
 	switch(status) {
@@ -374,6 +375,7 @@ static void on_evt_reset_contatore(int key)
 }
 
 static int do_refresh;
+static int show_type; /* 0: avvii, 1: alarms */
 
 static void refresh_show_avvii(void)
 {
@@ -381,6 +383,7 @@ static void refresh_show_avvii(void)
 	struct alarm_t a;
 
 	if (status == 0) {
+		show_type = 0;
 		pos = db_avvii_get(&a, -1);
 		if (pos != DB_POS_INVALID)
 			status = BIT30 | pos;
@@ -393,7 +396,7 @@ static void refresh_show_avvii(void)
 	do_refresh = 0;
 
 	if (status < 0) {
-		lcd_write_line("ARCHIVIO VUOTO", 0, 1);
+		lcd_write_line(STR_EMPTY, 0, 1);
 		return;
 	}
 	pos = status & ~BIT30;
@@ -402,7 +405,35 @@ static void refresh_show_avvii(void)
 	db_alarm_display(&a);
 }
 
-static void on_evt_show_avvii(int key)
+static void refresh_show_alarms(void)
+{
+	int pos;
+	struct alarm_t a;
+
+	if (status == 0) {
+		show_type = 1;
+		pos = db_alarm_get(&a, -1);
+		if (pos != DB_POS_INVALID)
+			status = BIT30 | pos;
+		else
+			status = -1;
+	}
+	else if (!do_refresh)
+		return;
+
+	do_refresh = 0;
+
+	if (status < 0) {
+		lcd_write_line(STR_EMPTY, 0, 1);
+		return;
+	}
+	pos = status & ~BIT30;
+	pos = db_alarm_get(&a, pos);
+
+	db_alarm_display(&a);
+}
+
+static void on_evt_show(int key)
 {
 	int pos;
 	struct alarm_t a;
@@ -429,7 +460,10 @@ static void on_evt_show_avvii(int key)
 
 	keys_clear_evts(1 << key);
 
-	db_avvii_get(&a, pos);
+	if (show_type)
+		db_alarm_get(&a, pos);
+	else
+		db_avvii_get(&a, pos);
 
 	if (a.type != ALRM_TYPE_INVALID) {
 		status = BIT30 | pos;
@@ -441,7 +475,7 @@ static void on_evt_show_avvii(int key)
 static struct menu_voice_t menu[] = {
 	{0, {"MENU", "IMPOSTAZIONI"}, on_evt_def, NULL, {4, 1, -1, 5}, 1},
 	{1, {"VISUALIZZA", "STORICO AVVII"}, on_evt_def, NULL, {0, 2, -1, 19}, 1},
-	{2, {"VISUALIZZA", "SEGNALAZIONI"}, on_evt_def, NULL, {1, 3, -1, -1}, 1},
+	{2, {"VISUALIZZA", "SEGNALAZIONI"}, on_evt_def, NULL, {1, 3, -1, 20}, 1},
 	{3, {"VISUALIZZA", "STORICO LETTURE"}, on_evt_def, NULL, {2, 4, -1, -1}, 1},
 	{4, {"VISUALIZZA", "REALTIME SENSORI"}, on_evt_def, NULL, {3, 0, -1, 16}, 1},
 	{5, {"IMPOSTAZIONI", "PARAMETRI F."}, on_evt_def, NULL, {13, 6, 0, 15}, 1},
@@ -458,7 +492,8 @@ static struct menu_voice_t menu[] = {
 	{16, {"ATTENDERE...", "COMUNICAZIONE"}, on_evt_def, refresh_realtimesens, {-1, -1, 4, 4}, 1},
 	{17, {STR_CONFIRM, "RESET STORICI"}, on_evt_reset_storici, refresh_reset, {-1, -1, 9, 9}, 1},
 	{18, {STR_CONFIRM, "RESET CONTATORE"}, on_evt_reset_contatore, refresh_reset, {-1, -1, 8, 8}, 1},
-	{19, {"", ""}, on_evt_show_avvii, refresh_show_avvii, {-1, -1, 1, -1}, 1},
+	{19, {"", ""}, on_evt_show, refresh_show_avvii, {-1, -1, 1, -1}, 1},
+	{20, {"", ""}, on_evt_show, refresh_show_alarms, {-1, -1, 2, -1}, 1},
 	{-1}
 };
 

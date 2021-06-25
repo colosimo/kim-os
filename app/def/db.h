@@ -32,7 +32,7 @@ void db_start_add(void);
 
 void db_alarm_add(int type, int sens);
 
-void db_alarm_get(struct alarm_t *a, int pos);
+int db_alarm_get(struct alarm_t *a, int pos);
 
 void db_alarm_dump(struct alarm_t *a);
 
