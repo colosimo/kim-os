@@ -139,15 +139,32 @@ void db_avvii_reset(void)
 		eeprom_write(tmp, page, sizeof(page));
 }
 
-void db_avvii_get(struct alarm_t *a, int pos)
+int db_avvii_get(struct alarm_t *a, int pos)
 {
 	u32 addr;
-	if (pos >= AVVII_MAX_NUM) {
+	u32 p;
+
+	if (pos != DB_POS_INVALID && pos >= AVVII_MAX_NUM) {
 		a->type = ALRM_TYPE_INVALID;
-		return;
+		return DB_POS_INVALID;
 	}
-	addr = EEPROM_AVVII_START_ADDR + pos * sizeof(struct alarm_t);
+
+	p = pos;
+	if (p == DB_POS_INVALID) {
+		eeprom_read(EEPROM_AVVII_CUR_POS, &p, sizeof(p));
+		if (p == 0)
+			p = AVVII_MAX_NUM - 1;
+		else
+			p--;
+	}
+
+	addr = EEPROM_AVVII_START_ADDR + p * sizeof(struct alarm_t);
 	eeprom_read(addr, a, sizeof(*a));
+
+	if (a->type != ALRM_TYPE_INVALID)
+		return p;
+
+	return DB_POS_INVALID;
 }
 
 void db_data_reset(void)

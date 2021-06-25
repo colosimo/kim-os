@@ -373,9 +373,74 @@ static void on_evt_reset_contatore(int key)
 	keys_clear_evts(1 << key);
 }
 
+static int do_refresh;
+
+static void refresh_show_avvii(void)
+{
+	int pos;
+	struct alarm_t a;
+
+	if (status == 0) {
+		pos = db_avvii_get(&a, -1);
+		if (pos != DB_POS_INVALID)
+			status = BIT30 | pos;
+		else
+			status = -1;
+	}
+	else if (!do_refresh)
+		return;
+
+	do_refresh = 0;
+
+	if (status < 0) {
+		lcd_write_line("ARCHIVIO VUOTO", 0, 1);
+		return;
+	}
+	pos = status & ~BIT30;
+	pos = db_avvii_get(&a, pos);
+
+	db_alarm_display(&a);
+}
+
+static void on_evt_show_avvii(int key)
+{
+	int pos;
+	struct alarm_t a;
+
+	if (status < 0) {
+		on_evt_def(key);
+		return;
+	}
+
+	pos = status & ~BIT30;
+
+	if (key == KEY_ESC) {
+		on_evt_def(key);
+		return;
+	}
+	else if (key == KEY_UP)
+		pos = (pos + 1) % AVVII_MAX_NUM;
+	else if (key == KEY_DOWN) {
+		if (pos == 0)
+			pos = AVVII_MAX_NUM - 1;
+		else
+			pos--;
+	}
+
+	keys_clear_evts(1 << key);
+
+	db_avvii_get(&a, pos);
+
+	if (a.type != ALRM_TYPE_INVALID) {
+		status = BIT30 | pos;
+		do_refresh = 1;
+	}
+
+}
+
 static struct menu_voice_t menu[] = {
 	{0, {"MENU", "IMPOSTAZIONI"}, on_evt_def, NULL, {4, 1, -1, 5}, 1},
-	{1, {"VISUALIZZA", "STORICO AVVII"}, on_evt_def, NULL, {0, 2, -1, -1}, 1},
+	{1, {"VISUALIZZA", "STORICO AVVII"}, on_evt_def, NULL, {0, 2, -1, 19}, 1},
 	{2, {"VISUALIZZA", "SEGNALAZIONI"}, on_evt_def, NULL, {1, 3, -1, -1}, 1},
 	{3, {"VISUALIZZA", "STORICO LETTURE"}, on_evt_def, NULL, {2, 4, -1, -1}, 1},
 	{4, {"VISUALIZZA", "REALTIME SENSORI"}, on_evt_def, NULL, {3, 0, -1, 16}, 1},
@@ -393,6 +458,7 @@ static struct menu_voice_t menu[] = {
 	{16, {"ATTENDERE...", "COMUNICAZIONE"}, on_evt_def, refresh_realtimesens, {-1, -1, 4, 4}, 1},
 	{17, {STR_CONFIRM, "RESET STORICI"}, on_evt_reset_storici, refresh_reset, {-1, -1, 9, 9}, 1},
 	{18, {STR_CONFIRM, "RESET CONTATORE"}, on_evt_reset_contatore, refresh_reset, {-1, -1, 8, 8}, 1},
+	{19, {"", ""}, on_evt_show_avvii, refresh_show_avvii, {-1, -1, 1, -1}, 1},
 	{-1}
 };
 

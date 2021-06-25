@@ -9,6 +9,8 @@
 #define ALRM_TYPE_STOP     0x03
 #define ALRM_TYPE_INVALID  0xff
 
+#define DB_POS_INVALID 0xffffffff
+
 attr_packed struct alarm_t
 {
 	u8 type;
@@ -40,7 +42,7 @@ void db_alarm_reset(void);
 
 void db_avvii_reset(void);
 
-void db_avvii_get(struct alarm_t *a, int pos);
+int db_avvii_get(struct alarm_t *a, int pos);
 
 void db_reset_storici(void);
 
