@@ -16,6 +16,7 @@
 #include "eeprom.h"
 #include "keys.h"
 #include "db.h"
+#include "rtc.h"
 
 /* DEF Main task */
 
@@ -28,6 +29,7 @@ const char zero = 0;
 const char one = 1;
 
 static int alrm = 0;
+static int curday = -1;
 
 void set_alarm(int _alrm)
 {
@@ -79,8 +81,8 @@ void rearm_standby(void)
 
 static void def_start(struct task_t *t)
 {
-	eeprom_init();
 	lcd_init();
+	eeprom_init();
 	pwm_init();
 	db_init();
 	set_standby(0);
@@ -92,6 +94,7 @@ static void def_start(struct task_t *t)
 
 static void def_step(struct task_t *t)
 {
+	struct rtc_t r;
 	if (k_elapsed(last_time_inc) >= MS_TO_TICKS(MS_IN_HOUR)) {
 		last_time_inc = k_ticks();
 		hours++;
@@ -100,6 +103,13 @@ static void def_step(struct task_t *t)
 
 	if (k_elapsed(last_time_key) >= MS_TO_TICKS(MS_IN_MIN))
 		set_standby(1);
+
+	/* Save data at midnight */
+	rtc_get(&r);
+	if (r.hour == 23 && r.min == 59 && r.day != curday) {
+		db_data_save_to_eeprom();
+		curday = r.day;
+	}
 }
 
 struct task_t attr_tasks task_def = {
@@ -111,7 +121,7 @@ struct task_t attr_tasks task_def = {
 
 /* Antenna check */
 
-#define ANTENNA_CHECK_DELAY_MS 200
+#define ANTENNA_CHECK_DELAY_MS 1000
 
 static u32 t_last_on;
 static u32 ant_error;

@@ -331,7 +331,7 @@ static void on_evt_reset_storici(int key)
 				status = 100;
 				db_alarm_reset();
 				db_avvii_reset();
-				db_data_reset();
+				db_data_reset(0);
 				ticks_exec = k_ticks();
 			}
 			else if (key == KEY_ESC) {
@@ -438,11 +438,17 @@ static void on_evt_show(int key)
 {
 	int pos;
 	struct alarm_t a;
+	int max;
 
 	if (status < 0) {
 		on_evt_def(key);
 		return;
 	}
+
+	if (show_type)
+		max = ALRM_MAX_NUM;
+	else
+		max = AVVII_MAX_NUM;
 
 	pos = status & ~BIT30;
 
@@ -451,10 +457,10 @@ static void on_evt_show(int key)
 		return;
 	}
 	else if (key == KEY_UP)
-		pos = (pos + 1) % AVVII_MAX_NUM;
+		pos = (pos + 1) % max;
 	else if (key == KEY_DOWN) {
 		if (pos == 0)
-			pos = AVVII_MAX_NUM - 1;
+			pos = max - 1;
 		else
 			pos--;
 	}
@@ -470,14 +476,76 @@ static void on_evt_show(int key)
 		status = BIT30 | pos;
 		do_refresh = 1;
 	}
+}
 
+static void refresh_show_data(void)
+{
+	int pos;
+	struct data_t d;
+
+	if (status == 0) {
+		pos = db_data_get(&d, -1);
+		if (pos != DB_POS_INVALID)
+			status = BIT30 | pos;
+		else
+			status = -1;
+	}
+	else if (!do_refresh)
+		return;
+
+	do_refresh = 0;
+
+	if (status < 0) {
+		lcd_write_line(STR_EMPTY, 0, 1);
+		return;
+	}
+	pos = status & ~BIT30;
+	pos = db_data_get(&d, pos);
+
+	db_data_display(&d);
+}
+
+static void on_evt_show_data(int key)
+{
+	int pos;
+
+	struct data_t d;
+
+	if (status < 0) {
+		on_evt_def(key);
+		return;
+	}
+
+	pos = status & ~BIT30;
+
+	if (key == KEY_ESC) {
+		on_evt_def(key);
+		return;
+	}
+	else if (key == KEY_UP)
+		pos = (pos + 1) % DATA_MAX_NUM;
+	else if (key == KEY_DOWN) {
+		if (pos == 0)
+			pos = DATA_MAX_NUM - 1;
+		else
+			pos--;
+	}
+
+	keys_clear_evts(1 << key);
+
+	pos = db_data_get(&d, pos);
+
+	if (pos != DB_POS_INVALID) {
+		status = BIT30 | pos;
+		do_refresh = 1;
+	}
 }
 
 static struct menu_voice_t menu[] = {
 	{0, {"MENU", "IMPOSTAZIONI"}, on_evt_def, NULL, {4, 1, -1, 5}, 1},
 	{1, {"VISUALIZZA", "STORICO AVVII"}, on_evt_def, NULL, {0, 2, -1, 19}, 1},
 	{2, {"VISUALIZZA", "SEGNALAZIONI"}, on_evt_def, NULL, {1, 3, -1, 20}, 1},
-	{3, {"VISUALIZZA", "STORICO LETTURE"}, on_evt_def, NULL, {2, 4, -1, -1}, 1},
+	{3, {"VISUALIZZA", "STORICO LETTURE"}, on_evt_def, NULL, {2, 4, -1, 22}, 1},
 	{4, {"VISUALIZZA", "REALTIME SENSORI"}, on_evt_def, NULL, {3, 0, -1, 16}, 1},
 	{5, {"IMPOSTAZIONI", "PARAMETRI F."}, on_evt_def, NULL, {13, 6, 0, 15}, 1},
 	{6, {"IMPOSTAZIONI", "MODALITA'"}, on_evt_def, NULL, {5, 7, 0, -1}, 0},
@@ -496,6 +564,7 @@ static struct menu_voice_t menu[] = {
 	{19, {"", ""}, on_evt_show, refresh_show_avvii, {-1, -1, 1, -1}, 1},
 	{20, {"", ""}, on_evt_show, refresh_show_alarms, {-1, -1, 2, -1}, 1},
 	{21, {"Git:  " GIT_VERSION, "Date: " COMPILE_DATE}, on_evt_def, NULL, {-1, -1, 12, -1}, 1},
+	{22, {"", ""}, on_evt_show_data, refresh_show_data, {-1, -1, 3, -1}, 1},
 	{-1}
 };
 

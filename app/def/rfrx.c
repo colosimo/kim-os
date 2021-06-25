@@ -237,6 +237,15 @@ static void rfrx_step(struct task_t *t)
 
 		/* debug only rfrx_frame_dump(&f); */
 		if (f.msg_id != last_msg_id) {
+			struct data_t d;
+
+			d.sens = f.addr;
+			d.temp = f.temp;
+			d.vread = f.vread;
+			d.hum = f.hum;
+
+			db_data_add(&d);
+
 			memcpy(&lastf, &f, sizeof(f));
 			lastf_ptr = &lastf;
 			last_msg_id = f.msg_id;

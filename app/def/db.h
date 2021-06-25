@@ -3,6 +3,8 @@
  * Copyright: Elo System srl
  */
 
+#include "eeprom.h"
+
 #define ALRM_TYPE_ANT      0x00
 #define ALRM_TYPE_BATTERY  0x01
 #define ALRM_TYPE_START    0x02
@@ -23,8 +25,24 @@ attr_packed struct alarm_t
 	u8 dummy;
 };
 
-#define ALRM_MAX_NUM ((EEPROM_ALARMS_END_ADDR - EEPROM_ALARMS_START_ADDR) / sizeof(struct alarm_t))
-#define AVVII_MAX_NUM ((EEPROM_AVVII_END_ADDR - EEPROM_AVVII_START_ADDR) / sizeof(struct alarm_t))
+attr_packed struct data_t
+{
+	u8 sens;
+	u8 year;
+	u8 month;
+	u8 day;
+	i16 temp;
+	i16 vread;
+	u8 hum;
+	u8 unused[7];
+};
+
+#define ALRM_MAX_NUM ((EEPROM_ALARMS_END_ADDR - EEPROM_ALARMS_START_ADDR) / \
+    sizeof(struct alarm_t))
+#define AVVII_MAX_NUM ((EEPROM_AVVII_END_ADDR - EEPROM_AVVII_START_ADDR) / \
+    sizeof(struct alarm_t))
+#define DATA_MAX_NUM ((EEPROM_DATA_END_ADDR - EEPROM_DATA_START_ADDR) / \
+    sizeof(struct data_t))
 
 void db_init(void);
 
@@ -44,6 +62,12 @@ void db_avvii_reset(void);
 
 int db_avvii_get(struct alarm_t *a, int pos);
 
-void db_reset_storici(void);
+void db_data_add(struct data_t *d);
 
-void db_data_reset(void);
+int db_data_get(struct data_t *d, int pos);
+
+void db_data_display(struct data_t *d);
+
+void db_data_save_to_eeprom(void);
+
+void db_data_reset(int erase_all);

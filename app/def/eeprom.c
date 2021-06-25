@@ -12,6 +12,7 @@
 #include "db.h"
 #include "pwm.h"
 #include "eeprom.h"
+#include "lcd.h"
 
 #define EEPROM_I2C_ADDR_7BIT 0b1010110
 
@@ -24,6 +25,9 @@ void eeprom_reset(void)
 {
 	u32 tmp = 0;
 	struct pwm_cfg_t p;
+
+	lcd_set_backlight(1);
+	lcd_write_line("EEPROM RESET...", 0, 1);
 
 	/* Invalidate signature (in order to recover in case it reboots during reset) */
 	eeprom_write(EEPROM_SIGN_ADDR, &tmp, 4);
@@ -47,8 +51,12 @@ void eeprom_reset(void)
 	/* Reset avvii */
 	db_avvii_reset();
 
+	/* Reset data */
+	db_data_reset(1);
+
 	/* Everything is ok, now write signature */
 	eeprom_write(EEPROM_SIGN_ADDR, EEPROM_SIGN, 4);
+	lcd_set_backlight(0);
 }
 
 void eeprom_init(void)
