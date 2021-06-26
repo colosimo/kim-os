@@ -80,7 +80,6 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	or32(R_I2C1_CR1, BIT15);
 	and32(R_I2C1_CR1, ~BIT15);
 	and32(R_I2C1_CR1, ~0b1);
-	or32(R_RCC_CFGR3, BIT4);
 	/* PRESC = 3, SCLL=0x13, SCLH=0xf, SDADEL=0x2, SCLDEL=0x4 */
 	wr32(R_I2C1_TIMINGR, (3 << 28) | (4 << 20) | (2 << 16) | (0xf << 8) | 0x13);
 	or32(R_I2C1_CR1, 0b1);
@@ -90,7 +89,7 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 
 	wr32(R_SYSCFG_EXTICR4, 0b001 << 8); /* PB14 on EXTI */
 
-//#define LSE_PRESENT /* In v5.1 only */
+#define LSE_PRESENT /* In v5.1 only */
 #ifdef LSE_PRESENT
 	if (((rd32(R_RCC_BDCR) >> 8) & 0b11) != 0b01)
 		wr32(R_RCC_BDCR, BIT16);
@@ -126,7 +125,7 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 }
 
 declare_gpio_dev(0, IO(PORTC, 1), DIR_OUT, PULL_NO, user_led_1);
-declare_gpio_dev(1, IO(PORTC, 15), DIR_OUT, PULL_NO, user_led_2);
+declare_gpio_dev(1, IO(PORTA, 9), DIR_OUT, PULL_NO, user_led_2);
 declare_gpio_dev(2, IO(PORTB, 13), DIR_IN, PULL_NO, ant_check);
 declare_gpio_dev(3, IO(PORTB, 12), DIR_OUT, PULL_NO, alarm_out);
 declare_gpio_dev(4, IO(PORTB, 1), DIR_IN, PULL_DOWN, sw_up);
@@ -134,7 +133,7 @@ declare_gpio_dev(5, IO(PORTB, 2), DIR_IN, PULL_DOWN, sw_down);
 declare_gpio_dev(6, IO(PORTB, 10), DIR_IN, PULL_DOWN, sw_esc);
 declare_gpio_dev(7, IO(PORTB, 11), DIR_IN, PULL_DOWN, sw_enter);
 declare_gpio_dev(8, IO(PORTA, 11), DIR_OUT, PULL_NO, lcd_backlight);
-declare_gpio_dev(9, IO(PORTB, 14), DIR_IN, PULL_NO, rf_rx);
+declare_gpio_dev(9, IO(PORTA, 15), DIR_IN, PULL_NO, rf_rx);
 
 declare_gpio_dev(10, IO(PORTB, 6), DIR_OUT, PULL_NO, db0);
 declare_gpio_dev(11, IO(PORTB, 5), DIR_OUT, PULL_NO, db1);
@@ -145,7 +144,7 @@ declare_gpio_dev(15, IO(PORTC, 12), DIR_OUT, PULL_NO, db5);
 declare_gpio_dev(16, IO(PORTC, 11), DIR_OUT, PULL_NO, db6);
 declare_gpio_dev(17, IO(PORTC, 10), DIR_OUT, PULL_NO, db7);
 declare_gpio_dev(18, IO(PORTC, 13), DIR_OUT, PULL_NO, e);
-declare_gpio_dev(19, IO(PORTC, 14), DIR_OUT, PULL_NO, rs);
+declare_gpio_dev(19, IO(PORTC, 0), DIR_OUT, PULL_NO, rs);
 declare_gpio_dev(20, IO(PORTB, 7), DIR_OUT, PULL_NO, rw);
 
 declare_dev(MAJ_SOC_I2C, MINOR_I2C1, NULL, i2c1);

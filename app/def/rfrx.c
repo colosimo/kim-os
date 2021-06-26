@@ -81,17 +81,17 @@ void isr_exti15_10(void)
 	volatile u32 t;
 	int now;
 
-	if (rd32(R_EXTI_FTSR1) & BIT14) {
-		and32(R_EXTI_FTSR1, ~BIT14);
-		or32(R_EXTI_RTSR1, BIT14);
+	if (rd32(R_EXTI_FTSR1) & BIT15) {
+		and32(R_EXTI_FTSR1, ~BIT15);
+		or32(R_EXTI_RTSR1, BIT15);
 		now = 0;
 	}
 	else {
-		and32(R_EXTI_RTSR1, ~BIT14);
-		or32(R_EXTI_FTSR1, BIT14);
+		and32(R_EXTI_RTSR1, ~BIT15);
+		or32(R_EXTI_FTSR1, BIT15);
 		now = 1;
 	}
-	wr32(R_EXTI_PR1, BIT14);
+	wr32(R_EXTI_PR1, BIT15);
 
 	t = rd32(R_TIM2_CNT) / 64;
 	wr32(R_TIM2_CR1, 0);
@@ -150,9 +150,9 @@ static void rfrx_start(struct task_t *t)
 	wr32(R_TIM2_CNT, 0);
 	wr32(R_TIM2_CR1, BIT0);
 
-	or32(R_EXTI_FTSR1, BIT14);
-	and32(R_EXTI_RTSR1, ~BIT14);
-	or32(R_EXTI_IMR1, BIT14);
+	or32(R_EXTI_FTSR1, BIT15);
+	and32(R_EXTI_RTSR1, ~BIT15);
+	or32(R_EXTI_IMR1, BIT15);
 	or32(R_NVIC_ISER(1), BIT8); /* EXTI15_10 is irq 40 */
 
 	rfrx_clear_lastframe();
@@ -232,8 +232,8 @@ static void rfrx_step(struct task_t *t)
 		wr32(R_TIM2_CR1, 0);
 		wr32(R_TIM2_CNT, 0);
 		wr32(R_TIM2_CR1, BIT0);
-		or32(R_EXTI_FTSR1, BIT14);
-		and32(R_EXTI_RTSR1, ~BIT14);
+		or32(R_EXTI_FTSR1, BIT15);
+		and32(R_EXTI_RTSR1, ~BIT15);
 
 		/* debug only rfrx_frame_dump(&f); */
 		if (f.msg_id != last_msg_id) {
