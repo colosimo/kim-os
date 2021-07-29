@@ -84,6 +84,7 @@ static void def_start(struct task_t *t)
 	lcd_init();
 	eeprom_init();
 	pwm_init();
+
 	db_init();
 	set_standby(0);
 	last_time_key = last_time_inc = k_ticks();
@@ -95,6 +96,7 @@ static void def_start(struct task_t *t)
 static void def_step(struct task_t *t)
 {
 	struct rtc_t r;
+
 	if (k_elapsed(last_time_inc) >= MS_TO_TICKS(MS_IN_HOUR)) {
 		last_time_inc = k_ticks();
 		hours++;

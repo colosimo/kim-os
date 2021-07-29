@@ -23,11 +23,13 @@ int i2c_fd;
 
 void eeprom_reset(void)
 {
-	u32 tmp = 0;
+	u32 tmp = 0xdeadbeaf;
 	struct pwm_cfg_t p;
 
+#if 0 /* FIXME useful? */
 	lcd_set_backlight(1);
 	lcd_write_line("EEPROM RESET...", 0, 1);
+#endif
 
 	/* Invalidate signature (in order to recover in case it reboots during reset) */
 	eeprom_write(EEPROM_SIGN_ADDR, &tmp, 4);
@@ -56,7 +58,10 @@ void eeprom_reset(void)
 
 	/* Everything is ok, now write signature */
 	eeprom_write(EEPROM_SIGN_ADDR, EEPROM_SIGN, 4);
+
+#if 0 /* FIXME useful? */
 	lcd_set_backlight(0);
+#endif
 }
 
 void eeprom_init(void)

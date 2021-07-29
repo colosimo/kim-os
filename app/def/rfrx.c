@@ -93,7 +93,7 @@ void isr_exti15_10(void)
 	}
 	wr32(R_EXTI_PR1, BIT15);
 
-	t = rd32(R_TIM2_CNT) / 64;
+	t = rd32(R_TIM2_CNT) / 16; /* FIXME 16 or 64 MHz */
 	wr32(R_TIM2_CR1, 0);
 	wr32(R_TIM2_CNT, 0);
 	wr32(R_TIM2_CR1, BIT0);
@@ -168,7 +168,7 @@ static void rfrx_step(struct task_t *t)
 	int pos;
 	struct rfrx_frame_t f;
 
-	if (cnt == 0 && gpio_rd(IO(PORTB, 14))) {
+	if (cnt == 0 && gpio_rd(IO(PORTA, 15))) {
 		wr32(R_TIM2_CR1, 0);
 		wr32(R_TIM2_CNT, 0);
 		wr32(R_TIM2_CR1, BIT0);
@@ -235,7 +235,7 @@ static void rfrx_step(struct task_t *t)
 		or32(R_EXTI_FTSR1, BIT15);
 		and32(R_EXTI_RTSR1, ~BIT15);
 
-		/* debug only rfrx_frame_dump(&f); */
+		rfrx_frame_dump(&f);
 		if (f.msg_id != last_msg_id) {
 			struct data_t d;
 
