@@ -212,7 +212,7 @@ void db_data_save_to_eeprom(void)
 {
 	int s, j;
 	struct data_t d;
-	int vread, temp, hum;
+	int vread, temp, hum, vbat;
 	u32 pos;
 	u32 addr;
 	int cnt;
@@ -224,18 +224,20 @@ void db_data_save_to_eeprom(void)
 		if (!cnt)
 			continue;
 
-		vread = temp = hum = 0;
+		vread = temp = hum = vbat = 0;
 
 		for (j = 0; j < cnt; j++) {
 			vread += data_status[s][j].vread;
 			temp += data_status[s][j].temp;
 			hum += data_status[s][j].hum;
+			vbat += data_status[s][j].vbat;
 		}
 
 		d.sens = s;
 		d.temp = temp / cnt;
 		d.vread = vread / cnt;
 		d.hum = hum / cnt;
+		d.vbat = vbat / cnt;
 
 		rtc_get(&r);
 		d.day = r.day;
@@ -294,9 +296,10 @@ void db_data_display(struct data_t *d)
 	    (uint)abs(d->vread));
 	lcd_write_line(buf, 0, 0);
 
-	k_sprintf(buf, "H:%s%d T:%c%d.%d",
+	k_sprintf(buf, "H:%s%d T:%c%d.%d B:%s%d.%d",
 	    d->hum < 100 ? " " : "", d->hum,
-	    d->temp < 0 ? '-': ' ', (uint)abs(d->temp / 10), (uint)abs(d->temp % 10));
+	    d->temp < 0 ? '-': ' ', (uint)abs(d->temp / 10), (uint)abs(d->temp % 10),
+	    d->vbat >= 100 ? "" : " ", (uint)d->vbat / 10, d->vbat % 10);
 	lcd_write_line(buf, 1, 0);
 
 }

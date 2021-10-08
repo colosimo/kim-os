@@ -243,6 +243,7 @@ static void rfrx_step(struct task_t *t)
 			d.temp = f.temp;
 			d.vread = f.vread;
 			d.hum = f.hum;
+			d.vbat = f.vbat;
 
 			db_data_add(&d);
 

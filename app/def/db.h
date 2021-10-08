@@ -34,7 +34,8 @@ attr_packed struct data_t
 	i16 temp;
 	i16 vread;
 	u8 hum;
-	u8 unused[7];
+	u8 vbat;
+	u8 unused[6];
 };
 
 #define ALRM_MAX_NUM ((EEPROM_ALARMS_END_ADDR - EEPROM_ALARMS_START_ADDR) / \
