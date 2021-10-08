@@ -35,7 +35,7 @@
 #define RXRF_START_ZERO           4
 #define RXRF_START_ONE            5
 
-#define BATTERY_THRES            90 /* 9V */
+#define BATTERY_THRES            60 /* 6V */
 
 static char *fname_rfrx = "rf_rx";
 static int fd;
