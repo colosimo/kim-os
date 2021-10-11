@@ -29,7 +29,7 @@
 #define ESC 0x1b
 
 #ifndef UART_CLI_FNAME
-#define UART_CLI_FNAME ""
+#define UART_CLI_FNAME "uart2"
 #endif
 
 #define info(t) ((struct cli_info_t*)t->priv)
