@@ -48,7 +48,6 @@ void lcd_write(u8 ch, int isdata)
 	}
 
 	k_write(k_fd_byname("e"), &one, 1);
-	k_delay_us(1000);
 	k_write(k_fd_byname("e"), &zero, 1);
 }
 
