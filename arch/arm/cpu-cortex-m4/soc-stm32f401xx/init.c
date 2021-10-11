@@ -142,6 +142,9 @@ void attr_weak k_delay(u32 msec)
 
 void attr_weak k_delay_us(u32 usec)
 {
+	k_delay(usec / 1000);
+
+#if 0 /* FIXME buggy implementation */
 	i32 tstart = rd32(R_SYST_CVR);
 	i32 tnow;
 	i32 intvl = usec * (cpu_freq / MHZ);
@@ -157,6 +160,7 @@ void attr_weak k_delay_us(u32 usec)
 		if (intvl < 0 || tnow > tstart + intvl)
 			break;
 	}
+#endif
 }
 
 extern int putchar(int c);
