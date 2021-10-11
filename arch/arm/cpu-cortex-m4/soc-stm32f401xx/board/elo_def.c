@@ -63,6 +63,9 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 
 	*cpu_freq = *apb_freq = *ahb_freq = 16000000;
 
+	and32(R_FLASH_OPTCR, ~0b1100);
+	or32(R_FLASH_OPTCR, 0b1000);
+
 	/* Flash latency */
 	or32(R_FLASH_ACR, 0b111);
 
