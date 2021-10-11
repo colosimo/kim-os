@@ -103,7 +103,7 @@ static void def_step(struct task_t *t)
 		eeprom_write(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
 	}
 
-	if (k_elapsed(last_time_key) >= MS_TO_TICKS(MS_IN_MIN))
+	if (k_elapsed(last_time_key) >= MS_TO_TICKS(MS_IN_MIN) && !get_standby())
 		set_standby(1);
 
 	/* Save data at midnight */
