@@ -22,6 +22,7 @@ void k_main(void);
 
 u32 k_ticks(void);
 u32 k_ticks_freq(void);
+void k_delay(u32 msec);
 void k_delay_us(u32 usec);
 static inline u32 k_elapsed(u32 tprev) {return k_ticks() - tprev;}
 
