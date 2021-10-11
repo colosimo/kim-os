@@ -46,6 +46,7 @@ static u32 evts[512];
 static u32 evts_val[512];
 static int evts_sym[512];
 static u8 last_msg_id = 0xff;
+static u32 last_intr;
 
 static struct rfrx_frame_t lastf;
 static struct rfrx_frame_t *lastf_ptr;
@@ -79,20 +80,22 @@ void rfrx_frame_display(struct rfrx_frame_t *f)
 void isr_exti15_10(void)
 {
 	volatile u32 t;
-	int now;
+	u8 now;
 
-	if (rd32(R_EXTI_FTSR1) & BIT15) {
-		and32(R_EXTI_FTSR1, ~BIT15);
-		or32(R_EXTI_RTSR1, BIT15);
-		now = 0;
+	wr32(R_EXTI_PR1, BIT15);
+	last_intr = k_ticks();
+
+	k_read(fd, &now, 1);
+/*
+	if (now) {
+		or32(R_EXTI_FTSR1, BIT15);
+		and32(R_EXTI_RTSR1, ~BIT15);
 	}
 	else {
-		and32(R_EXTI_RTSR1, ~BIT15);
-		or32(R_EXTI_FTSR1, BIT15);
-		now = 1;
+		or32(R_EXTI_RTSR1, BIT15);
+		and32(R_EXTI_FTSR1, ~BIT15);
 	}
-	wr32(R_EXTI_PR1, BIT15);
-
+*/
 	t = rd32(R_TIM2_CNT) / 16; /* FIXME 16 or 64 MHz */
 	wr32(R_TIM2_CR1, 0);
 	wr32(R_TIM2_CNT, 0);
@@ -104,8 +107,6 @@ void isr_exti15_10(void)
 	}
 
 	if (cnt >= 116) {
-		and32(R_EXTI_RTSR1, ~BIT14);
-		and32(R_EXTI_FTSR1, ~BIT14);
 		end_ok = 1;
 		return;
 	}
@@ -151,7 +152,7 @@ static void rfrx_start(struct task_t *t)
 	wr32(R_TIM2_CR1, BIT0);
 
 	or32(R_EXTI_FTSR1, BIT15);
-	and32(R_EXTI_RTSR1, ~BIT15);
+	or32(R_EXTI_RTSR1, BIT15);
 	or32(R_EXTI_IMR1, BIT15);
 	or32(R_NVIC_ISER(1), BIT8); /* EXTI15_10 is irq 40 */
 
@@ -240,8 +241,10 @@ static void rfrx_step(struct task_t *t)
 		wr32(R_TIM2_CR1, 0);
 		wr32(R_TIM2_CNT, 0);
 		wr32(R_TIM2_CR1, BIT0);
+		/*
 		or32(R_EXTI_FTSR1, BIT15);
 		and32(R_EXTI_RTSR1, ~BIT15);
+		*/
 
 		rfrx_frame_dump(&f);
 		if (f.msg_id != last_msg_id && parity_check == 0) {
@@ -270,4 +273,22 @@ struct task_t attr_tasks task_rfrx = {
 	.step = rfrx_step,
 	.intvl_ms = 1,
 	.name = "rfrx",
+};
+
+static int rfrx_cmd_cb(int argc, char *argv[], int fdout)
+{
+	log("cnt=%d\n", cnt);
+	log("end_ok=%d\n", end_ok);
+	log("R_TIM2_CR1=%08x\n", (uint)rd32(R_TIM2_CR1));
+	log("R_EXTI_FTSR1=%08x\n", (uint)rd32(R_EXTI_FTSR1));
+	log("R_EXTI_RTSR1=%08x\n", (uint)rd32(R_EXTI_RTSR1));
+	log("elapsed(last_intr): %d\n", (uint)k_elapsed(last_intr));
+	return 0;
+}
+
+const struct cli_cmd_t attr_cli cli_rfrx = {
+	.narg = 0,
+	.cmd = rfrx_cmd_cb,
+	.name = "rfrx",
+	.descr = "Dump rfrx status",
 };
