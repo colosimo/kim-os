@@ -103,7 +103,7 @@ void isr_exti15_10(void)
 		return;
 	}
 
-	if (cnt >= 114) {
+	if (cnt >= 116) {
 		and32(R_EXTI_RTSR1, ~BIT14);
 		and32(R_EXTI_FTSR1, ~BIT14);
 		end_ok = 1;
@@ -166,9 +166,12 @@ static void rfrx_step(struct task_t *t)
 	int bit;
 	int sign_temp = 1, sign_vread = 1;
 	int pos;
+	u8 status;
 	struct rfrx_frame_t f;
+	u8 parity_check;
 
-	if (cnt == 0 && gpio_rd(IO(PORTA, 15))) {
+	k_read(fd, &status, 1);
+	if (cnt == 0 && status) {
 		wr32(R_TIM2_CR1, 0);
 		wr32(R_TIM2_CNT, 0);
 		wr32(R_TIM2_CR1, BIT0);
@@ -186,6 +189,7 @@ static void rfrx_step(struct task_t *t)
 		}
 
 		pos = 0;
+		parity_check = 0;
 		for (i = 0; i < cnt; i += 2) {
 			if (evts_sym[i] == RXRF_SHORT_ONE && evts_sym[i + 1] == RXRF_LONG_ZERO)
 				bit = 1;
@@ -200,6 +204,9 @@ static void rfrx_step(struct task_t *t)
 					dbg("%d %d %d\n", (uint)evts_val[j], (uint)evts[j], evts_sym[j]);
 				break;
 			}
+
+			if (bit)
+				parity_check = !parity_check;
 
 			if (pos <= 9)
 				f.addr |= bit << (pos - 8);
@@ -217,8 +224,9 @@ static void rfrx_step(struct task_t *t)
 				f.vread |= bit << (pos - 32);
 			else if (pos <= 48)
 				f.vbat |= bit << (pos - 41);
-			else if (pos == 49)
+			else if (pos == 49) {
 				f.parity = bit;
+			}
 
 			pos++;
 
@@ -236,7 +244,7 @@ static void rfrx_step(struct task_t *t)
 		and32(R_EXTI_RTSR1, ~BIT15);
 
 		rfrx_frame_dump(&f);
-		if (f.msg_id != last_msg_id) {
+		if (f.msg_id != last_msg_id && parity_check == 0) {
 			struct data_t d;
 
 			d.sens = f.addr;
