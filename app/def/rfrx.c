@@ -247,7 +247,7 @@ static void rfrx_step(struct task_t *t)
 		*/
 
 		rfrx_frame_dump(&f);
-		if (f.msg_id != last_msg_id && parity_check == 0) {
+		if (f.msg_id != last_msg_id && parity_check == 0 && f.vbat > 0) {
 			struct data_t d;
 
 			d.sens = f.addr;
