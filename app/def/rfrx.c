@@ -43,7 +43,7 @@ static int end_ok;
 static u32 evts[512];
 static u32 evts_val[512];
 static int evts_sym[512];
-static u8 last_msg_id = 0xff;
+static u8 last_msg_id[4] = {0xff, 0xff, 0xff, 0xff};
 static u32 last_intr;
 
 static struct rfrx_frame_t lastf;
@@ -243,12 +243,13 @@ frame_error:
 			return;
 		}
 
-		if (f.vbat > 90 || f.vbat < 30 || f.hum > 100) {
+		if (f.vbat > 90 || f.vbat < 30 || f.hum > 100 || f.addr > 3) {
 			log("Bad frame:\n");
 			rfrx_frame_dump(&f);
 		}
 
-		if (f.msg_id != last_msg_id && parity_check == 0 && f.vbat > 0) {
+		if (f.msg_id != last_msg_id[f.addr] &&
+		    parity_check == 0 && f.vbat > 0) {
 			struct data_t d;
 
 			d.sens = f.addr;
@@ -261,7 +262,7 @@ frame_error:
 
 			memcpy(&lastf, &f, sizeof(f));
 			lastf_ptr = &lastf;
-			last_msg_id = f.msg_id;
+			last_msg_id[f.addr] = f.msg_id;
 
 			if (f.vbat < BATTERY_THRES) {
 				if (!get_alarm(ALRM_BITFIELD_BATTERY(f.addr))) {
