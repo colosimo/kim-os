@@ -172,6 +172,7 @@ static void rfrx_step(struct task_t *t)
 		dbg("\nNew rxrf frame\n");
 		memset(&f, 0, sizeof(f));
 
+		parity_check = 0;
 		for (i = 0; i < cnt; i++) {
 			if (i < cnt - 1 && evts_val[i] == evts_val[i + 1]) {
 				err("rxrf frame error\n");
@@ -180,7 +181,6 @@ static void rfrx_step(struct task_t *t)
 		}
 
 		pos = 0;
-		parity_check = 0;
 		for (i = 0; i < cnt; i += 2) {
 			if (evts_sym[i] == RXRF_SHORT_ONE && evts_sym[i + 1] == RXRF_LONG_ZERO)
 				bit = 1;
@@ -194,10 +194,10 @@ static void rfrx_step(struct task_t *t)
 				for (j = 0; j <= i; j++)
 					dbg("%d %d %d\n", (uint)evts_val[j], (uint)evts[j], evts_sym[j]);
 				abort = 1;
-				break;
+				goto frame_error;
 			}
 
-			if (bit)
+			if (bit && pos <= 49)
 				parity_check = !parity_check;
 
 			if (pos <= 9)
@@ -226,6 +226,7 @@ static void rfrx_step(struct task_t *t)
 		f.temp *= sign_temp;
 		f.vread *= sign_vread;
 
+frame_error:
 		end_ok = 0;
 		cnt = 0;
 
@@ -235,6 +236,11 @@ static void rfrx_step(struct task_t *t)
 
 		if (abort)
 			return;
+
+		if (parity_check) {
+			log("Parity error\n");
+			return;
+		}
 
 		if (f.vbat > 90 || f.vbat < 30 || f.hum > 100) {
 			log("Bad frame:\n");
