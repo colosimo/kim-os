@@ -84,16 +84,7 @@ void isr_exti15_10(void)
 	last_intr = k_ticks();
 
 	k_read(fd, &now, 1);
-/*
-	if (now) {
-		or32(R_EXTI_FTSR1, BIT15);
-		and32(R_EXTI_RTSR1, ~BIT15);
-	}
-	else {
-		or32(R_EXTI_RTSR1, BIT15);
-		and32(R_EXTI_FTSR1, ~BIT15);
-	}
-*/
+
 	t = rd32(R_TIM2_CNT) / 16; /* FIXME 16 or 64 MHz */
 	wr32(R_TIM2_CR1, 0);
 	wr32(R_TIM2_CNT, 0);
@@ -239,10 +230,6 @@ static void rfrx_step(struct task_t *t)
 		wr32(R_TIM2_CR1, 0);
 		wr32(R_TIM2_CNT, 0);
 		wr32(R_TIM2_CR1, BIT0);
-		/*
-		or32(R_EXTI_FTSR1, BIT15);
-		and32(R_EXTI_RTSR1, ~BIT15);
-		*/
 
 		if (f.vbat > 90 || f.vbat < 30 || f.hum > 100) {
 			log("Bad frame:\n");
