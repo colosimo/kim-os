@@ -159,6 +159,7 @@ static void rfrx_step(struct task_t *t)
 	u8 status;
 	struct rfrx_frame_t f;
 	u8 parity_check;
+	int abort = 0;
 
 	k_read(fd, &status, 1);
 	if (cnt == 0 && status) {
@@ -192,6 +193,7 @@ static void rfrx_step(struct task_t *t)
 				err("Bad frame, abort i=%d\n\n\n", i);
 				for (j = 0; j <= i; j++)
 					dbg("%d %d %d\n", (uint)evts_val[j], (uint)evts[j], evts_sym[j]);
+				abort = 1;
 				break;
 			}
 
@@ -230,6 +232,9 @@ static void rfrx_step(struct task_t *t)
 		wr32(R_TIM2_CR1, 0);
 		wr32(R_TIM2_CNT, 0);
 		wr32(R_TIM2_CR1, BIT0);
+
+		if (abort)
+			return;
 
 		if (f.vbat > 90 || f.vbat < 30 || f.hum > 100) {
 			log("Bad frame:\n");
