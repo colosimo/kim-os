@@ -8,16 +8,16 @@ extern const char one;
 
 /* Alarm is handled as a bitfield */
 #define ALRM_TYPE_ANT      0
-#define ALRM_TYPE_BATTERY  1
+#define ALRM_TYPE_UNUSED   1
 #define ALRM_TYPE_START    2
 #define ALRM_TYPE_STOP     3
+#define ALRM_TYPE_BATTERY  4
+#define ALRM_TYPE_LAST     5
 #define ALRM_TYPE_INVALID  0xff
 
-#define ALRM_BITFIELD_ANT      (1 << ALRM_TYPE_ANT)
-#define ALRM_BITFIELD_BATTERY  (1 << ALRM_TYPE_BATTERY)
-#define ALRM_BITFIELD_START    (1 << ALRM_TYPE_START)
-#define ALRM_BITFIELD_STOP     (1 << ALRM_TYPE_STOP)
-#define ALRM_BITFIELD_ANY      0xff
+#define ALRM_BITFIELD_ANT          (1 << ALRM_TYPE_ANT)
+#define ALRM_BITFIELD_BATTERY(s)   (1 << ((s) + ALRM_TYPE_BATTERY))
+#define ALRM_BITFIELD_ANY          0xff
 
 #define BATTERY_THRES            60 /* 6V */
 

@@ -257,13 +257,13 @@ static void rfrx_step(struct task_t *t)
 			last_msg_id = f.msg_id;
 
 			if (f.vbat < BATTERY_THRES) {
-				if (!get_alarm(ALRM_BITFIELD_BATTERY)) {
+				if (!get_alarm(ALRM_BITFIELD_BATTERY(f.addr))) {
 					db_alarm_add(ALRM_TYPE_BATTERY, f.addr);
-					set_alarm(ALRM_BITFIELD_BATTERY);
+					set_alarm(ALRM_BITFIELD_BATTERY(f.addr));
 				}
 			}
 			else
-				clr_alarm(ALRM_BITFIELD_BATTERY);
+				clr_alarm(ALRM_BITFIELD_BATTERY(f.addr));
 		}
 	}
 }

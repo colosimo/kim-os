@@ -92,13 +92,13 @@ int db_alarm_get(struct alarm_t *a, int pos)
 	return DB_POS_INVALID;
 }
 
-static const char *alarm_str[ALRM_TYPE_STOP + 1] =
-    {"Err. Antenna", "Batteria Bassa", "Start", "Stop"};
+static const char *alarm_str[ALRM_TYPE_LAST] =
+    {"Err. Antenna", "", "Start", "Stop", "Batteria Bassa"};
 
 void db_alarm_dump(struct alarm_t *a)
 {
 	char buf[24];
-	if (a->type > ALRM_TYPE_STOP)
+	if (a->type > ALRM_TYPE_BATTERY)
 		return;
 	k_sprintf(buf, "%s\n", alarm_str[a->type]);
 	log(buf);
@@ -110,7 +110,7 @@ void db_alarm_dump(struct alarm_t *a)
 void db_alarm_display(struct alarm_t *a)
 {
 	char buf[24];
-	if (a->type > ALRM_TYPE_STOP)
+	if (a->type > ALRM_TYPE_BATTERY)
 		return;
 
 	if (a->type == ALRM_TYPE_BATTERY)
