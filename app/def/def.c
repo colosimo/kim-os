@@ -17,6 +17,7 @@
 #include "keys.h"
 #include "db.h"
 #include "rtc.h"
+#include "def.h"
 
 /* DEF Main task */
 
@@ -33,12 +34,17 @@ static int curday = -1;
 
 void set_alarm(int _alrm)
 {
-	alrm = _alrm;
+	alrm |= _alrm;
 }
 
-int get_alarm()
+void clr_alarm(int _alrm)
 {
-	return alrm;
+	alrm &= ~_alrm;
+}
+
+int get_alarm(int _alrm)
+{
+	return (alrm & _alrm) ? 1 : 0;
 }
 
 u32 last_time_inc;
@@ -85,7 +91,7 @@ static void def_start(struct task_t *t)
 	eeprom_init();
 	pwm_init();
 
-	db_init();
+	db_data_init();
 	set_standby(0);
 	last_time_key = last_time_inc = k_ticks();
 	def_step(t);
@@ -141,12 +147,13 @@ void ant_check_step(struct task_t *t)
 
 	if (!ant_check) {
 		t_last_on = k_ticks();
-		if (get_alarm())
-			set_alarm(0);
+		if (get_alarm(ALRM_BITFIELD_ANT))
+			clr_alarm(ALRM_BITFIELD_ANT);
 	}
 
-	if (!get_alarm() && k_elapsed(t_last_on) > MS_TO_TICKS(ANTENNA_CHECK_DELAY_MS)) {
-		set_alarm(1);
+	if (!get_alarm(ALRM_BITFIELD_ANT) &&
+	    k_elapsed(t_last_on) > MS_TO_TICKS(ANTENNA_CHECK_DELAY_MS)) {
+		set_alarm(ALRM_BITFIELD_ANT);
 		db_alarm_add(ALRM_TYPE_ANT, 0);
 	}
 }

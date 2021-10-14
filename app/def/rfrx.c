@@ -35,8 +35,6 @@
 #define RXRF_START_ZERO           4
 #define RXRF_START_ONE            5
 
-#define BATTERY_THRES            60 /* 6V */
-
 static char *fname_rfrx = "rf_rx";
 static int fd;
 
@@ -246,7 +244,11 @@ static void rfrx_step(struct task_t *t)
 		and32(R_EXTI_RTSR1, ~BIT15);
 		*/
 
-		rfrx_frame_dump(&f);
+		if (f.vbat > 90 || f.vbat < 30 || f.hum > 100) {
+			log("Bad frame:\n");
+			rfrx_frame_dump(&f);
+		}
+
 		if (f.msg_id != last_msg_id && parity_check == 0 && f.vbat > 0) {
 			struct data_t d;
 
@@ -262,8 +264,14 @@ static void rfrx_step(struct task_t *t)
 			lastf_ptr = &lastf;
 			last_msg_id = f.msg_id;
 
-			if (f.vbat < BATTERY_THRES)
-				db_alarm_add(ALRM_TYPE_BATTERY, f.addr);
+			if (f.vbat < BATTERY_THRES) {
+				if (!get_alarm(ALRM_BITFIELD_BATTERY)) {
+					db_alarm_add(ALRM_TYPE_BATTERY, f.addr);
+					set_alarm(ALRM_BITFIELD_BATTERY);
+				}
+			}
+			else
+				clr_alarm(ALRM_BITFIELD_BATTERY);
 		}
 	}
 }

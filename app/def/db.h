@@ -5,12 +5,6 @@
 
 #include "eeprom.h"
 
-#define ALRM_TYPE_ANT      0x00
-#define ALRM_TYPE_BATTERY  0x01
-#define ALRM_TYPE_START    0x02
-#define ALRM_TYPE_STOP     0x03
-#define ALRM_TYPE_INVALID  0xff
-
 #define DB_POS_INVALID 0xffffffff
 
 attr_packed struct alarm_t
@@ -45,8 +39,6 @@ attr_packed struct data_t
 #define DATA_MAX_NUM ((EEPROM_DATA_END_ADDR - EEPROM_DATA_START_ADDR) / \
     sizeof(struct data_t))
 
-void db_init(void);
-
 void db_start_add(void);
 
 void db_alarm_add(int type, int sens);
@@ -62,6 +54,8 @@ void db_alarm_reset(void);
 void db_avvii_reset(void);
 
 int db_avvii_get(struct alarm_t *a, int pos);
+
+void db_data_init(void);
 
 void db_data_add(struct data_t *d);
 

@@ -17,10 +17,6 @@
 #include "rtc.h"
 #include "lcd.h"
 
-void db_init(void)
-{
-}
-
 static void fill_alarm(struct alarm_t *a, int type)
 {
 	struct rtc_t r;
@@ -184,9 +180,14 @@ int db_avvii_get(struct alarm_t *a, int pos)
 	return DB_POS_INVALID;
 }
 
+static struct data_t data_status[4][24];
+static int data_pos[4];
 
-struct data_t data_status[4][24];
-int data_cnt[4] = {0, 0, 0, 0};
+void db_data_init(void)
+{
+	memset(data_status, 0, sizeof(data_status));
+	memset(data_pos, 0, sizeof(data_pos));
+}
 
 void db_data_add(struct data_t *d)
 {
@@ -200,10 +201,10 @@ void db_data_add(struct data_t *d)
 		return;
 	}
 
-	cnt = data_cnt[s];
+	cnt = data_pos[s];
 	memcpy(&data_status[s][cnt], d, sizeof(*d));
 
-	data_cnt[s] = (data_cnt[s] + 1) % 24;
+	data_pos[s] = (data_pos[s] + 1) % 24;
 }
 
 void db_data_save_to_eeprom(void)
@@ -218,24 +219,28 @@ void db_data_save_to_eeprom(void)
 
 	for (s = 0; s < 4; s++) {
 
-		cnt = data_cnt[s];
-		if (!cnt)
-			continue;
+		cnt = 0;
+		vread = temp = hum = 0;
+		vbat = 255;
 
-		vread = temp = hum = vbat = 0;
-
-		for (j = 0; j < cnt; j++) {
+		for (j = 0; j < 24; j++) {
+			if (!data_status[s][j].vbat && !data_status[s][j].vread)
+				continue;
+			cnt++;
 			vread += data_status[s][j].vread;
 			temp += data_status[s][j].temp;
 			hum += data_status[s][j].hum;
-			vbat += data_status[s][j].vbat;
+			vbat = min(vbat, data_status[s][j].vbat);
 		}
+
+		if (!cnt)
+			continue;
 
 		d.sens = s;
 		d.temp = temp / cnt;
 		d.vread = vread / cnt;
 		d.hum = hum / cnt;
-		d.vbat = vbat / cnt;
+		d.vbat = vbat;
 
 		rtc_get(&r);
 		d.day = r.day;
@@ -255,8 +260,12 @@ void db_data_save_to_eeprom(void)
 		addr = EEPROM_DATA_START_ADDR + pos * sizeof(struct data_t);
 		eeprom_write(addr, &d, sizeof(d));
 
-		data_cnt[s] = 0;
+		if (vbat < BATTERY_THRES)
+			db_alarm_add(ALRM_TYPE_BATTERY, s);
+
 	}
+	db_data_init();
+
 }
 
 int db_data_get(struct data_t *d, int pos)
