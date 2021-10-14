@@ -176,6 +176,7 @@ static void rfrx_step(struct task_t *t)
 		for (i = 0; i < cnt; i++) {
 			if (i < cnt - 1 && evts_val[i] == evts_val[i + 1]) {
 				err("rxrf frame error\n");
+				abort = 1;
 				goto frame_error;
 			}
 		}
