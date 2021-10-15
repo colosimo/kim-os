@@ -8,6 +8,7 @@
 #include <gpio.h>
 #include <log.h>
 
+#include "def.h"
 #include "eeprom.h"
 #include "pwm.h"
 
@@ -16,7 +17,7 @@ static u32 last_duty, last_freq;
 void pwm_init(void)
 {
 	struct pwm_cfg_t p;
-	u8 m;
+	u8 m, status_rolling_mode;
 	int i;
 
 	/* TIM3_CH1 on PA6 */
@@ -27,8 +28,10 @@ void pwm_init(void)
 	wr32(R_TIM3_PSC, 40); /* Prescaler is 40 */
 
 	eeprom_read(EEPROM_PWM_CURRENT_MODE_ADDR, &m, 1);
-	if (m == 3) /* Rolling freq, start from first mode */
-		m = 0;
+	if (m == 3) {
+		eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &status_rolling_mode, sizeof(status_rolling_mode));
+		rolling_start(status_rolling_mode);
+	}
 	else if (m > 3) { /* Invalid mode, reset */
 		m = 0;
 		eeprom_write(EEPROM_PWM_CURRENT_MODE_ADDR, &m, 1);
@@ -41,8 +44,7 @@ void pwm_init(void)
 		if (!pwm_check(&p.freq, &p.duty))
 			eeprom_write(EEPROM_PWM_MODE0_ADDR + i * sizeof(p), (u8*)&p, sizeof(p)); /* FIXME mode */
 
-		if (i == m) {
-			or32(R_TIM3_CR1, BIT0);
+		if (i == m && m != 3) {
 			pwm_set(p.freq, p.duty);
 			eeprom_write(EEPROM_PWM_STATUS_MODE_ADDR, &m, 1);
 		}
@@ -82,6 +84,7 @@ void pwm_set(u32 freq, u32 duty)
 
 	log("pwm set %d %d\n", (uint)freq, (uint)duty);
 
+	or32(R_TIM3_CR1, BIT0);
 	pwm_check(&freq, &duty);
 
 	arr = 400000 / freq; /* 400000 is 16MHz / Prescaler */

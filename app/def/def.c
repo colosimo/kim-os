@@ -85,6 +85,29 @@ void rearm_standby(void)
 	last_time_key = k_ticks();
 }
 
+static int rolling_enabled = 0;
+void rolling_start(int mode)
+{
+	u32 rolling_hrs;
+	struct pwm_cfg_t p;
+
+	/* Save mode status */
+	eeprom_write(EEPROM_PWM_STATUS_MODE_ADDR, &mode, 1);
+	eeprom_read(EEPROM_PWM_MODE0_ADDR + mode * sizeof(p), &p, sizeof(p));
+	pwm_set(p.freq, p.duty);
+
+	/* Save hrs status, initialize countdown */
+	eeprom_read(EEPROM_PWM_ROL_HRS_STATUS_ADDR, &rolling_hrs, sizeof(rolling_hrs));
+
+	log("rolling_hrs init mode %d, hrs %d\n", mode, (uint)rolling_hrs);
+	rolling_enabled = 1;
+}
+
+void rolling_stop(void)
+{
+	rolling_enabled = 0;
+}
+
 static void def_start(struct task_t *t)
 {
 	lcd_init();
@@ -102,12 +125,39 @@ static void def_start(struct task_t *t)
 static void def_step(struct task_t *t)
 {
 	struct rtc_t r;
+	u32 rolling_hrs;
+	int mode;
+	struct pwm_cfg_t p;
 
 	if (k_elapsed(last_time_inc) >= MS_TO_TICKS(MS_IN_HOUR)) {
 		last_time_inc = k_ticks();
 		hours++;
 		eeprom_write(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
-		/* FIXME Check rolling freq */
+
+		if (rolling_enabled) {
+			eeprom_read(EEPROM_PWM_ROL_HRS_STATUS_ADDR, &rolling_hrs, sizeof(rolling_hrs));
+			if (rolling_hrs > 1) {
+				rolling_hrs--;
+				eeprom_write(EEPROM_PWM_ROL_HRS_STATUS_ADDR, &rolling_hrs, sizeof(rolling_hrs));
+				log("rolling_hrs countdown %d\n", (uint)rolling_hrs);
+			}
+			else {
+
+				eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &mode, sizeof(mode));
+				mode = (mode + 1) % 3;
+				rtc_get(&r);
+				rtc_dump(&r);
+				log("rolling_hrs new mode %d\n\n", (uint)mode);
+				eeprom_write(EEPROM_PWM_STATUS_MODE_ADDR, &mode, sizeof(mode));
+
+				eeprom_read(EEPROM_PWM_MODE0_ADDR + mode * sizeof(p), &p, sizeof(p));
+				pwm_set(p.freq, p.duty);
+
+				/* Reinitialize countdown */
+				eeprom_read(EEPROM_PWM_ROL_HRS_SETTING_ADDR, &rolling_hrs, sizeof(rolling_hrs));
+				eeprom_write(EEPROM_PWM_ROL_HRS_STATUS_ADDR, &rolling_hrs, sizeof(rolling_hrs));
+			}
+		}
 	}
 
 	if (k_elapsed(last_time_key) >= MS_TO_TICKS(MS_IN_MIN) && !get_standby())

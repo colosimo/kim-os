@@ -87,7 +87,7 @@ static void update_screen_datetime()
 	int cur_line, cur_pos, cur_show;
 
 	if (status == 100) {
-		lcd_write_line("ANNULLATO", 0, 0);
+		lcd_write_line("ANNULLATO", 0, 1);
 		lcd_write_line("", 1, 0);
 		status = 103;
 		return;
@@ -290,22 +290,20 @@ static void on_evt_pwm(int key)
 	}
 
 	if (key == KEY_ENTER) {
-		log("Save mode %d\n", menu_mode);
 		pwm_check(&menu_p.freq, &menu_p.duty);
+		if (menu_mode == status_mode)
+			pwm_set(menu_p.freq, menu_p.duty);
+		log("Save mode %d: %d %d\n", menu_mode + 1, (uint)menu_p.freq, (uint)menu_p.duty);
 		eeprom_write(EEPROM_PWM_MODE0_ADDR + menu_mode * sizeof(menu_p),
 			(u8*)&menu_p, sizeof(menu_p));
 
 		if (status == 1) {
 			menu_mode = (menu_mode + 1) % 3;
-			log("Load mode %d\n", menu_mode);
 			eeprom_read(EEPROM_PWM_MODE0_ADDR + menu_mode * sizeof(menu_p),
 			    (u8*)&menu_p, sizeof(menu_p));
 		}
 
 	}
-
-	if (menu_mode == status_mode)
-		pwm_set(menu_p.freq, menu_p.duty);
 	update_screen_pwm();
 	keys_clear_evts(1 << key);
 }
@@ -324,8 +322,7 @@ static void update_screen_mode()
 
 	if (status == 100) {
 		status = 102;
-		lcd_write_line("ESEGUITO", 0, 1);
-		lcd_write_line("", 1, 0);
+		lcd_write_line("ESEGUITO", 1, 1);
 	}
 	else if (status == 101) {
 		status = 102;
@@ -368,7 +365,8 @@ static void refresh_mode(void)
 		eeprom_read(EEPROM_PWM_CURRENT_MODE_ADDR, &current_mode, 1);
 		eeprom_read(EEPROM_PWM_MODE0_ADDR + current_mode * sizeof(mode_pwm_cfg),
 		    (u8*)&mode_pwm_cfg, sizeof(mode_pwm_cfg));
-		eeprom_read(EEPROM_PWM_ROL_HRS_SETTING_ADDR, &rolling_hrs, 1);
+		eeprom_read(EEPROM_PWM_ROL_HRS_SETTING_ADDR, &rolling_hrs, sizeof(rolling_hrs));
+		log("Load hrs %d\n", rolling_hrs);
 		update_screen_mode();
 		status = 1;
 	}
@@ -409,6 +407,9 @@ static void on_evt_mode(int key)
 			else if (key == KEY_DOWN && rolling_hrs > 1)
 				rolling_hrs--;
 			else if (key == KEY_ENTER) {
+				log("Save hrs %d\n", rolling_hrs);
+				eeprom_write(EEPROM_PWM_ROL_HRS_SETTING_ADDR, &rolling_hrs, sizeof(rolling_hrs));
+				eeprom_write(EEPROM_PWM_ROL_HRS_STATUS_ADDR, &rolling_hrs, sizeof(rolling_hrs));
 				status = 100;
 				ticks_exec = k_ticks();
 			}
@@ -422,11 +423,13 @@ static void on_evt_mode(int key)
 			(u8*)&mode_pwm_cfg, sizeof(mode_pwm_cfg));
 
 	if (key == KEY_ENTER && (status == 2 || current_mode != 3)) {
-		log("Save mode %d hrs %d\n", current_mode, rolling_hrs);
-		eeprom_write(EEPROM_PWM_CURRENT_MODE_ADDR, &current_mode, 1);
+		log("Save mode %d\n", current_mode);
 		if (current_mode == 3)
-			eeprom_write(EEPROM_PWM_ROL_HRS_SETTING_ADDR, (u8*)&rolling_hrs, sizeof(rolling_hrs));
-		else {
+			rolling_start(0);
+		else
+			rolling_stop();
+		eeprom_write(EEPROM_PWM_CURRENT_MODE_ADDR, &current_mode, 1);
+		if (current_mode != 3) {
 			pwm_set(mode_pwm_cfg.freq, mode_pwm_cfg.duty);
 			eeprom_write(EEPROM_PWM_STATUS_MODE_ADDR, &current_mode, 1);
 		}

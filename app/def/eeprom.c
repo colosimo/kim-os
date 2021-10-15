@@ -45,6 +45,9 @@ void eeprom_reset(void)
 	for (m = 0; m < 3; m++)
 		eeprom_write(EEPROM_PWM_MODE0_ADDR + m * sizeof(p), (u8*)&p, sizeof(p));
 
+	tmp = 12;
+	eeprom_write(EEPROM_PWM_ROL_HRS_SETTING_ADDR, &tmp, sizeof(tmp));
+
 	/* Write Format Version */
 	tmp = EEPROM_FMT_VER;
 	eeprom_write(EEPROM_FMT_VER_ADDR, &tmp, sizeof(tmp));
