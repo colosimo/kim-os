@@ -11,16 +11,13 @@
 #include "eeprom.h"
 #include "pwm.h"
 
-#define MIN_FREQ 20
-#define MAX_FREQ 200
-#define MIN_DUTY 2
-#define MAX_DUTY 10
-
 static u32 last_duty, last_freq;
 
 void pwm_init(void)
 {
 	struct pwm_cfg_t p;
+	u8 m;
+	int i;
 
 	/* TIM3_CH1 on PA6 */
 	gpio_func(IO(PORTA, 6), 2);
@@ -29,45 +26,68 @@ void pwm_init(void)
 	or32(R_TIM3_CCER, BIT0);
 	wr32(R_TIM3_PSC, 40); /* Prescaler is 40 */
 
+	eeprom_read(EEPROM_PWM_CURRENT_MODE_ADDR, &m, 1);
+	if (m == 3) /* Rolling freq, start from first mode */
+		m = 0;
+	else if (m > 3) { /* Invalid mode, reset */
+		m = 0;
+		eeprom_write(EEPROM_PWM_CURRENT_MODE_ADDR, &m, 1);
+	}
 
-	eeprom_read(EEPROM_PWM_CFG_ADDR, (u8*)&p, sizeof(p));
-	pwm_set(p.freq, p.duty);
+	for (i = 0; i < 3; i++) {
 
-	or32(R_TIM3_CR1, BIT0);
+		eeprom_read(EEPROM_PWM_MODE0_ADDR + i * sizeof(p), (u8*)&p, sizeof(p));
+
+		if (!pwm_check(&p.freq, &p.duty))
+			eeprom_write(EEPROM_PWM_MODE0_ADDR + i * sizeof(p), (u8*)&p, sizeof(p)); /* FIXME mode */
+
+		if (i == m) {
+			or32(R_TIM3_CR1, BIT0);
+			pwm_set(p.freq, p.duty);
+			eeprom_write(EEPROM_PWM_STATUS_MODE_ADDR, &m, 1);
+		}
+	}
+}
+
+int pwm_check(u32 *freq, u32 *duty)
+{
+	int ret = 1;
+	if (*freq < MIN_FREQ) {
+		wrn("Min freq %d\n", MIN_FREQ);
+		*freq = MIN_FREQ;
+		ret = 0;
+	}
+	else if (*freq > MAX_FREQ) {
+		wrn("Max freq %d\n", MAX_FREQ);
+		*freq = MAX_FREQ;
+		ret = 0;
+	}
+
+	if (*duty < MIN_DUTY) {
+		wrn("Min duty %d\n", MIN_DUTY);
+		*duty = MIN_DUTY;
+		ret = 0;
+	}
+	else if (*duty > MAX_DUTY) {
+		wrn("Max duty %d\n", MAX_DUTY);
+		*duty = MAX_DUTY;
+		ret = 0;
+	}
+	return ret;
 }
 
 void pwm_set(u32 freq, u32 duty)
 {
 	u32 arr;
-	struct pwm_cfg_t p;
 
-	dbg("pwm set %d %d\n", (uint)freq, (uint)duty);
+	log("pwm set %d %d\n", (uint)freq, (uint)duty);
 
-	if (freq < MIN_FREQ) {
-		wrn("Min freq %d\n", MIN_FREQ);
-		freq = MIN_FREQ;
-	}
-	else if (freq > MAX_FREQ) {
-		wrn("Max freq %d\n", MAX_FREQ);
-		freq = MAX_FREQ;
-	}
-
-	if (duty < MIN_DUTY) {
-		wrn("Min duty %d\n", MIN_DUTY);
-		duty = MIN_DUTY;
-	}
-	else if (duty > MAX_DUTY) {
-		wrn("Max duty %d\n", MAX_DUTY);
-		duty = MAX_DUTY;
-	}
+	pwm_check(&freq, &duty);
 
 	arr = 400000 / freq; /* 400000 is 16MHz / Prescaler */
 	wr32(R_TIM3_ARR, arr - 1);
 	wr32(R_TIM3_CCR1, (arr * (100 - duty)) / 100);
 
-	p.duty = duty;
-	p.freq = freq;
-	eeprom_write(EEPROM_PWM_CFG_ADDR, (u8*)&p, sizeof(p));
 	last_duty = duty;
 	last_freq = freq;
 }

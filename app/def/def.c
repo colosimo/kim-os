@@ -69,8 +69,8 @@ void show_home(void)
 
 void set_standby(int stdby)
 {
-	lcd_set_backlight(!stdby);
 	show_home();
+	lcd_set_backlight(!stdby);
 	if (stdby)
 		last_time_key = 0;
 }
@@ -107,6 +107,7 @@ static void def_step(struct task_t *t)
 		last_time_inc = k_ticks();
 		hours++;
 		eeprom_write(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
+		/* FIXME Check rolling freq */
 	}
 
 	if (k_elapsed(last_time_key) >= MS_TO_TICKS(MS_IN_MIN) && !get_standby())

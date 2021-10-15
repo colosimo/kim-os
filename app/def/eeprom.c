@@ -17,7 +17,7 @@
 #define EEPROM_I2C_ADDR_7BIT 0b1010110
 
 #define EEPROM_SIGN     "ELOS"
-#define EEPROM_FMT_VER  1
+#define EEPROM_FMT_VER  2
 
 int i2c_fd;
 
@@ -25,11 +25,10 @@ void eeprom_reset(void)
 {
 	u32 tmp = 0xdeadbeaf;
 	struct pwm_cfg_t p;
+	int m;
 
-#if 0 /* FIXME useful? */
 	lcd_set_backlight(1);
 	lcd_write_line("EEPROM RESET...", 0, 1);
-#endif
 
 	/* Invalidate signature (in order to recover in case it reboots during reset) */
 	eeprom_write(EEPROM_SIGN_ADDR, &tmp, 4);
@@ -39,9 +38,12 @@ void eeprom_reset(void)
 	eeprom_write(EEPROM_HOURS_ADDR, &tmp, sizeof(tmp));
 
 	/* Reset PWM */
+	m = 0;
+	eeprom_write(EEPROM_PWM_CURRENT_MODE_ADDR, &m, 1);
 	p.freq = PWM_DEF_FREQ;
 	p.duty = PWM_DEF_DUTY;
-	eeprom_write(EEPROM_PWM_CFG_ADDR, (u8*)&p, sizeof(p));
+	for (m = 0; m < 3; m++)
+		eeprom_write(EEPROM_PWM_MODE0_ADDR + m * sizeof(p), (u8*)&p, sizeof(p));
 
 	/* Write Format Version */
 	tmp = EEPROM_FMT_VER;
@@ -73,7 +75,7 @@ void eeprom_init(void)
 	if (tmp != *((u32*)EEPROM_SIGN))
 		eeprom_reset();
 	eeprom_read(EEPROM_FMT_VER_ADDR, &tmp, 4);
-	if (tmp > EEPROM_FMT_VER)
+	if (tmp != EEPROM_FMT_VER)
 		eeprom_reset();
 }
 

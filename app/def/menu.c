@@ -22,6 +22,7 @@
 #include "eeprom.h"
 
 static int status = 0; /* Generic state machine variable */
+static u32 ticks_exec;
 
 #define MENU_VOICE_DEFAULT 0
 #define STR_CONFIRM "CONFERMA?"
@@ -221,30 +222,37 @@ static void on_evt_datetime(int key)
 
 /* PWM setting */
 
+static int status_mode;
+static int menu_mode = 0;
+static struct pwm_cfg_t menu_p;
+
 static void update_screen_pwm()
 {
 	char buf[24];
-	int cur_line, cur_pos, cur_show;
-	u32 f, d;
-	pwm_get(&f, &d);
+	int cur_line, cur_pos;
 
-	k_sprintf(buf, "Freq: %03d", (uint)f);
+	k_sprintf(buf, "Freq: %03d  %cMode: %d", (uint)menu_p.freq,
+	   menu_mode == status_mode ? '*' : ' ', menu_mode + 1);
 	lcd_write_line(buf, 0, 0);
-	k_sprintf(buf, "D.C.:  %02d", (uint)d);
+	k_sprintf(buf, "D.C.:  %02d", (uint)menu_p.duty);
 	lcd_write_line(buf, 1, 0);
 
 	switch(status) {
 		case 0:
-		case 1: cur_line = 0; cur_pos = 8; cur_show = 1; break;
-		case 2: cur_line = 1; cur_pos = 8; cur_show = 1; break;
-		default: cur_line = cur_pos = cur_show = 0; break; /* Never happens */
+		case 1: cur_line = 0; cur_pos = 8; break;
+		case 2: cur_line = 1; cur_pos = 8; break;
+		default: cur_line = cur_pos = 0; break; /* Never happens */
 	}
-	lcd_cursor(cur_line, cur_pos, cur_show);
+	lcd_cursor(cur_line, cur_pos, 1);
 }
 
 static void refresh_pwm(void)
 {
 	if (status == 0) {
+		eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &status_mode, 1);
+		menu_mode = status_mode;
+		eeprom_read(EEPROM_PWM_MODE0_ADDR + menu_mode * sizeof(menu_p),
+		    (u8*)&menu_p, sizeof(menu_p));
 		update_screen_pwm();
 		status = 1;
 	}
@@ -252,44 +260,181 @@ static void refresh_pwm(void)
 
 static void on_evt_pwm(int key)
 {
-	u32 f, d;
-
 	if (key == KEY_ESC) {
 		on_evt_def(key);
 		return;
 	}
 
-	pwm_get(&f, &d);
-
 	switch (status) {
 		case 1:
-			if (key == KEY_UP && f < 200)
-				f++;
-			else if (key == KEY_DOWN && f > 0)
-				f--;
+			if (key == KEY_UP && menu_p.freq < MAX_FREQ)
+				menu_p.freq++;
+			else if (key == KEY_DOWN && menu_p.freq > MIN_FREQ)
+				menu_p.freq--;
 			else if (key == KEY_ENTER)
 				status = 2;
 			break;
 
 		case 2:
-			if (key == KEY_UP && d < 10)
-				d++;
-			else if (key == KEY_DOWN && d > 0)
-				d--;
+			if (key == KEY_UP && menu_p.duty < MAX_DUTY)
+				menu_p.duty++;
+			else if (key == KEY_DOWN && menu_p.duty > MIN_DUTY)
+				menu_p.duty--;
 			else if (key == KEY_ENTER)
 				status = 1;
+
 			break;
 
 		default:
 			break;
 	}
 
-	pwm_set(f, d);
+	if (key == KEY_ENTER) {
+		log("Save mode %d\n", menu_mode);
+		pwm_check(&menu_p.freq, &menu_p.duty);
+		eeprom_write(EEPROM_PWM_MODE0_ADDR + menu_mode * sizeof(menu_p),
+			(u8*)&menu_p, sizeof(menu_p));
+
+		if (status == 1) {
+			menu_mode = (menu_mode + 1) % 3;
+			log("Load mode %d\n", menu_mode);
+			eeprom_read(EEPROM_PWM_MODE0_ADDR + menu_mode * sizeof(menu_p),
+			    (u8*)&menu_p, sizeof(menu_p));
+		}
+
+	}
+
+	if (menu_mode == status_mode)
+		pwm_set(menu_p.freq, menu_p.duty);
 	update_screen_pwm();
 	keys_clear_evts(1 << key);
 }
 
-static u32 ticks_exec;
+
+/* Modality choice */
+
+static int current_mode; /* Mode 0, 1, 2 or Rolling (mode = 3) */
+static int rolling_hrs;
+static struct pwm_cfg_t mode_pwm_cfg;
+
+static void update_screen_mode()
+{
+	char buf[24];
+	int cur_line, cur_pos;
+
+	if (status == 100) {
+		status = 102;
+		lcd_write_line("ESEGUITO", 0, 1);
+		lcd_write_line("", 1, 0);
+	}
+	else if (status == 101) {
+		status = 102;
+		lcd_write_line("ANNULLATO", 0, 1);
+		lcd_write_line("", 1, 0);
+		return;
+	}
+	if (status >= 100) {
+		if (k_elapsed(ticks_exec) > MS_TO_TICKS(1000))
+			on_evt_def(KEY_ESC);
+		return;
+	}
+
+	if (current_mode <= 2)
+		k_sprintf(buf, "Mode: %d (%dHz %d%%)", current_mode + 1,
+		    (uint)mode_pwm_cfg.freq, (uint)mode_pwm_cfg.duty);
+	else if (current_mode == 3)
+		k_sprintf(buf, "Mode: Rolling");
+	lcd_write_line(buf, 0, 0);
+
+	if (current_mode == 3)
+		k_sprintf(buf, "Numero ore: %02d", (uint)rolling_hrs);
+	else
+		buf[0] = '\0';
+
+	lcd_write_line(buf, 1, 0);
+
+	switch(status) {
+		case 0:
+		case 1: cur_line = 0; cur_pos = 6; break;
+		case 2: cur_line = 1; cur_pos = 12; break;
+		default: cur_line = cur_pos = 0; break; /* Never happens */
+	}
+	lcd_cursor(cur_line, cur_pos, 1);
+}
+
+static void refresh_mode(void)
+{
+	if (status == 0) {
+		eeprom_read(EEPROM_PWM_CURRENT_MODE_ADDR, &current_mode, 1);
+		eeprom_read(EEPROM_PWM_MODE0_ADDR + current_mode * sizeof(mode_pwm_cfg),
+		    (u8*)&mode_pwm_cfg, sizeof(mode_pwm_cfg));
+		eeprom_read(EEPROM_PWM_ROL_HRS_SETTING_ADDR, &rolling_hrs, 1);
+		update_screen_mode();
+		status = 1;
+	}
+	else if (status >= 100)
+		update_screen_mode();
+}
+
+static void on_evt_mode(int key)
+{
+	if (status >= 100)
+		return;
+
+	if (key == KEY_ESC) {
+		status = 101;
+		ticks_exec = k_ticks();
+		return;
+	}
+
+	switch (status) {
+		case 1:
+			if (key == KEY_UP && current_mode < 3)
+				current_mode++;
+			else if (key == KEY_DOWN && current_mode > 0)
+				current_mode--;
+			else if (key == KEY_ENTER) {
+				if (current_mode == 3)
+					status = 2;
+				else {
+					status = 100;
+					ticks_exec = k_ticks();
+				}
+			}
+			break;
+
+		case 2:
+			if (key == KEY_UP && rolling_hrs < 200)
+				rolling_hrs++;
+			else if (key == KEY_DOWN && rolling_hrs > 1)
+				rolling_hrs--;
+			else if (key == KEY_ENTER) {
+				status = 100;
+				ticks_exec = k_ticks();
+			}
+			break;
+
+		default:
+			break;
+	}
+	if (current_mode != 3)
+		eeprom_read(EEPROM_PWM_MODE0_ADDR + current_mode * sizeof(mode_pwm_cfg),
+			(u8*)&mode_pwm_cfg, sizeof(mode_pwm_cfg));
+
+	if (key == KEY_ENTER && (status == 2 || current_mode != 3)) {
+		log("Save mode %d hrs %d\n", current_mode, rolling_hrs);
+		eeprom_write(EEPROM_PWM_CURRENT_MODE_ADDR, &current_mode, 1);
+		if (current_mode == 3)
+			eeprom_write(EEPROM_PWM_ROL_HRS_SETTING_ADDR, (u8*)&rolling_hrs, sizeof(rolling_hrs));
+		else {
+			pwm_set(mode_pwm_cfg.freq, mode_pwm_cfg.duty);
+			eeprom_write(EEPROM_PWM_STATUS_MODE_ADDR, &current_mode, 1);
+		}
+	}
+
+	update_screen_mode();
+	keys_clear_evts(1 << key);
+}
 
 static void refresh_realtimesens(void)
 {
@@ -548,7 +693,7 @@ static struct menu_voice_t menu[] = {
 	{3, {"VISUALIZZA", "STORICO LETTURE"}, on_evt_def, NULL, {2, 4, -1, 22}, 1},
 	{4, {"VISUALIZZA", "REALTIME SENSORI"}, on_evt_def, NULL, {3, 0, -1, 16}, 1},
 	{5, {"IMPOSTAZIONI", "PARAMETRI F."}, on_evt_def, NULL, {13, 6, 0, 15}, 1},
-	{6, {"IMPOSTAZIONI", "MODALITA'"}, on_evt_def, NULL, {5, 7, 0, -1}, 0},
+	{6, {"IMPOSTAZIONI", "MODALITA'"}, on_evt_def, NULL, {5, 7, 0, 23}, 1},
 	{7, {"IMPOSTAZIONI", "DATA E ORA"}, on_evt_def, NULL, {6, 8, 0, 14}, 1},
 	{8, {"IMPOSTAZIONI", "RESET CONTATORE"}, on_evt_def, NULL, {7, 9, 0, 18}, 1},
 	{9, {"IMPOSTAZIONI", "RESET STORICI"}, on_evt_def, NULL, {8, 10, 0, 17}, 1},
@@ -565,6 +710,7 @@ static struct menu_voice_t menu[] = {
 	{20, {"", ""}, on_evt_show, refresh_show_alarms, {-1, -1, 2, -1}, 1},
 	{21, {"Git:  " GIT_VERSION, "Date: " COMPILE_DATE}, on_evt_def, NULL, {-1, -1, 12, -1}, 1},
 	{22, {"", ""}, on_evt_show_data, refresh_show_data, {-1, -1, 3, -1}, 1},
+	{23, {"", ""}, on_evt_mode, refresh_mode, {-1, -1, 6, 6}, 1},
 	{-1}
 };
 
