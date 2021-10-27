@@ -22,7 +22,7 @@
 /* DEF Main task */
 
 #define STR_ELO_BANNER "ELO Srl 0536/844420"
-#define STR_FUNZ "Funz: g:%03d h:%02d"
+#define STR_FUNZ "Funz: g:%03d h:%02d  %c%d"
 #define MS_IN_MIN (60 * 1000)
 #define MS_IN_HOUR (60 * MS_IN_MIN)
 
@@ -57,13 +57,18 @@ void show_home(void)
 {
 	char buf[24];
 	int gg, hh;
+	u8 mode, status;
 
 	lcd_write_line(STR_ELO_BANNER, 0, 0);
 	eeprom_read(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
 
+	eeprom_read(EEPROM_PWM_CURRENT_MODE_ADDR, &mode, 1);
+	eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &status, 1);
+
+
 	gg = hours / 24;
 	hh = hours % 24;
-	k_sprintf(buf, STR_FUNZ, gg, hh);
+	k_sprintf(buf, STR_FUNZ, gg, hh, mode == 3 ? 'R' : ' ', status + 1);
 	lcd_write_line(buf, 1, 0);
 }
 
