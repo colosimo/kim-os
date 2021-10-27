@@ -27,6 +27,7 @@ static u32 ticks_exec;
 #define MENU_VOICE_DEFAULT 0
 #define STR_CONFIRM "CONFERMA?"
 #define STR_EMPTY "ARCHIVIO VUOTO"
+#define STR_PASSWORD "PASSWORD: [     ]"
 
 struct menu_voice_t {
 	int id;
@@ -689,8 +690,50 @@ static void on_evt_show_data(int key)
 	}
 }
 
+static int pwd_secret[5] = {KEY_UP, KEY_ESC, KEY_DOWN, KEY_ESC, KEY_ENTER};
+static int pwd_entered[5];
+
+static void on_evt_pwd(int key)
+{
+	switch (status) {
+		case 0:
+			if (key == KEY_ESC) {
+				lcd_write_line(STR_PASSWORD, 0, 0);
+				lcd_write_line("", 1, 0);
+				lcd_cursor(0, 11, 1);
+				status = 1;
+			}
+			else
+				on_evt_def(KEY_ESC);
+			break;
+
+		default:
+			pwd_entered[status - 1] = key;
+			lcd_write_string("*");
+			lcd_cursor(0, 11 + status, 1);
+			status++;
+			if (status == 6) {
+				if (!memcmp(pwd_entered, pwd_secret, sizeof(pwd_entered))) {
+					log("Password ko\n");
+					on_evt_def(KEY_ENTER);
+				}
+				else {
+					log("Password ok\n");
+					on_evt_def(KEY_ESC);
+				}
+			}
+
+			break;
+	}
+	keys_clear_evts(1 << key);
+}
+
+static void refresh_pwd(void)
+{
+}
+
 static struct menu_voice_t menu[] = {
-	{0, {"MENU", "IMPOSTAZIONI"}, on_evt_def, NULL, {4, 1, -1, 5}, 1},
+	{0, {"MENU", "IMPOSTAZIONI"}, on_evt_def, NULL, {4, 1, -1, 24}, 1},
 	{1, {"VISUALIZZA", "STORICO AVVII"}, on_evt_def, NULL, {0, 2, -1, 19}, 1},
 	{2, {"VISUALIZZA", "SEGNALAZIONI"}, on_evt_def, NULL, {1, 3, -1, 20}, 1},
 	{3, {"VISUALIZZA", "STORICO LETTURE"}, on_evt_def, NULL, {2, 4, -1, 22}, 1},
@@ -714,6 +757,7 @@ static struct menu_voice_t menu[] = {
 	{21, {"Git:  " GIT_VERSION, "Date: " COMPILE_DATE}, on_evt_def, NULL, {-1, -1, 12, -1}, 1},
 	{22, {"", ""}, on_evt_show_data, refresh_show_data, {-1, -1, 3, -1}, 1},
 	{23, {"", ""}, on_evt_mode, refresh_mode, {-1, -1, 6, 6}, 1},
+	{24, {"MENU", "IMPOSTAZIONI"}, on_evt_pwd, refresh_pwd, {-1, -1, -1, 5}, 1},
 	{-1}
 };
 
