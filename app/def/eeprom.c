@@ -19,6 +19,9 @@
 #define EEPROM_SIGN     "ELOS"
 #define EEPROM_FMT_VER  2
 
+static u8 pwm_def_freq[3] = {200, 100, 80};
+static u8 pwm_def_duty[3] = {5, 5, 5};
+
 int i2c_fd;
 
 void eeprom_reset(void)
@@ -40,10 +43,12 @@ void eeprom_reset(void)
 	/* Reset PWM */
 	m = 0;
 	eeprom_write(EEPROM_PWM_CURRENT_MODE_ADDR, &m, 1);
-	p.freq = PWM_DEF_FREQ;
-	p.duty = PWM_DEF_DUTY;
-	for (m = 0; m < 3; m++)
+
+	for (m = 0; m < 3; m++) {
+		p.freq = pwm_def_freq[m];
+		p.duty = pwm_def_duty[m];
 		eeprom_write(EEPROM_PWM_MODE0_ADDR + m * sizeof(p), (u8*)&p, sizeof(p));
+	}
 
 	tmp = 12;
 	eeprom_write(EEPROM_PWM_ROL_HRS_SETTING_ADDR, &tmp, sizeof(tmp));

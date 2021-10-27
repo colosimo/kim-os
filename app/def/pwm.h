@@ -3,9 +3,6 @@
  * Copyright: Elo System srl
  */
 
-#define PWM_DEF_FREQ 100
-#define PWM_DEF_DUTY 5
-
 #define MIN_FREQ 20
 #define MAX_FREQ 200
 #define MIN_DUTY 2
