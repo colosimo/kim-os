@@ -12,11 +12,23 @@
 /* System Control Block registers */
 #define R_SCB_CPUID   reg32(0xE000ED00)
 #define R_SCB_ICSR    reg32(0xE000ED04)
+#define R_SCB_ACTLR   reg32(0xE000ED08)
+#define R_SCB_VTOR    reg32(0xE000ED08)
 #define R_SCB_AIRCR   reg32(0xE000ED0C)
 #define R_SCB_SCR     reg32(0xE000ED10)
 #define R_SCB_CCR     reg32(0xE000ED14)
+#define R_SCB_SHPR1   reg32(0xE000ED18)
 #define R_SCB_SHPR2   reg32(0xE000ED1C)
 #define R_SCB_SHPR3   reg32(0xE000ED20)
+#define R_SCB_SHCRS   reg32(0xE000ED24)
+#define R_SCB_CFSR    reg32(0xE000ED28)
+#define R_SCB_MMSR    reg8(0xE000ED28)
+#define R_SCB_BFSR    reg8(0xE000ED29)
+#define R_SCB_UFSR    reg32(0xE000ED2A)
+#define R_SCB_HFSR    reg32(0xE000ED2C)
+#define R_SCB_MMFAR   reg32(0xE000ED34)
+#define R_SCB_BFAR    reg32(0xE000ED38)
+#define R_SCB_AFSR    reg32(0xE000ED3C)
 
 /* SysTick registers */
 #define R_SYST_CSR    reg32(0xE000E010)
