@@ -4,7 +4,7 @@
  */
 
 #define MIN_FREQ 20
-#define MAX_FREQ 200
+#define MAX_FREQ 400
 #define MIN_DUTY 2
 #define MAX_DUTY 10
 
