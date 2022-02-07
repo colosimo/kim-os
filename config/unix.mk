@@ -1,0 +1,3 @@
+ARCH := unix
+APP := cli
+
