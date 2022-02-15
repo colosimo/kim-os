@@ -35,6 +35,8 @@ static inline u32 abs(i32 a)
 		return -a;
 }
 
+float fabsf(float a);
+
 /* Memory handling functions */
 void *memcpy(void *dest, const void *src, size_t n);
 void *memset(void *dest, int c, size_t n);
@@ -46,8 +48,10 @@ int strcmp(const char *s1, const char *s2);
 int strncmp(char *s1, const char *s2, size_t n);
 char *strcpy(char *s1, const char *s2);
 char *strncpy(char *s1, const char *s2, size_t n);
+char *strchr(const char *s, int c);
 int atoi(const char *p);
 int atoi_hex(const char *p);
+float atof(const char* s);
 
 /* char check functions */
 int isspace(int c);

@@ -84,6 +84,16 @@ size_t strlen(const char *s1)
 	return l;
 }
 
+char *strchr(const char *s, int c)
+{
+	const char *tmp;
+	for (tmp = s; *tmp; tmp++) {
+		if (*tmp == c)
+			return (char*)tmp;
+	}
+	return NULL;
+}
+
 int isspace(int c)
 {
 	return c == ' ' || c == '\t' || c == '\n' ||
@@ -141,4 +151,35 @@ int atoi_hex(const char *p)
 		p++;
 	}
 	return ret;
+}
+
+float atof(const char* s)
+{
+	float ret = 0, fact = 1;
+	if (*s == '-') {
+		s++;
+		fact = -1;
+	};
+	for (int point_seen = 0; *s; s++) {
+		if (*s == '.') {
+			point_seen = 1;
+			continue;
+		};
+		int d = *s - '0';
+		if (d >= 0 && d <= 9) {
+			if (point_seen) fact /= 10.0f;
+			ret = ret * 10.0f + (float)d;
+		}
+		else
+			break;
+	};
+	return ret * fact;
+};
+
+float fabsf(float a)
+{
+	if (a >= 0)
+		return a;
+	else
+		return -a;
 }
