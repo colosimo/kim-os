@@ -20,6 +20,8 @@
 #define MAJ_SOC_PWM     5
 #define MAJ_SOC_DFSDM   6
 #define MAJ_SOC_NVMPAGE 7
+#define MAJ_SOC_DAC     8
+#define MAJ_SOC_FMPI2C  9
 
 #define IOCTL_DEV_INIT   0
 #define IOCTL_DEV_DEINIT 1
