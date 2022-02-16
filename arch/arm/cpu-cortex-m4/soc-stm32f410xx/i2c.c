@@ -78,7 +78,6 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 	switch (minor) {
 		case MINOR_I2C1: b = I2C1; break;
 		case MINOR_I2C2: b = I2C2; break;
-		case MINOR_I2C4: b = I2C4; break;
 		default: return -ERRINVAL;
 	}
 

@@ -174,22 +174,9 @@
 #define R_I2C2_TRISE       reg32(0x40005820)
 #define R_I2C2_FLTR        reg32(0x40005824)
 
-/* I2C4 registers */
-#define R_I2C4_CR1         reg32(0x40006000)
-#define R_I2C4_CR2         reg32(0x40006004)
-#define R_I2C4_OAR1        reg32(0x40006008)
-#define R_I2C4_OAR2        reg32(0x4000600c)
-#define R_I2C4_DR          reg32(0x40006010)
-#define R_I2C4_SR1         reg32(0x40006014)
-#define R_I2C4_SR2         reg32(0x40006018)
-#define R_I2C4_CCR         reg32(0x4000601c)
-#define R_I2C4_TRISE       reg32(0x40006020)
-#define R_I2C4_FLTR        reg32(0x40006024)
-
-/* Generic I2C register defines */
+/* Generic I2C1/I2C2 register defines */
 #define I2C1 0x40005400  /* base for I2C1 */
 #define I2C2 0x40005800  /* base for I2C2 */
-#define I2C4 0x40006000  /* base for I2C4 */
 
 #define R_I2C_CR1(base)      reg32(base)
 #define R_I2C_CR2(base)      reg32(base + 0x04)
@@ -201,6 +188,19 @@
 #define R_I2C_CCR(base)      reg32(base + 0x1c)
 #define R_I2C_TRISE(base)    reg32(base + 0x20)
 #define R_I2C_FLTR(base)     reg32(base + 0x24)
+
+/* I2C4 registers */
+#define R_I2C4_CR1         reg32(0x40006000)
+#define R_I2C4_CR2         reg32(0x40006004)
+#define R_I2C4_OAR1        reg32(0x40006008)
+#define R_I2C4_OAR2        reg32(0x4000600c)
+#define R_I2C4_TIMINGR     reg32(0x40006010)
+#define R_I2C4_TIMEOUTR    reg32(0x40006014)
+#define R_I2C4_ISR         reg32(0x40006018)
+#define R_I2C4_ICR         reg32(0x4000601c)
+#define R_I2C4_PECR        reg32(0x40006020)
+#define R_I2C4_RXDR        reg32(0x40006024)
+#define R_I2C4_TXDR        reg32(0x40006028)
 
 /* TIM1 registers */
 #define R_TIM1_CR1      reg16(0x40010000)
