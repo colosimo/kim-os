@@ -65,7 +65,7 @@
 #define R_RCC_CSR      reg32(0x40023874)
 #define R_RCC_SSCGR    reg32(0x40023880)
 #define R_RCC_DCKCFGR  reg32(0x4002388c)
-#define R_RCC_DCKCFGR2 reg32(0x40023890)
+#define R_RCC_DCKCFGR2 reg32(0x40023894)
 
 /* Flash interface registers */
 #define R_FLASH_ACR     reg32(0x40023C00)
