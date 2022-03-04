@@ -31,6 +31,13 @@
 
 #define IOCTL_USER(x)    (32 + x)
 
+#define PULL_UP   0b01
+#define PULL_NO   0b00
+#define PULL_DOWN 0b10
+
+#define DIR_OUT 1
+#define DIR_IN  0
+
 struct attr_packed spi_dev_xfer_t {
 	u8 addr;
 	u8 *buf;
@@ -49,6 +56,11 @@ struct i2c_xfer_t {
 	size_t len;
 	u8 dir;
 	u8 nostop;
+};
+
+struct gpio_cfg_t {
+	u8 dir;
+	u8 pull_mode;
 };
 
 #endif /* _KIM_IO_DEFS_H_ */

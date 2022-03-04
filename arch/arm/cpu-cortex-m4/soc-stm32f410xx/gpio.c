@@ -47,9 +47,26 @@ static int gpio_dev_read(int fd, void *buf, size_t count)
 	return 1;
 }
 
+static int gpio_dev_ioctl(int fd, int cmd, void *buf, size_t count)
+{
+	struct gpio_cfg_t *cfg;
+	struct gpio_data_t *p;
+	p = gpio_priv(fd);
+
+	if (cmd == IOCTL_DEV_CFG && count >= sizeof(*cfg)) {
+		cfg = (struct gpio_cfg_t *)buf;
+		gpio_dir(p->io, cfg->dir);
+		gpio_mode(p->io, cfg->pull_mode);
+		return 0;
+	}
+
+	return -ERRINVAL;
+}
+
 static const k_drv_t attr_drvs gpio_dev_drv = {
 	.maj = MAJ_SOC_GPIO,
 	.init = gpio_dev_init,
 	.read = gpio_dev_read,
 	.write = gpio_dev_write,
+	.ioctl = gpio_dev_ioctl,
 };

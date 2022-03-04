@@ -31,13 +31,6 @@
 #define GPIOx_AFR(x)   (PIN(x) < 8 ? GPIOx_AFRL(x) : GPIOx_AFRH(x))
 #define GPIOx_PUPDR(x) (R_GPIOA_PUPDR + (0x400 * PORT(x)) / 4)
 
-#define PULL_UP   0b01
-#define PULL_NO   0b00
-#define PULL_DOWN 0b10
-
-#define DIR_OUT 1
-#define DIR_IN  0
-
 #define PINSEL(io) (PINSEL0 + 2 * PORT(io) + PIN(io) / 16)
 #define PINMODE(io) (PINMODE0 + 2 * PORT(io) + PIN(io) / 16)
 
