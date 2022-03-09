@@ -312,7 +312,7 @@ static void on_evt_pwm(int key)
 
 /* Modality choice */
 
-static int current_mode; /* Mode 0, 1, 2 or Rolling (mode = 3) */
+static int current_mode; /* Mode 0, 1, 2, Rolling (mode = 3), Logger (mode = 4) */
 static int rolling_hrs;
 static struct pwm_cfg_t mode_pwm_cfg;
 
@@ -342,6 +342,9 @@ static void update_screen_mode()
 		    (uint)mode_pwm_cfg.freq, (uint)mode_pwm_cfg.duty);
 	else if (current_mode == 3)
 		k_sprintf(buf, "Mode: Rolling");
+	else if (current_mode == 4)
+		k_sprintf(buf, "Mode: Logger");
+
 	lcd_write_line(buf, 0, 0);
 
 	if (current_mode == 3)
@@ -388,7 +391,7 @@ static void on_evt_mode(int key)
 
 	switch (status) {
 		case 1:
-			if (key == KEY_UP && current_mode < 3)
+			if (key == KEY_UP && current_mode < 4)
 				current_mode++;
 			else if (key == KEY_DOWN && current_mode > 0)
 				current_mode--;
@@ -419,7 +422,7 @@ static void on_evt_mode(int key)
 		default:
 			break;
 	}
-	if (current_mode != 3)
+	if (current_mode != 3 && current_mode != 4)
 		eeprom_read(EEPROM_PWM_MODE0_ADDR + current_mode * sizeof(mode_pwm_cfg),
 			(u8*)&mode_pwm_cfg, sizeof(mode_pwm_cfg));
 
@@ -430,9 +433,13 @@ static void on_evt_mode(int key)
 		else
 			rolling_stop();
 		eeprom_write(EEPROM_PWM_CURRENT_MODE_ADDR, &current_mode, 1);
-		if (current_mode != 3) {
+		if (current_mode != 3 && current_mode != 4) {
 			pwm_set(mode_pwm_cfg.freq, mode_pwm_cfg.duty);
 			eeprom_write(EEPROM_PWM_STATUS_MODE_ADDR, &current_mode, 1);
+		}
+		else if (current_mode == 4) {
+			pwm_set(0, 0);
+			ant_check_enable(0);
 		}
 	}
 

@@ -33,3 +33,5 @@ void rearm_standby(void);
 
 void rolling_start(int mode);
 void rolling_stop(void);
+
+void ant_check_enable(int en);

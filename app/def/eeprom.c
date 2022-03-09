@@ -30,6 +30,8 @@ void eeprom_reset(void)
 	struct pwm_cfg_t p;
 	int m;
 
+	log("%s\n", __func__);
+
 	lcd_set_backlight(1);
 	lcd_write_line("EEPROM RESET...", 0, 1);
 

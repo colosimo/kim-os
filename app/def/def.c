@@ -22,7 +22,7 @@
 /* DEF Main task */
 
 #define STR_ELO_BANNER "ELO Srl 0536/844420"
-#define STR_FUNZ "Funz: g:%03d h:%02d  %c%d"
+#define STR_FUNZ "Funz: g:%03d h:%02d  %c%c"
 #define MS_IN_MIN (60 * 1000)
 #define MS_IN_HOUR (60 * MS_IN_MIN)
 
@@ -65,10 +65,16 @@ void show_home(void)
 	eeprom_read(EEPROM_PWM_CURRENT_MODE_ADDR, &mode, 1);
 	eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &status, 1);
 
-
 	gg = hours / 24;
 	hh = hours % 24;
-	k_sprintf(buf, STR_FUNZ, gg, hh, mode == 3 ? 'R' : ' ', status + 1);
+	if (mode != 4) {
+		k_sprintf(buf, STR_FUNZ, gg, hh, mode == 3 ? 'R' : ' ', '0' + status + 1);
+		ant_check_enable(1);
+	}
+	else {
+		k_sprintf(buf, STR_FUNZ, gg, hh, 'N', 'O');
+		ant_check_enable(0);
+	}
 	lcd_write_line(buf, 1, 0);
 }
 
@@ -189,6 +195,13 @@ struct task_t attr_tasks task_def = {
 
 static u32 t_last_on;
 static u32 ant_error;
+static int ant_check_enabled = 1;
+
+void ant_check_enable(int en)
+{
+	ant_check_enabled = en;
+}
+
 void ant_check_start(struct task_t *t)
 {
 	ant_error = 0;
@@ -201,11 +214,14 @@ void ant_check_step(struct task_t *t)
 	u8 ant_check;
 	k_read(k_fd_byname("ant_check"), &ant_check, 1);
 
-	if (!ant_check) {
+	if (!ant_check || !ant_check_enabled) {
 		t_last_on = k_ticks();
 		if (get_alarm(ALRM_BITFIELD_ANT))
 			clr_alarm(ALRM_BITFIELD_ANT);
 	}
+
+	if (!ant_check_enabled)
+		return;
 
 	if (!get_alarm(ALRM_BITFIELD_ANT) &&
 	    k_elapsed(t_last_on) > MS_TO_TICKS(ANTENNA_CHECK_DELAY_MS)) {

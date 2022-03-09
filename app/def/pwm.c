@@ -32,7 +32,9 @@ void pwm_init(void)
 		eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &status_rolling_mode, sizeof(status_rolling_mode));
 		rolling_start(status_rolling_mode);
 	}
-	else if (m > 3) { /* Invalid mode, reset */
+	else if (m == 4)
+		log("Logger mode, no pwm out\n");
+	else if (m > 4) { /* Invalid mode, reset */
 		m = 0;
 		eeprom_write(EEPROM_PWM_CURRENT_MODE_ADDR, &m, 1);
 	}
@@ -44,11 +46,14 @@ void pwm_init(void)
 		if (!pwm_check(&p.freq, &p.duty))
 			eeprom_write(EEPROM_PWM_MODE0_ADDR + i * sizeof(p), (u8*)&p, sizeof(p)); /* FIXME mode */
 
-		if (i == m && m != 3) {
+		if (i == m) {
 			pwm_set(p.freq, p.duty);
 			eeprom_write(EEPROM_PWM_STATUS_MODE_ADDR, &m, 1);
 		}
 	}
+
+	if (m == 4)
+		pwm_set(0, 0);
 }
 
 int pwm_check(u32 *freq, u32 *duty)
@@ -82,6 +87,13 @@ void pwm_set(u32 freq, u32 duty)
 {
 	u32 arr;
 
+	if (freq == 0 && duty == 0) {
+		and32(R_TIM3_CCER, ~BIT0);
+		return;
+	}
+	else
+		or32(R_TIM3_CCER, BIT0);
+
 	log("pwm set %d %d\n", (uint)freq, (uint)duty);
 
 	or32(R_TIM3_CR1, BIT0);
@@ -97,6 +109,12 @@ void pwm_set(u32 freq, u32 duty)
 
 void pwm_get(u32 *_freq, u32 *_duty)
 {
-	*_freq = last_freq;
-	*_duty = last_duty;
+	if (rd32(R_TIM3_CCER) & BIT0) {
+		*_freq = last_freq;
+		*_duty = last_duty;
+	}
+	else {
+		*_freq = 0;
+		*_duty = 0;
+	}
 }
