@@ -73,11 +73,13 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	or32(R_RCC_APB2ENR, BIT14 | BIT4); /* USART1, SYSCFG */
 	or32(R_RCC_APB1ENR, BIT28 | BIT21 | BIT17 | BIT1 | BIT0); /* USART2, PWR, I2C1, TIM3, TIM2 */
 
+#ifdef DBG_ON_PB6_PB7
 	/* USART1 on PB6/PB7 */ /* FIXME */
 	gpio_func(IO(PORTB, 6), 7);
 	gpio_func(IO(PORTB, 7), 7);
 	gpio_mode(IO(PORTB, 6), PULL_NO);
 	gpio_mode(IO(PORTB, 7), PULL_NO);
+#endif
 
 	wr32(R_USART1_BRR, ((*apb_freq / 16) << 4) / UART_BAUDRATE);
 	or32(R_USART1_CR1, BIT13 | BIT5 | BIT3 | BIT2);
