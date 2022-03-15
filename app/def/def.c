@@ -153,6 +153,8 @@ static void def_step(struct task_t *t)
 	rtc_get(&r);
 	if (r.hour == 23 && r.min == 59 && r.day != curday) {
 
+		db_data_save_to_eeprom();
+
 		if (rolling_enabled) {
 			eeprom_read(EEPROM_PWM_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));
 			if (rolling_days > 1) {
@@ -177,8 +179,6 @@ static void def_step(struct task_t *t)
 				eeprom_write(EEPROM_PWM_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));
 			}
 		}
-
-		db_data_save_to_eeprom();
 		curday = r.day;
 	}
 }
