@@ -58,7 +58,7 @@ void eeprom_reset(void)
 		eeprom_write(EEPROM_PWM_MODE0_ADDR + m * sizeof(p), (u8*)&p, sizeof(p));
 	}
 
-	tmp = 12;
+	tmp = 1;
 	eeprom_write(EEPROM_PWM_ROL_DAYS_SETTING_ADDR, &tmp, sizeof(tmp));
 
 	/* Write Format Version */
