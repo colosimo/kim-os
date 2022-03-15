@@ -302,21 +302,30 @@ int db_data_get(struct data_t *d, int pos)
 	return p;
 }
 
-void db_data_display(struct data_t *d)
+void db_data_display(struct data_t *d, int npage)
 {
 	char buf[24];
 
-	k_sprintf(buf, "S:%d %02d/%02d/%02d mV:%c%d", d->sens + 1, d->day, d->month, d->year,
-	    (d->vread < 0) ? '-' : ' ',
-	    (uint)abs(d->vread));
-	lcd_write_line(buf, 0, 0);
+	if (npage == 1) {
 
-	k_sprintf(buf, "H:%s%d T:%c%d.%d B:%s%d.%d",
-	    d->hum < 100 ? " " : "", d->hum,
-	    d->temp < 0 ? '-': ' ', (uint)abs(d->temp / 10), (uint)abs(d->temp % 10),
-	    d->vbat >= 100 ? "" : " ", (uint)d->vbat / 10, d->vbat % 10);
-	lcd_write_line(buf, 1, 0);
+		k_sprintf(buf, "S:%d %02d/%02d/%02d mV:%c%d", d->sens + 1, d->day, d->month, d->year,
+			(d->vread < 0) ? '-' : ' ',
+			(uint)abs(d->vread));
+		lcd_write_line(buf, 0, 0);
 
+		k_sprintf(buf, "H:%s%d T:%c%d.%d B:%s%d.%d",
+			d->hum < 100 ? " " : "", d->hum,
+			d->temp < 0 ? '-': ' ', (uint)abs(d->temp / 10), (uint)abs(d->temp % 10),
+			d->vbat >= 100 ? "" : " ", (uint)d->vbat / 10, d->vbat % 10);
+		lcd_write_line(buf, 1, 0);
+	}
+	else {
+		k_sprintf(buf, "Freq: %03d  D.C.: %02d", d->freq, d->duty);
+		lcd_write_line(buf, 0, 0);
+
+		k_sprintf(buf, "Time: %02d:%02d", d->hour, d->min);
+		lcd_write_line(buf, 1, 0);
+	}
 }
 
 void db_data_reset(int erase_all)

@@ -11,3 +11,5 @@
 u32 keys_get_evts(void);
 
 void keys_clear_evts(u32 evts_bitfield);
+
+u8 keys_get_stat(int id);

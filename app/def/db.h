@@ -65,7 +65,7 @@ void db_data_add(struct data_t *d);
 
 int db_data_get(struct data_t *d, int pos);
 
-void db_data_display(struct data_t *d);
+void db_data_display(struct data_t *d, int npage);
 
 void db_data_save_to_eeprom(void);
 

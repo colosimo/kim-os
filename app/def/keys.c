@@ -82,3 +82,10 @@ void keys_clear_evts(u32 evts)
 {
 	keys_evts &= ~evts;
 }
+
+u8 keys_get_stat(int id)
+{
+	if (id <= KEY_ENTER)
+		return keys_stat[id];
+	return 0;
+}

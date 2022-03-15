@@ -637,10 +637,23 @@ static void on_evt_show(int key)
 	}
 }
 
+static int ent_pressed;
+static u32 ent_pressed_ticks = 0;
+static int show_data_page = 1;
+
 static void refresh_show_data(void)
 {
 	int pos;
 	struct data_t d;
+
+	if (ent_pressed && !keys_get_stat(KEY_ENTER))
+			ent_pressed = 0;
+
+	if (ent_pressed && k_elapsed(ent_pressed_ticks) >= MS_TO_TICKS(5000)) {
+		ent_pressed = 0;
+		show_data_page = 2;
+		do_refresh = 1;
+	}
 
 	if (status == 0) {
 		pos = db_data_get(&d, -1);
@@ -661,7 +674,7 @@ static void refresh_show_data(void)
 	pos = status & ~BIT30;
 	pos = db_data_get(&d, pos);
 
-	db_data_display(&d);
+	db_data_display(&d, show_data_page);
 }
 
 static void on_evt_show_data(int key)
@@ -678,8 +691,14 @@ static void on_evt_show_data(int key)
 	pos = status & ~BIT30;
 
 	if (key == KEY_ESC) {
-		on_evt_def(key);
-		return;
+		if (show_data_page == 1) {
+			on_evt_def(key);
+			return;
+		}
+		else {
+			show_data_page = 1;
+			do_refresh = 1;
+		}
 	}
 	else if (key == KEY_UP)
 		pos = (pos + 1) % DATA_MAX_NUM;
@@ -688,6 +707,10 @@ static void on_evt_show_data(int key)
 			pos = DATA_MAX_NUM - 1;
 		else
 			pos--;
+	}
+	else if (key == KEY_ENTER) {
+		ent_pressed_ticks = k_ticks();
+		ent_pressed = 1;
 	}
 
 	keys_clear_evts(1 << key);
