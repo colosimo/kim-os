@@ -29,6 +29,8 @@ static u32 ticks_exec;
 #define STR_EMPTY "ARCHIVIO VUOTO"
 #define STR_PASSWORD "PASSWORD: [     ]"
 
+#define DEF_TIMEOUT_MS (60 * 1000) /* 1 minute */
+
 struct menu_voice_t {
 	int id;
 	const char text[2][20];
@@ -36,6 +38,7 @@ struct menu_voice_t {
 	void (*refresh)(void);
 	int id_next[4]; /* Next menu voice to be called on: UP, DOWN, ESC, ENTER */
 	int enabled;
+	u32 timeout_ms;
 };
 
 static struct menu_voice_t menu[];
@@ -756,7 +759,8 @@ static struct menu_voice_t menu[] = {
 	{13, {"IMPOSTAZIONI", "TEST PWM"}, on_evt_def, NULL, {12, 5, 0, -1}, 0},
 	{14, {"", ""}, on_evt_datetime, refresh_datetime, {-1, -1, 7, 7}, 1},
 	{15, {"", ""}, on_evt_pwm, refresh_pwm, {-1, -1, 5, 5}, 1},
-	{16, {"Attendere...", "Comunicazione"}, on_evt_def, refresh_realtimesens, {-1, -1, 4, 4}, 1},
+	{16, {"Attendere...", "Comunicazione"}, on_evt_def, refresh_realtimesens, {-1, -1, 4, 4}, 1,
+	    .timeout_ms = (30 * 60 * 1000),},
 	{17, {STR_CONFIRM, "RESET STORICI"}, on_evt_reset_storici, refresh_reset, {-1, -1, 9, 9}, 1},
 	{18, {STR_CONFIRM, "RESET CONTATORE"}, on_evt_reset_contatore, refresh_reset, {-1, -1, 8, 8}, 1},
 	{19, {"", ""}, on_evt_show, refresh_show_avvii, {-1, -1, 1, -1}, 1},
@@ -818,3 +822,11 @@ struct task_t attr_tasks task_menu = {
 	.intvl_ms = 5,
 	.name = "menu",
 };
+
+u32 get_menu_timeout_ms(void)
+{
+	if (cur_menu && cur_menu->timeout_ms != 0)
+		return cur_menu->timeout_ms;
+
+	return DEF_TIMEOUT_MS; /* default timeout 1 min */
+}

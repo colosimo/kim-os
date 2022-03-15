@@ -171,7 +171,7 @@ static void def_step(struct task_t *t)
 		}
 	}
 
-	if (k_elapsed(last_time_key) >= MS_TO_TICKS(MS_IN_MIN) && !get_standby())
+	if (k_elapsed(last_time_key) >= MS_TO_TICKS(get_menu_timeout_ms()) && !get_standby())
 		set_standby(1);
 
 	/* Save data at midnight */
