@@ -441,7 +441,7 @@ static void on_evt_mode(int key)
 			eeprom_write(EEPROM_PWM_STATUS_MODE_ADDR, &current_mode, 1);
 		}
 		else if (current_mode == 4) {
-			pwm_set(0, 0);
+			pwm_set(MIN_FREQ, 0);
 			ant_check_enable(0);
 		}
 	}

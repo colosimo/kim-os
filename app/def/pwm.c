@@ -53,12 +53,13 @@ void pwm_init(void)
 	}
 
 	if (m == 4)
-		pwm_set(0, 0);
+		pwm_set(MIN_FREQ, 0);
 }
 
 int pwm_check(u32 *freq, u32 *duty)
 {
 	int ret = 1;
+
 	if (*freq < MIN_FREQ) {
 		wrn("Min freq %d\n", MIN_FREQ);
 		*freq = MIN_FREQ;
@@ -70,7 +71,7 @@ int pwm_check(u32 *freq, u32 *duty)
 		ret = 0;
 	}
 
-	if (*duty < MIN_DUTY) {
+	if (*duty < MIN_DUTY && *duty != 0) {
 		wrn("Min duty %d\n", MIN_DUTY);
 		*duty = MIN_DUTY;
 		ret = 0;
@@ -87,17 +88,12 @@ void pwm_set(u32 freq, u32 duty)
 {
 	u32 arr;
 
-	if (freq == 0 && duty == 0) {
-		and32(R_TIM3_CCER, ~BIT0);
-		return;
-	}
-	else
-		or32(R_TIM3_CCER, BIT0);
-
 	log("pwm set %d %d\n", (uint)freq, (uint)duty);
 
-	or32(R_TIM3_CR1, BIT0);
 	pwm_check(&freq, &duty);
+
+	or32(R_TIM3_CCER, BIT0);
+	or32(R_TIM3_CR1, BIT0);
 
 	arr = 400000 / freq; /* 400000 is 16MHz / Prescaler */
 	wr32(R_TIM3_ARR, arr - 1);
@@ -109,12 +105,6 @@ void pwm_set(u32 freq, u32 duty)
 
 void pwm_get(u32 *_freq, u32 *_duty)
 {
-	if (rd32(R_TIM3_CCER) & BIT0) {
-		*_freq = last_freq;
-		*_duty = last_duty;
-	}
-	else {
-		*_freq = 0;
-		*_duty = 0;
-	}
+	*_freq = last_freq;
+	*_duty = last_duty;
 }
