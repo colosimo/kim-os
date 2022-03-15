@@ -190,10 +190,48 @@ void db_data_init(void)
 	memset(data_pos, 0, sizeof(data_pos));
 }
 
+static void db_data_fill_all(struct data_t *d)
+{
+	struct rtc_t r;
+	u32 freq, duty;
+
+	rtc_get(&r);
+	d->day = r.day;
+	d->month = r.month;
+	d->year = r.year;
+	d->hour = r.hour;
+	d->min = r.min;
+
+	pwm_get(&freq, &duty);
+	d->freq = (u16)(freq & 0x3ff);
+	d->duty = (u16)(duty & 0x3f);
+}
+
+static void db_data_save_record(struct data_t *d)
+{
+	u32 pos;
+	u32 addr;
+
+	eeprom_read(EEPROM_DATA_CUR_POS, &pos, sizeof(pos));
+
+	addr = EEPROM_DATA_START_ADDR + pos * sizeof(struct data_t);
+	eeprom_write(addr, d, sizeof(*d));
+
+	pos = (pos + 1) % DATA_MAX_NUM;
+	eeprom_write(EEPROM_DATA_CUR_POS, &pos, sizeof(pos));
+
+	/* Invalidate current record */
+	memset(d, 0xff, sizeof(*d));
+	addr = EEPROM_DATA_START_ADDR + pos * sizeof(struct data_t);
+	eeprom_write(addr, d, sizeof(*d));
+}
+
+
 void db_data_add(struct data_t *d)
 {
 	int s;
 	int cnt;
+	u8 en_daily_avg;
 
 	s = d->sens;
 
@@ -206,6 +244,13 @@ void db_data_add(struct data_t *d)
 	memcpy(&data_status[s][cnt], d, sizeof(*d));
 
 	data_pos[s] = (data_pos[s] + 1) % 24;
+
+	eeprom_read(EEPROM_ENABLE_DAILY_AVG, &en_daily_avg, 1);
+	en_daily_avg &= BIT0;
+	if (!en_daily_avg) {
+		db_data_fill_all(d);
+		db_data_save_record(d);
+	}
 }
 
 void db_data_save_to_eeprom(void)
@@ -213,11 +258,11 @@ void db_data_save_to_eeprom(void)
 	int s, j;
 	struct data_t d;
 	int vread, temp, hum, vbat;
-	u32 pos;
-	u32 addr;
 	int cnt;
-	struct rtc_t r;
-	u32 freq, duty;
+	u8 en_daily_avg;
+
+	eeprom_read(EEPROM_ENABLE_DAILY_AVG, &en_daily_avg, 1);
+	en_daily_avg &= BIT0;
 
 	for (s = 0; s < 4; s++) {
 
@@ -244,29 +289,10 @@ void db_data_save_to_eeprom(void)
 		d.hum = hum / cnt;
 		d.vbat = vbat;
 
-		rtc_get(&r);
-		d.day = r.day;
-		d.month = r.month;
-		d.year = r.year;
-		d.hour = r.hour;
-		d.min = r.min;
-
-		pwm_get(&freq, &duty);
-		d.freq = (u16)(freq & 0x3ff);
-		d.duty = (u16)(duty & 0x3f);
-
-		eeprom_read(EEPROM_DATA_CUR_POS, &pos, sizeof(pos));
-
-		addr = EEPROM_DATA_START_ADDR + pos * sizeof(struct data_t);
-		eeprom_write(addr, &d, sizeof(d));
-
-		pos = (pos + 1) % DATA_MAX_NUM;
-		eeprom_write(EEPROM_DATA_CUR_POS, &pos, sizeof(pos));
-
-		/* Invalidate current record */
-		memset(&d, 0xff, sizeof(d));
-		addr = EEPROM_DATA_START_ADDR + pos * sizeof(struct data_t);
-		eeprom_write(addr, &d, sizeof(d));
+		if (en_daily_avg) {
+			db_data_fill_all(&d);
+			db_data_save_record(&d);
+		}
 
 		if (vbat < BATTERY_THRES)
 			db_alarm_add(ALRM_TYPE_BATTERY, s);

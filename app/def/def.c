@@ -137,7 +137,7 @@ static void def_step(struct task_t *t)
 {
 	struct rtc_t r;
 	u32 rolling_days;
-	int mode;
+	u8 mode;
 	struct pwm_cfg_t p;
 
 	if (k_elapsed(last_time_inc) >= MS_TO_TICKS(MS_IN_HOUR)) {
@@ -162,12 +162,12 @@ static void def_step(struct task_t *t)
 			}
 			else {
 
-				eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &mode, sizeof(mode));
+				eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &mode, 1);
 				mode = (mode + 1) % 3;
 				rtc_get(&r);
 				rtc_dump(&r);
 				log("rolling_days new mode %d\n\n", (uint)mode);
-				eeprom_write(EEPROM_PWM_STATUS_MODE_ADDR, &mode, sizeof(mode));
+				eeprom_write(EEPROM_PWM_STATUS_MODE_ADDR, &mode, 1);
 
 				eeprom_read(EEPROM_PWM_MODE0_ADDR + mode * sizeof(p), &p, sizeof(p));
 				pwm_set(p.freq, p.duty);

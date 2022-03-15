@@ -29,7 +29,7 @@ void pwm_init(void)
 
 	eeprom_read(EEPROM_PWM_CURRENT_MODE_ADDR, &m, 1);
 	if (m == 3) {
-		eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &status_rolling_mode, sizeof(status_rolling_mode));
+		eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &status_rolling_mode, 1);
 		rolling_start(status_rolling_mode);
 	}
 	else if (m == 4)

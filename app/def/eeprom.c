@@ -29,6 +29,7 @@ void eeprom_reset(void)
 	u32 tmp = 0xdeadbeaf;
 	struct pwm_cfg_t p;
 	int m;
+	u8 daily_avg;
 
 	log("%s\n", __func__);
 
@@ -41,6 +42,11 @@ void eeprom_reset(void)
 	/* Reset hours */
 	tmp = 0;
 	eeprom_write(EEPROM_HOURS_ADDR, &tmp, sizeof(tmp));
+
+	/* Reset daily average */
+	daily_avg = 1;
+	eeprom_write(EEPROM_ENABLE_DAILY_AVG, &daily_avg, 1);
+
 
 	/* Reset PWM */
 	m = 0;
