@@ -765,6 +765,37 @@ static void refresh_pwd(void)
 {
 }
 
+
+static void on_evt_avg_en(int key)
+{
+	u8 en_daily_avg;
+
+	if (key == KEY_ESC)
+		on_evt_def(key);
+
+	else if (key == KEY_UP || key == KEY_DOWN || key == KEY_ENTER) {
+		eeprom_read(EEPROM_ENABLE_DAILY_AVG, &en_daily_avg, 1);
+		en_daily_avg = !en_daily_avg;
+		eeprom_write(EEPROM_ENABLE_DAILY_AVG, &en_daily_avg, 1);
+		status = 0; /* Force refresh */
+	}
+
+	keys_clear_evts(1 << key);
+}
+
+static void refresh_avg_en(void)
+{
+	char buf[24];
+	u8 en_daily_avg;
+	if (status == 0) {
+		eeprom_read(EEPROM_ENABLE_DAILY_AVG, &en_daily_avg, 1);
+		k_sprintf(buf, "MEDIA GIORN.: %s", en_daily_avg ? "SI" : "NO");
+		lcd_write_line(buf, 0, 0);
+		status = 1;
+	}
+
+}
+
 static struct menu_voice_t menu[] = {
 	{0, {"MENU", "IMPOSTAZIONI"}, on_evt_def, NULL, {4, 1, -1, 24}, 1},
 	{1, {"VISUALIZZA", "STORICO AVVII"}, on_evt_def, NULL, {0, 2, -1, 19}, 1},
@@ -779,7 +810,7 @@ static struct menu_voice_t menu[] = {
 	{10, {"IMPOSTAZIONI", "BLUETOOTH"}, on_evt_def, NULL, {9, 11, 0, -1}, 0},
 	{11, {"IMPOSTAZIONI", "COMUNICAZIONI RF"}, on_evt_def, NULL, {10, 12, 0, -1}, 0},
 	{12, {"IMPOSTAZIONI", "VERSIONE FW"}, on_evt_def, NULL, {11, 13, 0, 21}, 1},
-	{13, {"IMPOSTAZIONI", "TEST PWM"}, on_evt_def, NULL, {12, 5, 0, -1}, 0},
+	{13, {"IMPOSTAZIONI", "ABIL. MEDIA GIORN."}, on_evt_def, NULL, {12, 5, 0, 25}, 1},
 	{14, {"", ""}, on_evt_datetime, refresh_datetime, {-1, -1, 7, 7}, 1},
 	{15, {"", ""}, on_evt_pwm, refresh_pwm, {-1, -1, 5, 5}, 1},
 	{16, {"Attendere...", "Comunicazione"}, on_evt_def, refresh_realtimesens, {-1, -1, 4, 4}, 1,
@@ -792,6 +823,7 @@ static struct menu_voice_t menu[] = {
 	{22, {"", ""}, on_evt_show_data, refresh_show_data, {-1, -1, 3, -1}, 1},
 	{23, {"", ""}, on_evt_mode, refresh_mode, {-1, -1, 6, 6}, 1},
 	{24, {"MENU", "IMPOSTAZIONI"}, on_evt_pwd, refresh_pwd, {-1, -1, -1, 5}, 1},
+	{25, {"", ""}, on_evt_avg_en, refresh_avg_en, {-1, -1, 13, 13}, 1},
 	{-1}
 };
 
