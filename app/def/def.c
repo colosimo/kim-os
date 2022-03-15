@@ -99,7 +99,7 @@ void rearm_standby(void)
 static int rolling_enabled = 0;
 void rolling_start(int mode)
 {
-	u32 rolling_hrs;
+	u32 rolling_days;
 	struct pwm_cfg_t p;
 
 	/* Save mode status */
@@ -108,9 +108,9 @@ void rolling_start(int mode)
 	pwm_set(p.freq, p.duty);
 
 	/* Save hrs status, initialize countdown */
-	eeprom_read(EEPROM_PWM_ROL_HRS_STATUS_ADDR, &rolling_hrs, sizeof(rolling_hrs));
+	eeprom_read(EEPROM_PWM_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));
 
-	log("rolling_hrs init mode %d, hrs %d\n", mode, (uint)rolling_hrs);
+	log("rolling_days init mode %d, hrs %d\n", mode, (uint)rolling_days);
 	rolling_enabled = 1;
 }
 
@@ -136,7 +136,7 @@ static void def_start(struct task_t *t)
 static void def_step(struct task_t *t)
 {
 	struct rtc_t r;
-	u32 rolling_hrs;
+	u32 rolling_days;
 	int mode;
 	struct pwm_cfg_t p;
 
@@ -144,31 +144,6 @@ static void def_step(struct task_t *t)
 		last_time_inc = k_ticks();
 		hours++;
 		eeprom_write(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
-
-		if (rolling_enabled) {
-			eeprom_read(EEPROM_PWM_ROL_HRS_STATUS_ADDR, &rolling_hrs, sizeof(rolling_hrs));
-			if (rolling_hrs > 1) {
-				rolling_hrs--;
-				eeprom_write(EEPROM_PWM_ROL_HRS_STATUS_ADDR, &rolling_hrs, sizeof(rolling_hrs));
-				log("rolling_hrs countdown %d\n", (uint)rolling_hrs);
-			}
-			else {
-
-				eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &mode, sizeof(mode));
-				mode = (mode + 1) % 3;
-				rtc_get(&r);
-				rtc_dump(&r);
-				log("rolling_hrs new mode %d\n\n", (uint)mode);
-				eeprom_write(EEPROM_PWM_STATUS_MODE_ADDR, &mode, sizeof(mode));
-
-				eeprom_read(EEPROM_PWM_MODE0_ADDR + mode * sizeof(p), &p, sizeof(p));
-				pwm_set(p.freq, p.duty);
-
-				/* Reinitialize countdown */
-				eeprom_read(EEPROM_PWM_ROL_HRS_SETTING_ADDR, &rolling_hrs, sizeof(rolling_hrs));
-				eeprom_write(EEPROM_PWM_ROL_HRS_STATUS_ADDR, &rolling_hrs, sizeof(rolling_hrs));
-			}
-		}
 	}
 
 	if (k_elapsed(last_time_key) >= MS_TO_TICKS(get_menu_timeout_ms()) && !get_standby())
@@ -177,6 +152,32 @@ static void def_step(struct task_t *t)
 	/* Save data at midnight */
 	rtc_get(&r);
 	if (r.hour == 23 && r.min == 59 && r.day != curday) {
+
+		if (rolling_enabled) {
+			eeprom_read(EEPROM_PWM_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));
+			if (rolling_days > 1) {
+				rolling_days--;
+				eeprom_write(EEPROM_PWM_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));
+				log("rolling_days countdown %d\n", (uint)rolling_days);
+			}
+			else {
+
+				eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &mode, sizeof(mode));
+				mode = (mode + 1) % 3;
+				rtc_get(&r);
+				rtc_dump(&r);
+				log("rolling_days new mode %d\n\n", (uint)mode);
+				eeprom_write(EEPROM_PWM_STATUS_MODE_ADDR, &mode, sizeof(mode));
+
+				eeprom_read(EEPROM_PWM_MODE0_ADDR + mode * sizeof(p), &p, sizeof(p));
+				pwm_set(p.freq, p.duty);
+
+				/* Reinitialize countdown */
+				eeprom_read(EEPROM_PWM_ROL_DAYS_SETTING_ADDR, &rolling_days, sizeof(rolling_days));
+				eeprom_write(EEPROM_PWM_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));
+			}
+		}
+
 		db_data_save_to_eeprom();
 		curday = r.day;
 	}

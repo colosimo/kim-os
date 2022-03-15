@@ -16,6 +16,7 @@
 #include "eeprom.h"
 #include "rtc.h"
 #include "lcd.h"
+#include "pwm.h"
 
 static void fill_alarm(struct alarm_t *a, int type)
 {
@@ -216,6 +217,7 @@ void db_data_save_to_eeprom(void)
 	u32 addr;
 	int cnt;
 	struct rtc_t r;
+	u32 freq, duty;
 
 	for (s = 0; s < 4; s++) {
 
@@ -246,6 +248,12 @@ void db_data_save_to_eeprom(void)
 		d.day = r.day;
 		d.month = r.month;
 		d.year = r.year;
+		d.hour = r.hour;
+		d.min = r.min;
+
+		pwm_get(&freq, &duty);
+		d.freq = (u16)(freq & 0x3ff);
+		d.duty = (u16)(duty & 0x3f);
 
 		eeprom_read(EEPROM_DATA_CUR_POS, &pos, sizeof(pos));
 

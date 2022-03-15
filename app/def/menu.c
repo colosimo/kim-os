@@ -316,7 +316,7 @@ static void on_evt_pwm(int key)
 /* Modality choice */
 
 static int current_mode; /* Mode 0, 1, 2, Rolling (mode = 3), Logger (mode = 4) */
-static int rolling_hrs;
+static int rolling_days;
 static struct pwm_cfg_t mode_pwm_cfg;
 
 static void update_screen_mode()
@@ -351,7 +351,7 @@ static void update_screen_mode()
 	lcd_write_line(buf, 0, 0);
 
 	if (current_mode == 3)
-		k_sprintf(buf, "Numero ore: %02d", (uint)rolling_hrs);
+		k_sprintf(buf, "Numero giorni: %02d", (uint)rolling_days);
 	else
 		buf[0] = '\0';
 
@@ -360,7 +360,7 @@ static void update_screen_mode()
 	switch(status) {
 		case 0:
 		case 1: cur_line = 0; cur_pos = 6; break;
-		case 2: cur_line = 1; cur_pos = 12; break;
+		case 2: cur_line = 1; cur_pos = 15; break;
 		default: cur_line = cur_pos = 0; break; /* Never happens */
 	}
 	lcd_cursor(cur_line, cur_pos, 1);
@@ -372,8 +372,8 @@ static void refresh_mode(void)
 		eeprom_read(EEPROM_PWM_CURRENT_MODE_ADDR, &current_mode, 1);
 		eeprom_read(EEPROM_PWM_MODE0_ADDR + current_mode * sizeof(mode_pwm_cfg),
 		    (u8*)&mode_pwm_cfg, sizeof(mode_pwm_cfg));
-		eeprom_read(EEPROM_PWM_ROL_HRS_SETTING_ADDR, &rolling_hrs, sizeof(rolling_hrs));
-		log("Load hrs %d\n", rolling_hrs);
+		eeprom_read(EEPROM_PWM_ROL_DAYS_SETTING_ADDR, &rolling_days, sizeof(rolling_days));
+		log("Load days %d\n", rolling_days);
 		update_screen_mode();
 		status = 1;
 	}
@@ -409,14 +409,14 @@ static void on_evt_mode(int key)
 			break;
 
 		case 2:
-			if (key == KEY_UP && rolling_hrs < 200)
-				rolling_hrs++;
-			else if (key == KEY_DOWN && rolling_hrs > 1)
-				rolling_hrs--;
+			if (key == KEY_UP && rolling_days < 200)
+				rolling_days++;
+			else if (key == KEY_DOWN && rolling_days > 1)
+				rolling_days--;
 			else if (key == KEY_ENTER) {
-				log("Save hrs %d\n", rolling_hrs);
-				eeprom_write(EEPROM_PWM_ROL_HRS_SETTING_ADDR, &rolling_hrs, sizeof(rolling_hrs));
-				eeprom_write(EEPROM_PWM_ROL_HRS_STATUS_ADDR, &rolling_hrs, sizeof(rolling_hrs));
+				log("Save days %d\n", rolling_days);
+				eeprom_write(EEPROM_PWM_ROL_DAYS_SETTING_ADDR, &rolling_days, sizeof(rolling_days));
+				eeprom_write(EEPROM_PWM_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));
 				status = 100;
 				ticks_exec = k_ticks();
 			}

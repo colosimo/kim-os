@@ -53,7 +53,7 @@ void eeprom_reset(void)
 	}
 
 	tmp = 12;
-	eeprom_write(EEPROM_PWM_ROL_HRS_SETTING_ADDR, &tmp, sizeof(tmp));
+	eeprom_write(EEPROM_PWM_ROL_DAYS_SETTING_ADDR, &tmp, sizeof(tmp));
 
 	/* Write Format Version */
 	tmp = EEPROM_FMT_VER;

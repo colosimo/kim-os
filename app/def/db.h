@@ -29,7 +29,11 @@ attr_packed struct data_t
 	i16 vread;
 	u8 hum;
 	u8 vbat;
-	u8 unused[6];
+	u16 freq: 10;
+	u16 duty: 6;
+	u8 hour;
+	u8 min;
+	u8 unused[2];
 };
 
 #define ALRM_MAX_NUM ((EEPROM_ALARMS_END_ADDR - EEPROM_ALARMS_START_ADDR) / \
