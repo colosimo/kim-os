@@ -836,22 +836,19 @@ static void refresh_bluetooth_id(void)
 	k_sprintf(buf, "BLUETOOTH ID: %05d", (uint)bluetooth_id);
 	lcd_write_line(buf, 0, 0);
 
-	if (!bt_present())
-		lcd_write_line("BT NON TROVATO", 1, 0);
-
 	status = 1;
 }
 
 static void on_evt_data_dump(int key)
 {
 	if (key == KEY_ENTER) {
-		lcd_write_line("INVIO DATI...", 1, 0);
+		lcd_write_line("INVIO DATI...", 1, 1);
 		k_delay(100);
 		db_data_dump_all();
 		db_alarm_dump_all();
-		lcd_write_line("INVIO DATI FINITO", 1, 0);
+		lcd_write_line("INVIO DATI FINITO", 1, 1);
 		k_delay(1000);
-		lcd_write_line("ESPORTA DATI", 1, 1);
+		on_evt_def(KEY_ESC);
 	}
 	else
 		on_evt_def(key);
@@ -872,7 +869,7 @@ static struct menu_voice_t menu[] = {
 	{10, {"IMPOSTAZIONI", "BLUETOOTH"}, on_evt_def, NULL, {9, 11, 0, 26}, 1},
 	{11, {"IMPOSTAZIONI", "COMUNICAZIONI RF"}, on_evt_def, NULL, {10, 12, 0, -1}, 0},
 	{12, {"IMPOSTAZIONI", "ABIL. MEDIA GIORN."}, on_evt_def, NULL, {11, 13, 0, 25}, 1},
-	{13, {"IMPOSTAZIONI", "ESPORTA DATI"}, on_evt_data_dump, NULL, {12, 14, 0, 0}, 1},
+	{13, {"IMPOSTAZIONI", "ESPORTA DATI"}, on_evt_def, NULL, {12, 14, 0, 28}, 1},
 	{14, {"IMPOSTAZIONI", "VERSIONE FW"}, on_evt_def, NULL, {13, 5, 0, 21}, 1},
 
 	{15, {"", ""}, on_evt_pwm, refresh_pwm, {-1, -1, 5, 5}, 1},
@@ -882,13 +879,14 @@ static struct menu_voice_t menu[] = {
 	{18, {STR_CONFIRM, "RESET CONTATORE"}, on_evt_reset_contatore, refresh_reset, {-1, -1, 8, 8}, 1},
 	{19, {"", ""}, on_evt_show, refresh_show_avvii, {-1, -1, 1, -1}, 1},
 	{20, {"", ""}, on_evt_show, refresh_show_alarms, {-1, -1, 2, -1}, 1},
-	{21, {"Git:  " GIT_VERSION, "Date: " COMPILE_DATE}, on_evt_def, NULL, {-1, -1, 12, -1}, 1},
+	{21, {"Git:  " GIT_VERSION, "Date: " COMPILE_DATE}, on_evt_def, NULL, {-1, -1, 14, 14}, 1},
 	{22, {"", ""}, on_evt_show_data, refresh_show_data, {-1, -1, 3, -1}, 1},
 	{23, {"", ""}, on_evt_mode, refresh_mode, {-1, -1, 6, 6}, 1},
 	{24, {"MENU", "IMPOSTAZIONI"}, on_evt_pwd, refresh_pwd, {-1, -1, -1, 5}, 1},
-	{25, {"", ""}, on_evt_avg_en, refresh_avg_en, {-1, -1, 13, 13}, 1},
+	{25, {"", ""}, on_evt_avg_en, refresh_avg_en, {-1, -1, 12, 12}, 1},
 	{26, {"", ""}, on_evt_bluetooth_id, refresh_bluetooth_id, {-1, -1, 10, 10}, 1},
 	{27, {"", ""}, on_evt_datetime, refresh_datetime, {-1, -1, 7, 7}, 1},
+	{28, {"ESPORTA DATI", "OK?"}, on_evt_data_dump, NULL, {-1, -1, 13, 13}, 1},
 	{-1}
 };
 

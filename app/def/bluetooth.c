@@ -29,12 +29,12 @@ static void bt_reset(u8 at_cmd, u16 id)
 	val = 0;
 	char _name[64], _pin[64];
 
-	k_delay(1000);
+	k_delay(500);
 	k_write(fd_bt_reset, &val, 1);
 	k_write(fd_at_cmd, &at_cmd, 1);
 	val = 1;
 	k_write(fd_bt_reset, &val, 1);
-	k_delay(500);
+	k_delay(200);
 
 	if (at_cmd) {
 		k_sprintf(_pin, "AT+PSWD=%d\r\n", DEFAULT_BT_PIN);
@@ -50,7 +50,7 @@ static void bt_reset(u8 at_cmd, u16 id)
 		k_read(fd_uart2, buf, sizeof(buf));
 	}
 	else
-		k_delay(500);
+		k_delay(200);
 }
 
 void bt_init()
@@ -77,10 +77,8 @@ void bt_init()
 
 	if (!strcmp(buf, "OK\r\nOK\r\n"))
 		bt_detect = 1;
-	else {
-		log("BT NOT DETECTED, READ <%s>\n", buf);
+	else
 		bt_detect = 0;
-	}
 }
 
 int bt_present()
