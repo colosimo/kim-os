@@ -70,8 +70,10 @@ void bt_init()
 	if (fd_at_cmd < 0 || fd_bt_reset < 0 || fd_uart2 < 0)
 		return;
 
+	ant_check_enable(0);
 	bt_reset(1, id);
 	bt_reset(0, id);
+	ant_check_enable(1);
 
 	if (!strcmp(buf, "OK\r\nOK\r\n"))
 		bt_detect = 1;

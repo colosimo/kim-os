@@ -842,6 +842,21 @@ static void refresh_bluetooth_id(void)
 	status = 1;
 }
 
+static void on_evt_data_dump(int key)
+{
+	if (key == KEY_ENTER) {
+		lcd_write_line("INVIO DATI...", 1, 0);
+		k_delay(100);
+		db_data_dump_all();
+		db_alarm_dump_all();
+		lcd_write_line("INVIO DATI FINITO", 1, 0);
+		k_delay(1000);
+		lcd_write_line("ESPORTA DATI", 1, 1);
+	}
+	else
+		on_evt_def(key);
+	keys_clear_evts(1 << key);
+}
 
 static struct menu_voice_t menu[] = {
 	{0, {"MENU", "IMPOSTAZIONI"}, on_evt_def, NULL, {4, 1, -1, 24}, 1},
@@ -849,16 +864,17 @@ static struct menu_voice_t menu[] = {
 	{2, {"VISUALIZZA", "SEGNALAZIONI"}, on_evt_def, NULL, {1, 3, -1, 20}, 1},
 	{3, {"VISUALIZZA", "STORICO LETTURE"}, on_evt_def, NULL, {2, 4, -1, 22}, 1},
 	{4, {"VISUALIZZA", "REALTIME SENSORI"}, on_evt_def, NULL, {3, 0, -1, 16}, 1},
-	{5, {"IMPOSTAZIONI", "PARAMETRI F."}, on_evt_def, NULL, {13, 6, 0, 15}, 1},
+	{5, {"IMPOSTAZIONI", "PARAMETRI F."}, on_evt_def, NULL, {14, 6, 0, 15}, 1},
 	{6, {"IMPOSTAZIONI", "MODALITA'"}, on_evt_def, NULL, {5, 7, 0, 23}, 1},
-	{7, {"IMPOSTAZIONI", "DATA E ORA"}, on_evt_def, NULL, {6, 8, 0, 14}, 1},
+	{7, {"IMPOSTAZIONI", "DATA E ORA"}, on_evt_def, NULL, {6, 8, 0, 27}, 1},
 	{8, {"IMPOSTAZIONI", "RESET CONTATORE"}, on_evt_def, NULL, {7, 9, 0, 18}, 1},
 	{9, {"IMPOSTAZIONI", "RESET STORICI"}, on_evt_def, NULL, {8, 10, 0, 17}, 1},
 	{10, {"IMPOSTAZIONI", "BLUETOOTH"}, on_evt_def, NULL, {9, 11, 0, 26}, 1},
 	{11, {"IMPOSTAZIONI", "COMUNICAZIONI RF"}, on_evt_def, NULL, {10, 12, 0, -1}, 0},
 	{12, {"IMPOSTAZIONI", "ABIL. MEDIA GIORN."}, on_evt_def, NULL, {11, 13, 0, 25}, 1},
-	{13, {"IMPOSTAZIONI", "VERSIONE FW"}, on_evt_def, NULL, {12, 5, 0, 21}, 1},
-	{14, {"", ""}, on_evt_datetime, refresh_datetime, {-1, -1, 7, 7}, 1},
+	{13, {"IMPOSTAZIONI", "ESPORTA DATI"}, on_evt_data_dump, NULL, {12, 14, 0, 0}, 1},
+	{14, {"IMPOSTAZIONI", "VERSIONE FW"}, on_evt_def, NULL, {13, 5, 0, 21}, 1},
+
 	{15, {"", ""}, on_evt_pwm, refresh_pwm, {-1, -1, 5, 5}, 1},
 	{16, {"Attendere...", "Comunicazione"}, on_evt_def, refresh_realtimesens, {-1, -1, 4, 4}, 1,
 	    .timeout_ms = (30 * 60 * 1000),},
@@ -872,6 +888,7 @@ static struct menu_voice_t menu[] = {
 	{24, {"MENU", "IMPOSTAZIONI"}, on_evt_pwd, refresh_pwd, {-1, -1, -1, 5}, 1},
 	{25, {"", ""}, on_evt_avg_en, refresh_avg_en, {-1, -1, 13, 13}, 1},
 	{26, {"", ""}, on_evt_bluetooth_id, refresh_bluetooth_id, {-1, -1, 10, 10}, 1},
+	{27, {"", ""}, on_evt_datetime, refresh_datetime, {-1, -1, 7, 7}, 1},
 	{-1}
 };
 

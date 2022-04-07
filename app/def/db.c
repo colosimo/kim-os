@@ -108,6 +108,34 @@ void db_alarm_dump(struct alarm_t *a)
 	log(buf);
 }
 
+void db_alarm_dump_all()
+{
+	int p, p_init;
+	struct alarm_t a;
+	u8 s;
+
+	eeprom_read(EEPROM_ALARMS_CUR_POS, &p_init, sizeof(p_init));
+	p = p_init;
+
+	ant_check_enable(0);
+	kprint("\r\n\r\nTYPE_ID,TYPE_STR,SENS,DATE,TIME\r\n");
+	while (p != DB_POS_INVALID) {
+		db_alarm_get(&a, p);
+		if (a.type != ALRM_TYPE_INVALID) {
+			if (a.type == ALRM_TYPE_ANT)
+				s = 0;
+			else
+				s = a.sens + 1;
+			kprint("%d,%s,%d,%02d/%02d/%02d,%02d:%02d\r\n",
+		        a.type, alarm_str[a.type], s, a.day, a.month, a.year, a.hour, a.min);
+		}
+		p = (p + 1) % ALRM_MAX_NUM;
+		if (p == p_init)
+			break;
+	}
+	ant_check_enable(1);
+}
+
 void db_alarm_display(struct alarm_t *a)
 {
 	char buf[24];
@@ -367,4 +395,27 @@ void db_data_reset(int erase_all)
 		for (tmp = EEPROM_DATA_START_ADDR; tmp < EEPROM_DATA_END_ADDR; tmp += 64)
 			eeprom_write(tmp, page, sizeof(page));
 	}
+}
+
+void db_data_dump_all()
+{
+	int p, p_init;
+	struct data_t d;
+	eeprom_read(EEPROM_DATA_CUR_POS, &p_init, sizeof(p_init));
+	p = p_init;
+
+	ant_check_enable(0);
+	kprint("\r\n\r\nSENS,DATE,TIME,TEMP,VOLT,HUM,VBAT,FREQ,DUTY\r\n");
+	while (p != DB_POS_INVALID) {
+		db_data_get(&d, p);
+		if (d.sens != 0xff) {
+			kprint("%d,%02d/%02d/%02d,%02d:%02d,%d,%d,%d,%d,%d,%d\r\n",
+		        d.sens + 1, d.day, d.month, d.year, d.hour, d.min,
+				d.temp,d.vread, d.hum, d.vbat, d.freq, d.duty);
+		}
+		p = (p + 1) % ALRM_MAX_NUM;
+		if (p == p_init)
+			break;
+	}
+	ant_check_enable(1);
 }

@@ -51,6 +51,8 @@ int db_alarm_get(struct alarm_t *a, int pos);
 
 void db_alarm_dump(struct alarm_t *a);
 
+void db_alarm_dump_all();
+
 void db_alarm_display(struct alarm_t *a);
 
 void db_alarm_reset(void);
@@ -70,3 +72,5 @@ void db_data_display(struct data_t *d, int npage);
 void db_data_save_to_eeprom(void);
 
 void db_data_reset(int erase_all);
+
+void db_data_dump_all();

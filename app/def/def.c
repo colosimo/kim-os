@@ -204,6 +204,8 @@ static int ant_check_enabled = 1;
 void ant_check_enable(int en)
 {
 	ant_check_enabled = en;
+	if (en)
+		t_last_on = k_ticks();
 }
 
 void ant_check_start(struct task_t *t)
