@@ -18,6 +18,7 @@
 #include "db.h"
 #include "rtc.h"
 #include "def.h"
+#include "bluetooth.h"
 
 /* DEF Main task */
 
@@ -131,6 +132,8 @@ static void def_start(struct task_t *t)
 	def_step(t);
 
 	db_start_add();
+
+	bt_init();
 }
 
 static void def_step(struct task_t *t)

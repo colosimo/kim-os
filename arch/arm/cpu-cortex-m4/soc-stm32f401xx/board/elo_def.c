@@ -19,7 +19,7 @@
 #include <i2c.h>
 
 #define I2C_FREQ 200000
-#define UART_BAUDRATE 115200
+#define UART_BAUDRATE 9600
 
 int putchar(int c)
 {
@@ -142,6 +142,9 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 		(date >> 4) & 0x3, date & 0xf,
 	    (time >> 20) & 0x3, (time >> 16) & 0xf, (time >> 12) & 0x7, (time >> 8) & 0xf,
 	    (time >> 4) & 0x7, time & 0xf);
+
+	gpio_dir(IO(PORTC, 3), DIR_OUT);
+	gpio_wr(IO(PORTC, 3), 1);
 }
 
 declare_gpio_dev(0, IO(PORTC, 1), DIR_OUT, PULL_NO, user_led_1);
@@ -167,7 +170,8 @@ declare_gpio_dev(17, IO(PORTC, 10), DIR_OUT, PULL_NO, db7);
 declare_gpio_dev(18, IO(PORTC, 13), DIR_OUT, PULL_NO, e);
 declare_gpio_dev(19, IO(PORTC, 0), DIR_OUT, PULL_NO, rs);
 declare_gpio_dev(20, IO(PORTB, 7), DIR_OUT, PULL_NO, rw);
-/* declare_gpio_dev(20, IO(PORTC, 8), DIR_OUT, PULL_NO, rw); */
+declare_gpio_dev(21, IO(PORTA, 4), DIR_OUT, PULL_NO, at_cmd);
+declare_gpio_dev(22, IO(PORTC, 3), DIR_OUT, PULL_NO, bt_reset);
 
 declare_dev(MAJ_SOC_I2C, MINOR_I2C1, NULL, i2c1);
 

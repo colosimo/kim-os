@@ -47,6 +47,9 @@ void eeprom_reset(void)
 	daily_avg = 1;
 	eeprom_write(EEPROM_ENABLE_DAILY_AVG, &daily_avg, 1);
 
+	/* Reset Bluetooth id */
+	tmp = 0;
+	eeprom_write(EEPROM_BLUETOOTH_ID, &tmp, sizeof(tmp));
 
 	/* Reset PWM */
 	m = 0;
