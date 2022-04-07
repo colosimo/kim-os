@@ -19,4 +19,6 @@ void rtc_get(struct rtc_t *r);
 
 void rtc_dump(const struct rtc_t *r);
 
+void rtc_dump_kprint(const struct rtc_t *r);
+
 int rtc_valid(const struct rtc_t *r);

@@ -748,11 +748,11 @@ static void on_evt_pwd(int key)
 			status++;
 			if (status == 6) {
 				if (!memcmp(pwd_entered, pwd_secret, sizeof(pwd_entered))) {
-					log("Password ok\n");
+					dbg("Password ok\n");
 					on_evt_def(KEY_ENTER);
 				}
 				else {
-					log("Password ko\n");
+					dbg("Password ko\n");
 					on_evt_def(KEY_ESC);
 				}
 			}
@@ -841,14 +841,24 @@ static void refresh_bluetooth_id(void)
 
 static void on_evt_data_dump(int key)
 {
+	u32 id;
+	struct rtc_t r;
 	if (key == KEY_ENTER) {
+		ant_check_enable(0);
+		eeprom_read(EEPROM_BLUETOOTH_ID, &id, 4);
+		id &= 0xffff;
 		lcd_write_line("INVIO DATI...", 1, 1);
 		k_delay(100);
+		kprint("\r\n\r\n===== ELO %05d DATA BEGIN ", (uint)id);
+		rtc_get(&r);
+		rtc_dump_kprint(&r);
+		kprint(" =====");
 		db_data_dump_all();
 		db_alarm_dump_all();
 		lcd_write_line("INVIO DATI FINITO", 1, 1);
-		k_delay(1000);
 		on_evt_def(KEY_ESC);
+		kprint("\r\n===== ELO %05d DATA END =====\r\n", (uint)id);
+		ant_check_enable(1);
 	}
 	else
 		on_evt_def(key);

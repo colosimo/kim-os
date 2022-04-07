@@ -62,11 +62,27 @@ int rtc_valid(const struct rtc_t *r)
 	return r->day <= days_in_month[r->month - 1];
 }
 
-void rtc_dump(const struct rtc_t *r)
+static void _rtc_dump(const struct rtc_t *r, int _log)
 {
 	const char *days[7] = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
-	log("RTC %s %d-%02d-%02d %02d:%02d:%02d\n", days[r->wdu - 1],
-	    r->year, r->month, r->day, r->hour, r->min, r->sec);
+	const char *fmt = "%s %d-%02d-%02d %02d:%02d:%02d";
+
+	if (_log) {
+		log(fmt, days[r->wdu - 1], r->year, r->month, r->day, r->hour, r->min, r->sec);
+		kprint("\n");
+	}
+	else
+		kprint(fmt, days[r->wdu - 1], r->year, r->month, r->day, r->hour, r->min, r->sec);
+}
+
+void rtc_dump(const struct rtc_t *r)
+{
+	_rtc_dump(r, 1);
+}
+
+void rtc_dump_kprint(const struct rtc_t *r)
+{
+	_rtc_dump(r, 0);
 }
 
 static int rtc_cmd_cb(int argc, char *argv[], int fdout)

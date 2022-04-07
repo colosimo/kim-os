@@ -117,7 +117,6 @@ void db_alarm_dump_all()
 	eeprom_read(EEPROM_ALARMS_CUR_POS, &p_init, sizeof(p_init));
 	p = p_init;
 
-	ant_check_enable(0);
 	kprint("\r\n\r\nTYPE_ID,TYPE_STR,SENS,DATE,TIME\r\n");
 	while (p != DB_POS_INVALID) {
 		db_alarm_get(&a, p);
@@ -133,7 +132,6 @@ void db_alarm_dump_all()
 		if (p == p_init)
 			break;
 	}
-	ant_check_enable(1);
 }
 
 void db_alarm_display(struct alarm_t *a)
@@ -404,7 +402,6 @@ void db_data_dump_all()
 	eeprom_read(EEPROM_DATA_CUR_POS, &p_init, sizeof(p_init));
 	p = p_init;
 
-	ant_check_enable(0);
 	kprint("\r\n\r\nSENS,DATE,TIME,TEMP,VOLT,HUM,VBAT,FREQ,DUTY\r\n");
 	while (p != DB_POS_INVALID) {
 		db_data_get(&d, p);
@@ -417,5 +414,4 @@ void db_data_dump_all()
 		if (p == p_init)
 			break;
 	}
-	ant_check_enable(1);
 }
