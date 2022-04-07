@@ -20,6 +20,7 @@
 #include "rfrx.h"
 #include "db.h"
 #include "eeprom.h"
+#include "bluetooth.h"
 
 static int status = 0; /* Generic state machine variable */
 static u32 ticks_exec;
@@ -747,11 +748,11 @@ static void on_evt_pwd(int key)
 			status++;
 			if (status == 6) {
 				if (!memcmp(pwd_entered, pwd_secret, sizeof(pwd_entered))) {
-					log("Password ko\n");
+					log("Password ok\n");
 					on_evt_def(KEY_ENTER);
 				}
 				else {
-					log("Password ok\n");
+					log("Password ko\n");
 					on_evt_def(KEY_ESC);
 				}
 			}
@@ -796,6 +797,48 @@ static void refresh_avg_en(void)
 
 }
 
+u32 bluetooth_id;
+
+static void on_evt_bluetooth_id(int key)
+{
+	if (key == KEY_ESC)
+		on_evt_def(key);
+	else if (key == KEY_ENTER) {
+		lcd_write_line("BLUETOOTH RESET...", 0, 0);
+		eeprom_write(EEPROM_BLUETOOTH_ID, &bluetooth_id, 4);
+		bt_init();
+		on_evt_def(key);
+	}
+
+	do_refresh = 1;
+	if (key == KEY_UP)
+		bluetooth_id = (bluetooth_id + 1) & 0xffff;
+	else if (key == KEY_DOWN)
+		bluetooth_id = (bluetooth_id - 1) & 0xffff;
+
+	keys_clear_evts(1 << key);
+}
+
+static void refresh_bluetooth_id(void)
+{
+	char buf[24];
+	if (status == 0) {
+		eeprom_read(EEPROM_BLUETOOTH_ID, &bluetooth_id, 4);
+		status = 1;
+		do_refresh = 1;
+	}
+
+	if (!do_refresh)
+		return;
+
+	do_refresh = 0;
+
+	k_sprintf(buf, "BLUETOOTH ID: %05d", (uint)bluetooth_id);
+	lcd_write_line(buf, 0, 0);
+	status = 1;
+}
+
+
 static struct menu_voice_t menu[] = {
 	{0, {"MENU", "IMPOSTAZIONI"}, on_evt_def, NULL, {4, 1, -1, 24}, 1},
 	{1, {"VISUALIZZA", "STORICO AVVII"}, on_evt_def, NULL, {0, 2, -1, 19}, 1},
@@ -807,10 +850,10 @@ static struct menu_voice_t menu[] = {
 	{7, {"IMPOSTAZIONI", "DATA E ORA"}, on_evt_def, NULL, {6, 8, 0, 14}, 1},
 	{8, {"IMPOSTAZIONI", "RESET CONTATORE"}, on_evt_def, NULL, {7, 9, 0, 18}, 1},
 	{9, {"IMPOSTAZIONI", "RESET STORICI"}, on_evt_def, NULL, {8, 10, 0, 17}, 1},
-	{10, {"IMPOSTAZIONI", "BLUETOOTH"}, on_evt_def, NULL, {9, 11, 0, -1}, 0},
+	{10, {"IMPOSTAZIONI", "BLUETOOTH"}, on_evt_def, NULL, {9, 11, 0, 26}, 1},
 	{11, {"IMPOSTAZIONI", "COMUNICAZIONI RF"}, on_evt_def, NULL, {10, 12, 0, -1}, 0},
-	{12, {"IMPOSTAZIONI", "VERSIONE FW"}, on_evt_def, NULL, {11, 13, 0, 21}, 1},
-	{13, {"IMPOSTAZIONI", "ABIL. MEDIA GIORN."}, on_evt_def, NULL, {12, 5, 0, 25}, 1},
+	{12, {"IMPOSTAZIONI", "ABIL. MEDIA GIORN."}, on_evt_def, NULL, {11, 13, 0, 25}, 1},
+	{13, {"IMPOSTAZIONI", "VERSIONE FW"}, on_evt_def, NULL, {12, 5, 0, 21}, 1},
 	{14, {"", ""}, on_evt_datetime, refresh_datetime, {-1, -1, 7, 7}, 1},
 	{15, {"", ""}, on_evt_pwm, refresh_pwm, {-1, -1, 5, 5}, 1},
 	{16, {"Attendere...", "Comunicazione"}, on_evt_def, refresh_realtimesens, {-1, -1, 4, 4}, 1,
@@ -824,6 +867,7 @@ static struct menu_voice_t menu[] = {
 	{23, {"", ""}, on_evt_mode, refresh_mode, {-1, -1, 6, 6}, 1},
 	{24, {"MENU", "IMPOSTAZIONI"}, on_evt_pwd, refresh_pwd, {-1, -1, -1, 5}, 1},
 	{25, {"", ""}, on_evt_avg_en, refresh_avg_en, {-1, -1, 13, 13}, 1},
+	{26, {"", ""}, on_evt_bluetooth_id, refresh_bluetooth_id, {-1, -1, 10, 10}, 1},
 	{-1}
 };
 
