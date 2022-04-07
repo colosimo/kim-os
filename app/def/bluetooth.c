@@ -19,7 +19,9 @@
 
 static int fd_at_cmd, fd_bt_reset, fd_uart2;
 
-char buf[512];
+static char buf[512];
+static int bt_detect = 0;
+
 static void bt_reset(u8 at_cmd, u16 id)
 {
 	u8 val;
@@ -44,6 +46,8 @@ static void bt_reset(u8 at_cmd, u16 id)
 		cmd = _name;
 		k_write(fd_uart2, cmd, strlen(cmd));
 		k_delay(100);
+
+		k_read(fd_uart2, buf, sizeof(buf));
 	}
 	else
 		k_delay(500);
@@ -68,5 +72,16 @@ void bt_init()
 
 	bt_reset(1, id);
 	bt_reset(0, id);
-	log("BT RESET DONE, READ <%s>\n", buf);
+
+	if (!strcmp(buf, "OK\r\nOK\r\n"))
+		bt_detect = 1;
+	else {
+		log("BT NOT DETECTED, READ <%s>\n", buf);
+		bt_detect = 0;
+	}
+}
+
+int bt_present()
+{
+	return bt_detect;
 }

@@ -4,3 +4,5 @@
  */
 
 void bt_init();
+
+int bt_present();

@@ -835,6 +835,10 @@ static void refresh_bluetooth_id(void)
 
 	k_sprintf(buf, "BLUETOOTH ID: %05d", (uint)bluetooth_id);
 	lcd_write_line(buf, 0, 0);
+
+	if (!bt_present())
+		lcd_write_line("BT NON TROVATO", 1, 0);
+
 	status = 1;
 }
 
