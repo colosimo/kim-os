@@ -410,7 +410,7 @@ void db_data_dump_all()
 		        d.sens + 1, d.day, d.month, d.year, d.hour, d.min,
 				d.temp,d.vread, d.hum, d.vbat, d.freq, d.duty);
 		}
-		p = (p + 1) % ALRM_MAX_NUM;
+		p = (p + 1) % DATA_MAX_NUM;
 		if (p == p_init)
 			break;
 	}
