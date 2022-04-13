@@ -20,37 +20,44 @@
 static int fd_at_cmd, fd_bt_reset, fd_uart2;
 
 static char buf[512];
-static int bt_detect = 0;
 
-static void bt_reset(u8 at_cmd, u16 id)
+static void bt_reset(u16 id)
 {
-	u8 val;
+	u8 rst;
+	u8 at_cmd;
 	char *cmd;
-	val = 0;
 	char _name[64], _pin[64];
 
-	k_delay(500);
-	k_write(fd_bt_reset, &val, 1);
+
+	rst = 0;
+	at_cmd = 1;
+	k_write(fd_bt_reset, &rst, 1);
+	k_delay(50);
+
+	rst = 1;
+	k_write(fd_bt_reset, &rst, 1);
+	k_delay(1000);
+
 	k_write(fd_at_cmd, &at_cmd, 1);
-	val = 1;
-	k_write(fd_bt_reset, &val, 1);
-	k_delay(200);
+	k_sprintf(_pin, "AT+PSWD=%d\r\n", DEFAULT_BT_PIN);
+	cmd = _pin;
+	k_write(fd_uart2, cmd, strlen(cmd));
+	k_delay(100);
 
-	if (at_cmd) {
-		k_sprintf(_pin, "AT+PSWD=%d\r\n", DEFAULT_BT_PIN);
-		cmd = _pin;
-		k_write(fd_uart2, cmd, strlen(cmd));
-		k_delay(100);
+	k_sprintf(_name, "AT+NAME=\"ELO %05d\"\r\n", id);
+	cmd = _name;
+	k_write(fd_uart2, cmd, strlen(cmd));
+	k_delay(100);
+	k_read(fd_uart2, buf, sizeof(buf));
 
-		k_sprintf(_name, "AT+NAME=\"ELO %05d\"\r\n", id);
-		cmd = _name;
-		k_write(fd_uart2, cmd, strlen(cmd));
-		k_delay(100);
+	rst = 0;
+	at_cmd = 0;
+	k_write(fd_at_cmd, &at_cmd, 1);
+	k_write(fd_bt_reset, &rst, 1);
+	k_delay(50);
 
-		k_read(fd_uart2, buf, sizeof(buf));
-	}
-	else
-		k_delay(200);
+	rst = 1;
+	k_write(fd_bt_reset, &rst, 1);
 }
 
 void bt_init()
@@ -71,17 +78,6 @@ void bt_init()
 		return;
 
 	ant_check_enable(0);
-	bt_reset(1, id);
-	bt_reset(0, id);
+	bt_reset(id);
 	ant_check_enable(1);
-
-	if (!strcmp(buf, "OK\r\nOK\r\n"))
-		bt_detect = 1;
-	else
-		bt_detect = 0;
-}
-
-int bt_present()
-{
-	return bt_detect;
 }

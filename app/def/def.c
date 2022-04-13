@@ -129,11 +129,10 @@ static void def_start(struct task_t *t)
 	db_data_init();
 	set_standby(0);
 	last_time_key = last_time_inc = k_ticks();
-	def_step(t);
-
-	db_start_add();
-
 	bt_init();
+
+	def_step(t);
+	db_start_add();
 }
 
 static void def_step(struct task_t *t)
