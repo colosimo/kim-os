@@ -243,8 +243,8 @@ frame_error:
 			return;
 		}
 
-		if (f.vbat > 90 || f.vbat < 30 || f.hum > 100 || f.addr > 3) {
-			log("Bad frame:\n");
+		if (f.vbat > 150 || f.vbat < 30 || f.hum > 100 || f.addr > 3) {
+			dbg("Bad frame:\n");
 			rfrx_frame_dump(&f);
 		}
 
