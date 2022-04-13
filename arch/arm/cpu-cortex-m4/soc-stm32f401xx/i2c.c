@@ -40,7 +40,7 @@ static int xfer_start(unsigned int b, const uint8_t addr, u8 minor)
 	sr = rd32(R_I2C_SR1(b));
 	if ((sr & BIT0) == 0) {
 		ret = -ERRIO;
-		err("%s %d SR=%08x\n", __func__, __LINE__, (uint)sr);
+		dbg("%s %d SR=%08x\n", __func__, __LINE__, (uint)sr);
 		goto done;
 	}
 
@@ -50,7 +50,7 @@ static int xfer_start(unsigned int b, const uint8_t addr, u8 minor)
 
 	if ((rd32(R_I2C_SR1(b)) & BIT1) == 0) {
 		ret = -ERRIO;
-		err("%s %d addr <%02x> not acked\n", __func__, __LINE__, addr);
+		dbg("%s %d addr <%02x> not acked\n", __func__, __LINE__, addr);
 		or32(R_I2C_CR1(b), BIT9);
 		while (rd32(R_I2C_CR1(b)) & BIT9);
 		goto done;
@@ -59,7 +59,7 @@ static int xfer_start(unsigned int b, const uint8_t addr, u8 minor)
 	while ((rd32(R_I2C_SR2(b)) & BIT0) == 0  && k_elapsed(t) < I2C_TOUT);
 	if ((rd32(R_I2C_SR2(b)) & BIT0) == 0) {
 		ret = -ERRIO;
-		err("%s %d dev not gone to master mode\n", __func__, __LINE__);
+		dbg("%s %d dev not gone to master mode\n", __func__, __LINE__);
 		goto done;
 	}
 
@@ -109,7 +109,7 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 				k_elapsed(tstart) < I2C_TOUT);
 
 			if (!(rd32(R_I2C_SR1(b)) & BIT6)) {
-				err("%s %d i2c err sr1=%02x\n", __func__, cnt,
+				dbg("%s %d i2c err sr1=%02x\n", __func__, cnt,
 				    (uint)rd32(R_I2C_SR1(b)));
 				ret = -ERRIO;
 				goto done;
@@ -124,7 +124,7 @@ static int i2c_xfer(int fd, struct i2c_xfer_t *xfer)
 				k_elapsed(tstart) < I2C_TOUT);
 
 			if (!(rd32(R_I2C_SR1(b)) & BIT7)) {
-				err("%s %d i2c err sr1=%02x\n", __func__, cnt,
+				dbg("%s %d i2c err sr1=%02x\n", __func__, cnt,
 				    (uint)rd32(R_I2C_SR1(b)));
 				ret = -ERRIO;
 				goto done;

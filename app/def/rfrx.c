@@ -51,12 +51,12 @@ static struct rfrx_frame_t *lastf_ptr;
 
 void rfrx_frame_dump(struct rfrx_frame_t *f)
 {
-	log("ADDR:  %d\n", f->addr);
-	log("ID:    %d\n", f->msg_id);
-	log("TEMP:  %d\n", f->temp);
-	log("HUM:   %d\n", f->hum);
-	log("VREAD: %d\n", f->vread);
-	log("VBAT:  %d\n", f->vbat);
+	dbg("ADDR:  %d\n", f->addr);
+	dbg("ID:    %d\n", f->msg_id);
+	dbg("TEMP:  %d\n", f->temp);
+	dbg("HUM:   %d\n", f->hum);
+	dbg("VREAD: %d\n", f->vread);
+	dbg("VBAT:  %d\n", f->vbat);
 }
 
 void rfrx_frame_display(struct rfrx_frame_t *f)
@@ -175,7 +175,7 @@ static void rfrx_step(struct task_t *t)
 		parity_check = 0;
 		for (i = 0; i < cnt; i++) {
 			if (i < cnt - 1 && evts_val[i] == evts_val[i + 1]) {
-				err("rxrf frame error\n");
+				dbg("rxrf frame error\n");
 				abort = 1;
 				goto frame_error;
 			}
@@ -191,7 +191,7 @@ static void rfrx_step(struct task_t *t)
 				continue;
 			}
 			else {
-				err("Bad frame, abort i=%d\n\n\n", i);
+				dbg("Bad frame, abort i=%d\n\n\n", i);
 				for (j = 0; j <= i; j++)
 					dbg("%d %d %d\n", (uint)evts_val[j], (uint)evts[j], evts_sym[j]);
 				abort = 1;
@@ -239,7 +239,7 @@ frame_error:
 			return;
 
 		if (parity_check) {
-			log("Parity error\n");
+			dbg("Parity error\n");
 			return;
 		}
 
