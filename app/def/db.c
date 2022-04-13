@@ -21,13 +21,24 @@
 static void fill_alarm(struct alarm_t *a, int type)
 {
 	struct rtc_t r;
-	rtc_get(&r);
+	if (type != ALRM_TYPE_STOP)
+		rtc_get(&r);
+	else {
+		eeprom_read(EEPROM_LAST_SEEN_ON_RTC, &r, sizeof(r));
+		if (!rtc_valid(&r))
+			return;
+	}
+
 	a->type = type;
 	a->year = r.year;
 	a->month = r.month;
 	a->day = r.day;
 	a->hour = r.hour;
 	a->min = r.min;
+	if (type == ALRM_TYPE_STOP) {
+		r.month = 0xff; /* Invalidate last seen on */
+		eeprom_write(EEPROM_LAST_SEEN_ON_RTC, &r, sizeof(r));
+	}
 }
 
 void db_alarm_add(int type, int sens)
@@ -48,13 +59,18 @@ void db_alarm_add(int type, int sens)
 	eeprom_write(EEPROM_ALARMS_CUR_POS, &pos, sizeof(pos));
 }
 
-void db_start_add(void)
+void db_start_stop_add(u8 type)
 {
 	u32 pos;
 	u32 addr;
 	struct alarm_t a;
 
-	fill_alarm(&a, ALRM_TYPE_START);
+	if (type != ALRM_TYPE_START && type != ALRM_TYPE_STOP) {
+		err("%s invalid type %d\n", __func__, type);
+		return;
+	}
+
+	fill_alarm(&a, type);
 
 	eeprom_read(EEPROM_AVVII_CUR_POS, &pos, sizeof(pos));
 
@@ -117,7 +133,7 @@ void db_alarm_dump_all()
 	eeprom_read(EEPROM_ALARMS_CUR_POS, &p_init, sizeof(p_init));
 	p = p_init;
 
-	kprint("\r\n\r\nTYPE_ID,TYPE_STR,SENS,DATE,TIME\r\n");
+	kprint("\r\n\r\nALRM_ID,ALRM_STR,SENS,DATE,TIME\r\n");
 	while (p != DB_POS_INVALID) {
 		db_alarm_get(&a, p);
 		if (a.type != ALRM_TYPE_INVALID) {
@@ -129,6 +145,27 @@ void db_alarm_dump_all()
 		        a.type, alarm_str[a.type], s, a.day, a.month, a.year, a.hour, a.min);
 		}
 		p = (p + 1) % ALRM_MAX_NUM;
+		if (p == p_init)
+			break;
+	}
+}
+
+void db_avvii_dump_all(void)
+{
+	int p, p_init;
+	struct alarm_t a;
+
+	eeprom_read(EEPROM_AVVII_CUR_POS, &p_init, sizeof(p_init));
+	p = p_init;
+
+	kprint("\r\n\r\nEVT_ID,EVT_STR,DATE,TIME\r\n");
+	while (p != DB_POS_INVALID) {
+		p = db_avvii_get(&a, p);
+		if (a.type != ALRM_TYPE_INVALID) {
+			kprint("%d,%s,%02d/%02d/%02d,%02d:%02d\r\n",
+		        a.type, alarm_str[a.type], a.day, a.month, a.year, a.hour, a.min);
+		}
+		p = (p + 1) % AVVII_MAX_NUM;
 		if (p == p_init)
 			break;
 	}

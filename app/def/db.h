@@ -43,7 +43,7 @@ attr_packed struct data_t
 #define DATA_MAX_NUM ((EEPROM_DATA_END_ADDR - EEPROM_DATA_START_ADDR) / \
     sizeof(struct data_t))
 
-void db_start_add(void);
+void db_start_stop_add(u8 type);
 
 void db_alarm_add(int type, int sens);
 
@@ -56,6 +56,8 @@ void db_alarm_dump_all();
 void db_alarm_display(struct alarm_t *a);
 
 void db_alarm_reset(void);
+
+void db_avvii_dump_all(void);
 
 void db_avvii_reset(void);
 

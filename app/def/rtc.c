@@ -59,7 +59,7 @@ int rtc_valid(const struct rtc_t *r)
 	if (r->year % 4 == 0)
 		days_in_month[1] = 29;
 
-	return r->day <= days_in_month[r->month - 1];
+	return r->month < 12 && r->day <= days_in_month[r->month - 1];
 }
 
 static void _rtc_dump(const struct rtc_t *r, int _log)

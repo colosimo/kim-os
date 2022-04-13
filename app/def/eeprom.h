@@ -33,6 +33,8 @@ struct pwm_cfg_t {
 #define EEPROM_PWM_ROL_DAYS_STATUS_ADDR  0x0044
 
 #define EEPROM_BLUETOOTH_ID      0x0050
+#define EEPROM_LAST_SEEN_ON_RTC  0x0054 /* rtc is 8 bytes */
+#define EEPROM_LAST_SEEN_ON_RTC2 0x0058
 
 #define EEPROM_ALARMS_START_ADDR 0x0100
 #define EEPROM_ALARMS_END_ADDR   0x04f8

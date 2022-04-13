@@ -49,6 +49,7 @@ int get_alarm(int _alrm)
 }
 
 u32 last_time_inc;
+u32 last_time_seen_on;
 u32 last_time_key;
 u32 hours = 0;
 
@@ -120,6 +121,13 @@ void rolling_stop(void)
 	rolling_enabled = 0;
 }
 
+static void update_last_seen_on()
+{
+	struct rtc_t r;
+	rtc_get(&r);
+	eeprom_write(EEPROM_LAST_SEEN_ON_RTC, (u8*)&r, sizeof(r));
+}
+
 static void def_start(struct task_t *t)
 {
 	lcd_init();
@@ -128,11 +136,15 @@ static void def_start(struct task_t *t)
 
 	db_data_init();
 	set_standby(0);
-	last_time_key = last_time_inc = k_ticks();
+	last_time_key = last_time_inc = last_time_seen_on = k_ticks();
 	bt_init();
 
 	def_step(t);
-	db_start_add();
+
+	db_start_stop_add(ALRM_TYPE_STOP);
+	db_start_stop_add(ALRM_TYPE_START);
+
+	update_last_seen_on();
 }
 
 static void def_step(struct task_t *t)
@@ -141,6 +153,11 @@ static void def_step(struct task_t *t)
 	u32 rolling_days;
 	u8 mode;
 	struct pwm_cfg_t p;
+
+	if (k_elapsed(last_time_seen_on) >= 10 * MS_TO_TICKS(MS_IN_MIN)) {
+		update_last_seen_on();
+		last_time_seen_on = k_ticks();
+	}
 
 	if (k_elapsed(last_time_inc) >= MS_TO_TICKS(MS_IN_HOUR)) {
 		last_time_inc = k_ticks();

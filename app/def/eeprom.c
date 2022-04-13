@@ -80,6 +80,11 @@ void eeprom_reset(void)
 	/* Everything is ok, now write signature */
 	eeprom_write(EEPROM_SIGN_ADDR, EEPROM_SIGN, 4);
 
+	/* Reset Last seen on */
+	tmp = ~0;
+	eeprom_write(EEPROM_LAST_SEEN_ON_RTC, &tmp, sizeof(tmp));
+	eeprom_write(EEPROM_LAST_SEEN_ON_RTC2, &tmp, sizeof(tmp));
+
 #if 0 /* FIXME useful? */
 	lcd_set_backlight(0);
 #endif

@@ -491,7 +491,7 @@ static void on_evt_reset_storici(int key)
 				status = 100;
 				db_alarm_reset();
 				db_avvii_reset();
-				db_data_reset(0);
+				db_data_reset(1);
 				ticks_exec = k_ticks();
 			}
 			else if (key == KEY_ESC) {
@@ -853,6 +853,7 @@ static void on_evt_data_dump(int key)
 		rtc_get(&r);
 		rtc_dump_kprint(&r);
 		kprint(" =====");
+		db_avvii_dump_all();
 		db_data_dump_all();
 		db_alarm_dump_all();
 		lcd_write_line("INVIO DATI FINITO", 1, 1);
