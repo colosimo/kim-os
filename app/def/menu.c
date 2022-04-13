@@ -865,12 +865,32 @@ static void on_evt_data_dump(int key)
 	keys_clear_evts(1 << key);
 }
 
+static void refresh_info_readonly()
+{
+	char buf[24];
+	u32 bluetooth_id;
+	struct rtc_t r;
+	if (status == 0) {
+		eeprom_read(EEPROM_BLUETOOTH_ID, &bluetooth_id, 4);
+		rtc_get(&r);
+		k_sprintf(buf, "%05d    %s", (u16) bluetooth_id, GIT_VERSION);
+		lcd_write_line(buf, 0, 0);
+
+		k_sprintf(buf, "%02d/%02d/%02d %02d:%02d", r.day, r.month, r.year,
+		    r.hour, r.min);
+		lcd_write_line(buf, 1, 0);
+
+
+		status = 1;
+	}
+}
+
 static struct menu_voice_t menu[] = {
-	{0, {"MENU", "IMPOSTAZIONI"}, on_evt_def, NULL, {4, 1, -1, 24}, 1},
+	{0, {"MENU", "IMPOSTAZIONI"}, on_evt_def, NULL, {29, 1, -1, 24}, 1},
 	{1, {"VISUALIZZA", "STORICO AVVII"}, on_evt_def, NULL, {0, 2, -1, 19}, 1},
 	{2, {"VISUALIZZA", "SEGNALAZIONI"}, on_evt_def, NULL, {1, 3, -1, 20}, 1},
 	{3, {"VISUALIZZA", "STORICO LETTURE"}, on_evt_def, NULL, {2, 4, -1, 22}, 1},
-	{4, {"VISUALIZZA", "REALTIME SENSORI"}, on_evt_def, NULL, {3, 0, -1, 16}, 1},
+	{4, {"VISUALIZZA", "REALTIME SENSORI"}, on_evt_def, NULL, {3, 29, -1, 16}, 1},
 	{5, {"IMPOSTAZIONI", "PARAMETRI F."}, on_evt_def, NULL, {14, 6, 0, 15}, 1},
 	{6, {"IMPOSTAZIONI", "MODALITA'"}, on_evt_def, NULL, {5, 7, 0, 23}, 1},
 	{7, {"IMPOSTAZIONI", "DATA E ORA"}, on_evt_def, NULL, {6, 8, 0, 27}, 1},
@@ -897,6 +917,7 @@ static struct menu_voice_t menu[] = {
 	{26, {"", ""}, on_evt_bluetooth_id, refresh_bluetooth_id, {-1, -1, 10, 10}, 1},
 	{27, {"", ""}, on_evt_datetime, refresh_datetime, {-1, -1, 7, 7}, 1},
 	{28, {"ESPORTA DATI", "OK?"}, on_evt_data_dump, NULL, {-1, -1, 13, 13}, 1},
+	{29, {"", ""}, on_evt_def, refresh_info_readonly, {4, 0, -1, -1}, 1},
 	{-1}
 };
 
