@@ -19,7 +19,7 @@
 #include <i2c.h>
 
 #define I2C_FREQ 200000
-#define UART_BAUDRATE 9600
+#define UART_BAUDRATE 38400
 
 int putchar(int c)
 {
