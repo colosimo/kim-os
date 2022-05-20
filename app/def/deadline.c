@@ -108,5 +108,14 @@ int dl_unlock(int idx, u8 *code)
 		return 1;
 	}
 	return 0;
+}
 
+void dl_disable_all(void)
+{
+	int i;
+	for (i = 0; i < 3; i++) {
+		deadlines[i].enable = 0;
+		eeprom_write(EEPROM_DEADLINE1_CFG + 0x10 * i, &deadlines[i],
+		    sizeof(struct deadline_t));
+	}
 }

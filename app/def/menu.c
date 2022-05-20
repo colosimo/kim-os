@@ -31,6 +31,7 @@ static u32 ticks_exec;
 #define STR_CONFIRM "CONFERMA?"
 #define STR_EMPTY "ARCHIVIO VUOTO"
 #define STR_PASSWORD "PASSWORD: [     ]"
+#define GENERAL_UNLOCK_CODE "51111"
 
 #define DEF_TIMEOUT_MS (60 * 1000) /* 1 minute */
 
@@ -1141,17 +1142,25 @@ static void on_evt_dl_code(int key)
 	}
 	if (key == KEY_ENTER) {
 		if (status == 5) {
-			if (dl_to_unlock >= 0) {
+			if (dl_to_unlock >= 0)
 				ret = dl_unlock(dl_to_unlock, dl_code);
-				if (ret)
-					lcd_write_line("PASSWORD OK", 0, 1);
+			else {
+				if (strcmp((char*)dl_code, GENERAL_UNLOCK_CODE) == 0) {
+					ret = 1;
+					dl_disable_all();
+				}
 				else
-					lcd_write_line("PASSWORD ERRATA", 0, 1);
-				k_delay_us(1000000);
-				on_evt_def(KEY_ENTER);
-				keys_clear_evts(1 << key);
-				return;
+					ret = 0;
 			}
+
+			if (ret)
+				lcd_write_line("PASSWORD OK", 0, 1);
+			else
+				lcd_write_line("PASSWORD ERRATA", 0, 1);
+			k_delay_us(1000000);
+			on_evt_def(KEY_ENTER);
+			keys_clear_evts(1 << key);
+			return;
 		}
 		else
 			status++;
@@ -1160,13 +1169,19 @@ static void on_evt_dl_code(int key)
 	keys_clear_evts(1 << key);
 }
 
+static void on_evt_reset_dl_all(int key)
+{
+	if (key == KEY_ENTER)
+		dl_to_unlock = -1;
+	on_evt_def(key);
+}
 
 static struct menu_voice_t menu[] = {
 	{0, {"MENU", "IMPOSTAZIONI"}, on_evt_def, NULL, {29, 1, -1, 24}, 1},
 	{1, {"VISUALIZZA", "STORICO AVVII"}, on_evt_def, NULL, {0, 2, -1, 19}, 1},
 	{2, {"VISUALIZZA", "SEGNALAZIONI"}, on_evt_def, NULL, {1, 3, -1, 20}, 1},
 	{3, {"VISUALIZZA", "STORICO LETTURE"}, on_evt_def, NULL, {2, 4, -1, 22}, 1},
-	{4, {"VISUALIZZA", "REALTIME SENSORI"}, on_evt_def, NULL, {3, 29, -1, 16}, 1},
+	{4, {"VISUALIZZA", "REALTIME SENSORI"}, on_evt_def, NULL, {3, 33, -1, 16}, 1},
 	{5, {"IMPOSTAZIONI", "PARAMETRI F."}, on_evt_def, NULL, {14, 6, 0, 15}, 1},
 	{6, {"IMPOSTAZIONI", "MODALITA'"}, on_evt_def, NULL, {5, 7, 0, 23}, 1},
 	{7, {"IMPOSTAZIONI", "DATA E ORA"}, on_evt_def, NULL, {6, 8, 0, 27}, 1},
@@ -1193,10 +1208,11 @@ static struct menu_voice_t menu[] = {
 	{26, {"", ""}, on_evt_bluetooth_id, refresh_bluetooth_id, {-1, -1, 10, 10}, 1},
 	{27, {"", ""}, on_evt_datetime, refresh_datetime, {-1, -1, 7, 7}, 1},
 	{28, {"ESPORTA DATI", "OK?"}, on_evt_data_dump, NULL, {-1, -1, 13, 13}, 1},
-	{29, {"", ""}, on_evt_def, refresh_info_readonly, {4, 0, -1, -1}, 1},
+	{29, {"", ""}, on_evt_def, refresh_info_readonly, {33, 0, -1, -1}, 1},
 	{30, {"IMPOSTAZIONI", "MODALITA' A TEMPO"}, on_evt_def, NULL, {13, 14, 0, 31}, 1},
 	{31, {"", ""}, on_evt_deadline, refresh_deadline, {-1, -1, 30, 30}, 1},
 	{32, {"CODICE SBLOCCO", ""}, on_evt_dl_code, refresh_dl_code, {-1, -1, 0, 0}, 1},
+	{33, {"AZZERAMENTO", "MOD. A TEMPO"}, on_evt_reset_dl_all, NULL, {4, 29, -1, 32}, 1},
 	{-1}
 };
 
