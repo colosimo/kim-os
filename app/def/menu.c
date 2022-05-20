@@ -945,6 +945,7 @@ static void update_screen_deadline()
 static void refresh_deadline()
 {
 	if (status == 0) {
+		dl_idx = 0;
 		dl_get(0, &dl);
 		update_screen_deadline();
 		status = 1;
