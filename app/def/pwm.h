@@ -15,3 +15,6 @@ int pwm_check(u32 *freq, u32 *duty);
 void pwm_set(u32 freq, u32 duty);
 
 void pwm_get(u32 *freq, u32 *duty);
+
+void pwm_enable(void);
+void pwm_disable(void);

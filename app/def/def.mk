@@ -12,4 +12,5 @@ OBJS += $(APP)/menu.o
 OBJS += $(APP)/rfrx.o
 OBJS += $(APP)/db.o
 OBJS += $(APP)/bluetooth.o
+OBJS += $(APP)/deadline.o
 OBJS += $(patsubst %.c,%.o,$(wildcard cli/*.c))

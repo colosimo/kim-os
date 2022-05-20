@@ -21,11 +21,13 @@
 #include "db.h"
 #include "eeprom.h"
 #include "bluetooth.h"
+#include "deadline.h"
 
 static int status = 0; /* Generic state machine variable */
 static u32 ticks_exec;
 
 #define MENU_VOICE_DEFAULT 0
+#define MENU_VOICE_PWD 32
 #define STR_CONFIRM "CONFERMA?"
 #define STR_EMPTY "ARCHIVIO VUOTO"
 #define STR_PASSWORD "PASSWORD: [     ]"
@@ -886,6 +888,279 @@ static void refresh_info_readonly()
 	}
 }
 
+/* Deadlines settings ("Funzionamento Temporizzato")*/
+static int dl_idx = 0;
+static struct deadline_t dl;
+
+static void update_screen_deadline()
+{
+	char buf[24];
+	int cur_line, cur_pos, cur_show;
+	struct rtc_t *rtc;
+
+	rtc = &dl.rtc;
+
+	if (status == 100) {
+		lcd_write_line("ANNULLATO", 0, 1);
+		lcd_write_line("", 1, 0);
+		status = 103;
+		return;
+	} else if (status == 102) {
+		lcd_write_line("DATA NON VALIDA", 0, 0);
+		lcd_write_line("", 1, 0);
+		status = 103;
+		return;
+	}
+
+	k_sprintf(buf, "%d %s  Cod: %s", dl_idx + 1, dl.enable ? "ON " : "OFF", dl.code);
+	lcd_write_line(buf, 0, 0);
+	k_sprintf(buf, "%02d/%02d/%02d %02d:%02d", rtc->day, rtc->month, rtc->year, rtc->hour, rtc->min);
+	lcd_write_line(buf, 1, 0);
+
+	switch(status) {
+		case 0:
+		case 1: cur_line = 0; cur_pos = 0; cur_show = 1; break;
+		case 2: cur_line = 0; cur_pos = 2; cur_show = 1; break;
+		case 3: cur_line = 0; cur_pos = 12; cur_show = 1; break;
+		case 4: cur_line = 0; cur_pos = 13; cur_show = 1; break;
+		case 5: cur_line = 0; cur_pos = 14; cur_show = 1; break;
+		case 6: cur_line = 0; cur_pos = 15; cur_show = 1; break;
+		case 7: cur_line = 0; cur_pos = 16; cur_show = 1; break;
+		case 11: cur_line = 1; cur_pos = 0; cur_show = 1; break;
+		case 12: cur_line = 1; cur_pos = 3; cur_show = 1; break;
+		case 13: cur_line = 1; cur_pos = 6; cur_show = 1; break;
+		case 14: cur_line = 1; cur_pos = 9; cur_show = 1; break;
+		case 15: cur_line = 1; cur_pos = 12; cur_show = 1; break;
+		case 16: cur_line = 1; cur_pos = 17; cur_show = 0; break;
+		case 101: cur_show = 0;
+		default: cur_line = cur_pos = cur_show = 0; break; /* Never happens */
+	}
+	lcd_cursor(cur_line, cur_pos, cur_show);
+
+	if (status == 16)
+		lcd_write_string("OK?");
+}
+
+static void refresh_deadline()
+{
+	if (status == 0) {
+		dl_get(0, &dl);
+		update_screen_deadline();
+		status = 1;
+	}
+	else if (status >= 100 && k_elapsed(ticks_cancel) > MS_TO_TICKS(1000))
+			on_evt_def(KEY_ESC);
+}
+
+static void on_evt_deadline(int key)
+{
+	struct rtc_t *rtc;
+	u8 digit;
+	rtc = &dl.rtc;
+
+	switch (status) {
+		case 1:
+			if (key == KEY_UP)
+				dl_idx = (dl_idx + 1) % 3;
+			else if (key == KEY_DOWN) {
+				if (dl_idx == 0)
+					dl_idx = 2;
+				else
+					dl_idx--;
+			}
+			dl_get(dl_idx, &dl);
+			break;
+		case 2:
+			if (key == KEY_UP || key == KEY_DOWN)
+				dl.enable = !dl.enable;
+			break;
+
+		case 3:
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+			digit = dl.code[status - 3] - '0';
+			if (key == KEY_UP)
+				digit = (digit + 1) % 10;
+			else if (key == KEY_DOWN) {
+				if (digit == 0)
+					digit = 9;
+				else
+					digit--;
+			}
+			dl.code[status - 3] = digit + '0';
+			break;
+
+		case 11:
+			if (key == KEY_UP)
+				rtc->day = (rtc->day % 31) + 1;
+			else if (key == KEY_DOWN) {
+				if (rtc->day == 1)
+					rtc->day = 31;
+				else
+					rtc->day--;
+			}
+			break;
+		case 12:
+			if (key == KEY_UP)
+				rtc->month = (rtc->month % 12) + 1;
+			else if (key == KEY_DOWN) {
+				if (rtc->month == 1)
+					rtc->month = 12;
+				else
+					rtc->month--;
+			}
+			break;
+		case 13:
+			if (key == KEY_UP)
+				rtc->year = rtc->year % 100 + 1;
+			else if (key == KEY_DOWN) {
+				if (rtc->year == 0)
+					rtc->year = 99;
+				else
+					rtc->year--;
+			}
+			break;
+
+		case 14:
+			if (key == KEY_UP)
+				rtc->hour = (rtc->hour + 1) % 24;
+			else if (key == KEY_DOWN) {
+				if (rtc->hour == 0)
+					rtc->hour = 23;
+				else
+					rtc->hour--;
+			}
+			break;
+
+		case 15:
+			if (key == KEY_UP)
+				rtc->min = (rtc->min + 1) % 60;
+			else if (key == KEY_DOWN) {
+				if (rtc->min == 0)
+					rtc->min = 59;
+				else
+					rtc->min--;
+			}
+			break;
+
+		case 16:
+			if (key == KEY_ENTER) {
+				if (rtc_valid(&r)) {
+					rtc->sec = 0;
+					dl_set(dl_idx, &dl);
+					rtc_dump(rtc);
+					status = 101;
+				}
+				else
+					status = 102;
+				ticks_cancel = k_ticks();
+			}
+
+		case 100:
+			keys_clear_evts(1 << key);
+			break;
+
+		default:
+			break;
+	}
+
+	if (key == KEY_ESC && status != 100) {
+		status = 100;
+		ticks_cancel = k_ticks();
+	}
+
+	if (key == KEY_ENTER) {
+		if (status == 7)
+			status = 11;
+		else if (status < 7 || (status >= 11 && status <= 16 ))
+			status++;
+	}
+	update_screen_deadline();
+	keys_clear_evts(1 << key);
+}
+
+/* Deadlines Code (password to unlock) */
+u8 dl_code[6];
+int dl_to_unlock = -1;
+static void update_screen_dl_code()
+{
+	char buf[24];
+
+	k_sprintf(buf, "%s", dl_code);
+	lcd_write_line(buf, 1, 1);
+
+	lcd_cursor(1, status + 6, 1);
+}
+
+static void refresh_dl_code()
+{
+	if (status == 0) {
+		status = 1;
+		strcpy((char*)dl_code, "00000");
+		update_screen_dl_code();
+	}
+}
+
+static void on_evt_dl_code(int key)
+{
+	u8 digit;
+	int ret;
+
+	if (key == KEY_ESC) {
+		on_evt_def(key);
+		return;
+	}
+
+	switch (status) {
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+		case 5:
+			digit = dl_code[status - 1] - '0';
+			if (key == KEY_UP)
+				digit = (digit + 1) % 10;
+			else if (key == KEY_DOWN) {
+				if (digit == 0)
+					digit = 9;
+				else
+					digit--;
+			}
+			dl_code[status - 1] = digit + '0';
+			break;
+
+
+		case 6:
+			keys_clear_evts(1 << key);
+			break;
+
+		default:
+			break;
+	}
+	if (key == KEY_ENTER) {
+		if (status == 5) {
+			if (dl_to_unlock >= 0) {
+				ret = dl_unlock(dl_to_unlock, dl_code);
+				if (ret)
+					lcd_write_line("PASSWORD OK", 0, 1);
+				else
+					lcd_write_line("PASSWORD ERRATA", 0, 1);
+				k_delay_us(1000000);
+				on_evt_def(KEY_ENTER);
+				keys_clear_evts(1 << key);
+				return;
+			}
+		}
+		else
+			status++;
+	}
+	update_screen_dl_code();
+	keys_clear_evts(1 << key);
+}
+
+
 static struct menu_voice_t menu[] = {
 	{0, {"MENU", "IMPOSTAZIONI"}, on_evt_def, NULL, {29, 1, -1, 24}, 1},
 	{1, {"VISUALIZZA", "STORICO AVVII"}, on_evt_def, NULL, {0, 2, -1, 19}, 1},
@@ -900,8 +1175,8 @@ static struct menu_voice_t menu[] = {
 	{10, {"IMPOSTAZIONI", "BLUETOOTH"}, on_evt_def, NULL, {9, 11, 0, 26}, 1},
 	{11, {"IMPOSTAZIONI", "COMUNICAZIONI RF"}, on_evt_def, NULL, {10, 12, 0, -1}, 0},
 	{12, {"IMPOSTAZIONI", "ABIL. MEDIA GIORN."}, on_evt_def, NULL, {11, 13, 0, 25}, 1},
-	{13, {"IMPOSTAZIONI", "ESPORTA DATI"}, on_evt_def, NULL, {12, 14, 0, 28}, 1},
-	{14, {"IMPOSTAZIONI", "VERSIONE FW"}, on_evt_def, NULL, {13, 5, 0, 21}, 1},
+	{13, {"IMPOSTAZIONI", "ESPORTA DATI"}, on_evt_def, NULL, {12, 30, 0, 28}, 1},
+	{14, {"IMPOSTAZIONI", "VERSIONE FW"}, on_evt_def, NULL, {30, 5, 0, 21}, 1},
 
 	{15, {"", ""}, on_evt_pwm, refresh_pwm, {-1, -1, 5, 5}, 1},
 	{16, {"Attendere...", "Comunicazione"}, on_evt_def, refresh_realtimesens, {-1, -1, 4, 4}, 1,
@@ -919,6 +1194,9 @@ static struct menu_voice_t menu[] = {
 	{27, {"", ""}, on_evt_datetime, refresh_datetime, {-1, -1, 7, 7}, 1},
 	{28, {"ESPORTA DATI", "OK?"}, on_evt_data_dump, NULL, {-1, -1, 13, 13}, 1},
 	{29, {"", ""}, on_evt_def, refresh_info_readonly, {4, 0, -1, -1}, 1},
+	{30, {"IMPOSTAZIONI", "MODALITA' A TEMPO"}, on_evt_def, NULL, {13, 14, 0, 31}, 1},
+	{31, {"", ""}, on_evt_deadline, refresh_deadline, {-1, -1, 30, 30}, 1},
+	{32, {"CODICE SBLOCCO", ""}, on_evt_dl_code, refresh_dl_code, {-1, -1, 0, 0}, 1},
 	{-1}
 };
 
@@ -942,7 +1220,11 @@ void menu_step(struct task_t *t)
 		if (k & (1 << KEY_ESC))
 			set_standby(1);
 		else {
-			cur_menu = get_menu_voice(MENU_VOICE_DEFAULT);
+			dl_to_unlock = get_deadline_idx();
+			if (dl_to_unlock >= 0)
+				cur_menu = get_menu_voice(MENU_VOICE_PWD);
+			else
+				cur_menu = get_menu_voice(MENU_VOICE_DEFAULT);
 			if (!cur_menu)
 				return;
 			lcd_write_line(cur_menu->text[0], 0, 1);

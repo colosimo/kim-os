@@ -37,3 +37,5 @@ void rolling_stop(void);
 void ant_check_enable(int en);
 
 u32 get_menu_timeout_ms(void);
+
+int get_deadline_idx(void);

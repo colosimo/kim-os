@@ -62,6 +62,41 @@ int rtc_valid(const struct rtc_t *r)
 	return r->month < 12 && r->day <= days_in_month[r->month - 1];
 }
 
+int rtc_compare(const struct rtc_t *r1, const struct rtc_t *r2)
+{
+	if (r1->year > r2->year)
+		return -1;
+	else if (r2->year > r1->year)
+		return 1;
+
+	if (r1->month > r2->month)
+		return -1;
+	else if (r2->month > r1->month)
+		return 1;
+
+	if (r1->day > r2->day)
+		return -1;
+	else if (r2->day > r1->day)
+		return 1;
+
+	if (r1->hour > r2->hour)
+		return -1;
+	else if (r2->hour > r1->hour)
+		return 1;
+
+	if (r1->min > r2->min)
+		return -1;
+	else if (r2->min > r1->min)
+		return 1;
+
+	if (r1->sec > r2->sec)
+		return -1;
+	else if (r2->sec > r1->sec)
+		return 1;
+
+	return 0;
+}
+
 static void _rtc_dump(const struct rtc_t *r, int _log)
 {
 	const char *days[7] = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};

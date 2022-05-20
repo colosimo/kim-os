@@ -19,13 +19,18 @@
 #include "rtc.h"
 #include "def.h"
 #include "bluetooth.h"
+#include "deadline.h"
 
 /* DEF Main task */
 
 #define STR_ELO_BANNER "ELO Srl 0536/844420"
-#define STR_FUNZ "Funz: g:%03d h:%02d  %c%c"
+#define STR_FUNZ "Funz: g:%03d h:%02d %c%c%c"
 #define MS_IN_MIN (60 * 1000)
 #define MS_IN_HOUR (60 * MS_IN_MIN)
+
+static int deadline_lock = 0;
+static int deadline_idx = -1;
+
 
 const char zero = 0;
 const char one = 1;
@@ -55,11 +60,24 @@ u32 hours = 0;
 
 static void def_step(struct task_t *t);
 
+int get_deadline_idx(void)
+{
+	return deadline_idx;
+}
+
 void show_home(void)
 {
 	char buf[24];
 	int gg, hh;
 	u8 mode, status;
+
+	if (deadline_lock) {
+		lcd_write_line("Tempo Funz. Scaduto", 0, 0);
+		k_sprintf(buf, "Inserire Password %d", deadline_idx + 1);
+		lcd_write_line(buf, 1, 0);
+		return;
+	}
+
 
 	lcd_write_line(STR_ELO_BANNER, 0, 0);
 	eeprom_read(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
@@ -70,11 +88,12 @@ void show_home(void)
 	gg = hours / 24;
 	hh = hours % 24;
 	if (mode != 4) {
-		k_sprintf(buf, STR_FUNZ, gg, hh, mode == 3 ? 'R' : ' ', '0' + status + 1);
+		k_sprintf(buf, STR_FUNZ, gg, hh, dl_isactive() ? 'T' : ' ',
+		    mode == 3 ? 'R' : ' ', '0' + status + 1);
 		ant_check_enable(1);
 	}
 	else {
-		k_sprintf(buf, STR_FUNZ, gg, hh, 'N', 'O');
+		k_sprintf(buf, STR_FUNZ, gg, hh, dl_isactive() ? 'T' : ' ', 'N', 'O');
 		ant_check_enable(0);
 	}
 	lcd_write_line(buf, 1, 0);
@@ -145,6 +164,8 @@ static void def_start(struct task_t *t)
 	db_start_stop_add(ALRM_TYPE_START);
 
 	update_last_seen_on();
+
+	dl_load_all();
 }
 
 static void def_step(struct task_t *t)
@@ -153,13 +174,14 @@ static void def_step(struct task_t *t)
 	u32 rolling_days;
 	u8 mode;
 	struct pwm_cfg_t p;
+	int idx;
 
 	if (k_elapsed(last_time_seen_on) >= 10 * MS_TO_TICKS(MS_IN_MIN)) {
 		update_last_seen_on();
 		last_time_seen_on = k_ticks();
 	}
 
-	if (k_elapsed(last_time_inc) >= MS_TO_TICKS(MS_IN_HOUR)) {
+	if (!deadline_lock && k_elapsed(last_time_inc) >= MS_TO_TICKS(MS_IN_HOUR)) {
 		last_time_inc = k_ticks();
 		hours++;
 		eeprom_write(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
@@ -174,7 +196,7 @@ static void def_step(struct task_t *t)
 
 		db_data_save_to_eeprom();
 
-		if (rolling_enabled) {
+		if (!deadline_lock && rolling_enabled) {
 			eeprom_read(EEPROM_PWM_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));
 			if (rolling_days > 1) {
 				rolling_days--;
@@ -199,6 +221,24 @@ static void def_step(struct task_t *t)
 			}
 		}
 		curday = r.day;
+	}
+
+	idx = dl_iselapsed();
+	if (idx >= 0 && !deadline_lock) {
+		deadline_lock = 1;
+		deadline_idx = idx;
+		pwm_disable();
+		set_alarm(ALRM_BITFIELD_ANT);
+		ant_check_enable(0);
+		show_home();
+	}
+	else if (deadline_lock && idx < 0) {
+		deadline_lock = 0;
+		deadline_idx = -1;
+		pwm_enable();
+		clr_alarm(ALRM_BITFIELD_ANT);
+		ant_check_enable(1);
+		show_home();
 	}
 }
 
@@ -234,6 +274,10 @@ void ant_check_start(struct task_t *t)
 void ant_check_step(struct task_t *t)
 {
 	u8 ant_check;
+
+	if (deadline_lock)
+		return;
+
 	k_read(k_fd_byname("ant_check"), &ant_check, 1);
 
 	if (!ant_check || !ant_check_enabled) {

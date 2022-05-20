@@ -36,6 +36,10 @@ struct pwm_cfg_t {
 #define EEPROM_LAST_SEEN_ON_RTC  0x0054 /* rtc is 8 bytes */
 #define EEPROM_LAST_SEEN_ON_RTC2 0x0058
 
+#define EEPROM_DEADLINE1_CFG     0x0060
+#define EEPROM_DEADLINE2_CFG     0x0070
+#define EEPROM_DEADLINE3_CFG     0x0080
+
 #define EEPROM_ALARMS_START_ADDR 0x0100
 #define EEPROM_ALARMS_END_ADDR   0x04f8
 
