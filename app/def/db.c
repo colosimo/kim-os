@@ -110,7 +110,7 @@ int db_alarm_get(struct alarm_t *a, int pos)
 }
 
 static const char *alarm_str[ALRM_TYPE_LAST] =
-    {"Err. Antenna", "", "Start", "Stop", "Batteria Bassa"};
+    {"Err. Antenna", "", "Start", "Stop", "Batteria Bassa", "Err. Tempo On", "Err. Tempo Off"};
 
 void db_alarm_dump(struct alarm_t *a)
 {
@@ -174,7 +174,7 @@ void db_avvii_dump_all(void)
 void db_alarm_display(struct alarm_t *a)
 {
 	char buf[24];
-	if (a->type > ALRM_TYPE_BATTERY)
+	if (a->type >= ALRM_TYPE_LAST)
 		return;
 
 	if (a->type == ALRM_TYPE_BATTERY)

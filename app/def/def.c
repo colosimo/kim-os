@@ -240,6 +240,7 @@ static void def_step(struct task_t *t)
 		deadline_lock = 1;
 		pwm_disable();
 		set_alarm(ALRM_BITFIELD_ANT);
+		db_alarm_add(ALRM_TYPE_TIME, 0);
 		ant_check_enable(0);
 		show_home();
 	}
@@ -247,6 +248,7 @@ static void def_step(struct task_t *t)
 		deadline_lock = 0;
 		pwm_enable();
 		clr_alarm(ALRM_BITFIELD_ANT);
+		db_alarm_add(ALRM_TYPE_TIME_END, 0);
 		ant_check_enable(1);
 		show_home();
 	}

@@ -12,7 +12,9 @@ extern const char one;
 #define ALRM_TYPE_START    2
 #define ALRM_TYPE_STOP     3
 #define ALRM_TYPE_BATTERY  4
-#define ALRM_TYPE_LAST     5
+#define ALRM_TYPE_TIME     5
+#define ALRM_TYPE_TIME_END 6
+#define ALRM_TYPE_LAST     7
 #define ALRM_TYPE_INVALID  0xff
 
 #define ALRM_BITFIELD_ANT          (1 << ALRM_TYPE_ANT)
