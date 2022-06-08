@@ -101,10 +101,21 @@ void show_home(void)
 
 void set_standby(int stdby)
 {
-	show_home();
+	int stdby_old;
+	stdby_old = !lcd_get_backlight();
+
 	lcd_set_backlight(!stdby);
+	show_home();
+
 	if (stdby)
 		last_time_key = 0;
+
+	if (stdby != stdby_old) {
+		if (stdby)
+			bt_shutdown();
+		else
+			bt_init();
+	}
 }
 
 int get_standby(void)

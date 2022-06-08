@@ -60,6 +60,15 @@ static void bt_reset(u16 id)
 	k_write(fd_bt_reset, &rst, 1);
 }
 
+void bt_shutdown()
+{
+	u8 rst;
+	if (fd_bt_reset >= 0) {
+		rst = 0;
+		k_write(fd_bt_reset, &rst, 1);
+	}
+}
+
 void bt_init()
 {
 	u32 id;
