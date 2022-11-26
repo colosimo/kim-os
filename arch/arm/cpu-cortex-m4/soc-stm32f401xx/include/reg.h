@@ -345,5 +345,28 @@
 #define R_RTC_OR             reg32(0x4000284c)
 #define R_RTC_BKPR(x)        reg32(0x40002850 + 0x4 * (x))
 
+/* ADC registers */
+#define R_ADC1_SR       reg32(0x40012000)
+#define R_ADC1_CR1      reg32(0x40012004)
+#define R_ADC1_CR2      reg32(0x40012008)
+#define R_ADC1_SMPR1    reg32(0x4001200c)
+#define R_ADC1_SMPR2    reg32(0x40012010)
+#define R_ADC1_JOFR1    reg32(0x40012014)
+#define R_ADC1_JOFR2    reg32(0x40012018)
+#define R_ADC1_JOFR3    reg32(0x4001201c)
+#define R_ADC1_JOFR4    reg32(0x40012020)
+#define R_ADC1_HTR      reg32(0x40012024)
+#define R_ADC1_LTR      reg32(0x40012028)
+#define R_ADC1_SQR1     reg32(0x4001202c)
+#define R_ADC1_SQR2     reg32(0x40012030)
+#define R_ADC1_SQR3     reg32(0x40012034)
+#define R_ADC1_JSQR     reg32(0x40012038)
+#define R_ADC1_JDR1     reg32(0x4001203c)
+#define R_ADC1_JDR2     reg32(0x40012040)
+#define R_ADC1_JDR3     reg32(0x40012044)
+#define R_ADC1_JDR4     reg32(0x40012048)
+#define R_ADC1_DR       reg32(0x4001204c)
+#define R_ADC1_CCR      reg32(0x40012304)
+
 #endif /* _REG_H_ */
 
