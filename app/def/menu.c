@@ -877,7 +877,7 @@ static void refresh_info_readonly()
 	if (status == 0) {
 		eeprom_read(EEPROM_BLUETOOTH_ID, &bluetooth_id, 4);
 		rtc_get(&r);
-		k_sprintf(buf, "%05d    %s", (u16) bluetooth_id, GIT_VERSION);
+		k_sprintf(buf, "%05d  %s %s", (u16) bluetooth_id, HUMAN_VERSION, GIT_VERSION);
 		lcd_write_line(buf, 0, 0);
 
 		k_sprintf(buf, "%02d/%02d/%02d %02d:%02d", r.day, r.month, r.year,
@@ -1201,7 +1201,7 @@ static struct menu_voice_t menu[] = {
 	{18, {STR_CONFIRM, "RESET CONTATORE"}, on_evt_reset_contatore, refresh_reset, {-1, -1, 8, 8}, 1},
 	{19, {"", ""}, on_evt_show, refresh_show_avvii, {-1, -1, 1, -1}, 1},
 	{20, {"", ""}, on_evt_show, refresh_show_alarms, {-1, -1, 2, -1}, 1},
-	{21, {"Git:  " GIT_VERSION, "Date: " COMPILE_DATE}, on_evt_def, NULL, {-1, -1, 14, 14}, 1},
+	{21, {HUMAN_VERSION "   " GIT_VERSION, "Date: " COMPILE_DATE}, on_evt_def, NULL, {-1, -1, 14, 14}, 1},
 	{22, {"", ""}, on_evt_show_data, refresh_show_data, {-1, -1, 3, -1}, 1},
 	{23, {"", ""}, on_evt_mode, refresh_mode, {-1, -1, 6, 6}, 1},
 	{24, {"MENU", "IMPOSTAZIONI"}, on_evt_pwd, refresh_pwd, {-1, -1, -1, 5}, 1},

@@ -3,6 +3,8 @@
  * Copyright: Elo System srl
  */
 
+#define HUMAN_VERSION "v2"
+
 extern const char zero;
 extern const char one;
 
