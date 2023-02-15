@@ -1270,6 +1270,7 @@ struct task_t attr_tasks task_menu = {
 	.step = menu_step,
 	.intvl_ms = 5,
 	.name = "menu",
+	.no_autorun = 1,
 };
 
 u32 get_menu_timeout_ms(void)

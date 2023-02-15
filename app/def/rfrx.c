@@ -281,6 +281,7 @@ struct task_t attr_tasks task_rfrx = {
 	.step = rfrx_step,
 	.intvl_ms = 1,
 	.name = "rfrx",
+	.no_autorun = 1,
 };
 
 static int rfrx_cmd_cb(int argc, char *argv[], int fdout)

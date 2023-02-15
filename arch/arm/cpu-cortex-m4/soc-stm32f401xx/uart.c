@@ -73,6 +73,7 @@ int uart_avail(int fd)
 int uart_read(int fd, void *buf, size_t count)
 {
 	int uart_id = dev_minor(devs(fd)->id);
+	int ret;
 
 	if (uart_id > array_size(uart_cbuf))
 		return -ERRINVAL;
@@ -80,7 +81,8 @@ int uart_read(int fd, void *buf, size_t count)
 	if (!buf || count < 0)
 		return -ERRINVAL;
 
-	return cbuf_read(&uart_cbuf[uart_id], buf, count);
+	ret = cbuf_read(&uart_cbuf[uart_id], buf, count);
+	return ret;
 }
 
 int uart_write(int fd, const void *buf, size_t count)
