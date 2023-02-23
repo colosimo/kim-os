@@ -32,8 +32,7 @@ int putchar(int c)
 
 void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 {
-
-	//u32 ccr;
+	u32 ccr;
 	uint date;
 	uint time;
 	//u32 pllcfgr;
@@ -68,7 +67,7 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	gpio_func(IO(PORTA, 2), 7);
 	gpio_func(IO(PORTA, 3), 7);
 	gpio_mode(IO(PORTA, 2), PULL_NO);
-	gpio_mode(IO(PORTA, 3), PULL_NO);
+	gpio_mode(IO(PORTA, 3), PULL_UP);
 
 	wr32(R_USART2_BRR, ((*apb_freq / 16) << 4) / UART_BAUDRATE);
 	or32(R_USART2_CR1, BIT13 | BIT5 | BIT3 | BIT2);
@@ -77,13 +76,13 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 
 	uart_init();
 
-#if 0
-	/* Configure I2C1 pins: SDA on PB9, SCL on PB8 (AF4). */
-	gpio_func(IO(PORTB, 8), 4);
-	//gpio_mode(IO(PORTB, 9), PULL_UP);
 
-	gpio_func(IO(PORTB, 9), 4);
-	//gpio_mode(IO(PORTB, 9), PULL_UP);
+	/* Configure I2C1 pins: SDA on PB9, SCL on PB8 (AF4). */
+	gpio_func(IO(PORTB, 6), 4);
+	//gpio_mode(IO(PORTB, 6), PULL_UP);
+
+	gpio_func(IO(PORTB, 7), 4);
+	//gpio_mode(IO(PORTB, 7), PULL_UP);
 
 	/* Perform a reset on I2C to clear BUSY bit due to a glitch, if any */
 	or32(R_I2C1_CR1, BIT15);
@@ -100,9 +99,9 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 
 	or32(R_I2C1_CR1, BIT0);
 
-	gpio_odrain(IO(PORTB, 8), 1);
-	gpio_odrain(IO(PORTB, 9), 1);
-#endif
+	gpio_odrain(IO(PORTB, 6), 1);
+	gpio_odrain(IO(PORTB, 7), 1);
+
 	/* RTC initialization */
 	or32(R_PWR_CR, BIT8);
 	wr32(R_SYSCFG_EXTICR4, 0b001 << 8); /* PB14 on EXTI */
@@ -161,9 +160,8 @@ declare_gpio_dev(21, IO(PORTA, 4), DIR_OUT, PULL_NO, at_cmd);
 declare_gpio_dev(22, IO(PORTC, 3), DIR_OUT, PULL_NO, bt_reset);
 #endif
 
-#if 0
 declare_dev(MAJ_SOC_I2C, MINOR_I2C1, NULL, i2c1);
-#endif
+
 const k_dev_t attr_devs uart1_dev = {
 	.id = dev_id(MAJ_SOC_UART, MINOR_UART1),
 	.name = "uart1",
