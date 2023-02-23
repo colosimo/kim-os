@@ -259,6 +259,7 @@ struct task_t attr_tasks task_def = {
 	.step = def_step,
 	.intvl_ms = 1000,
 	.name = "def",
+	.no_autorun = 1,
 };
 
 /* Antenna check */
@@ -313,6 +314,7 @@ struct task_t attr_tasks task_ant_check = {
 	.step = ant_check_step,
 	.intvl_ms = 1,
 	.name = "ant_check",
+	.no_autorun = 1,
 };
 
 /* PWM out manual command */
