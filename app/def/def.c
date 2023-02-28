@@ -35,6 +35,14 @@ static int deadline_idx = -1;
 const char zero = 0;
 const char one = 1;
 
+#ifdef BOARD_elo_new
+const char led_off = 1;
+const char led_on = 0;
+#else
+const char led_off = 0;
+const char led_on = 1;
+#endif
+
 static int alrm = 0;
 static int curday = -1;
 
@@ -280,7 +288,7 @@ void ant_check_start(struct task_t *t)
 {
 	ant_error = 0;
 	t_last_on = k_ticks();
-	k_write(k_fd_byname("user_led_2"), &zero, 1);
+	k_write(k_fd_byname("user_led_2"), &led_off, 1);
 }
 
 void ant_check_step(struct task_t *t)

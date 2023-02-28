@@ -8,6 +8,9 @@
 extern const char zero;
 extern const char one;
 
+extern const char led_off;
+extern const char led_on;
+
 /* Alarm is handled as a bitfield */
 #define ALRM_TYPE_ANT      0
 #define ALRM_TYPE_UNUSED   1

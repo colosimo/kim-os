@@ -125,6 +125,9 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	gpio_dir(IO(PORTC, 3), DIR_OUT);
 	gpio_wr(IO(PORTC, 3), 1);
 
+	gpio_dir(IO(PORTA, 5), DIR_OUT);
+	gpio_wr(IO(PORTA, 5), 1);
+
 	log("OK!\n");
 }
 

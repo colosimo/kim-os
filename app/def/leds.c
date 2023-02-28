@@ -29,14 +29,17 @@ struct task_t attr_tasks task_ledg = {
 
 void ledr_step(struct task_t *t)
 {
-	char cur;
+	char tmp;
+	char alarm;
 
-	k_read(k_fd_byname("user_led_2"), &cur, 1);
+	k_read(k_fd_byname("alarm_out"), &tmp, 1);
 
-	if (cur != get_alarm(ALRM_BITFIELD_ANY)) {
-		cur = !cur;
-		k_write(k_fd_byname("alarm_out"), &cur, 1);
-		k_write(k_fd_byname("user_led_2"), &cur, 1);
+	alarm = get_alarm(ALRM_BITFIELD_ANY);
+
+	if (tmp != alarm) {
+		k_write(k_fd_byname("alarm_out"), &alarm, 1);
+		tmp = alarm ? led_on : led_off;
+		k_write(k_fd_byname("user_led_2"), &tmp, 1);
 	}
 }
 
