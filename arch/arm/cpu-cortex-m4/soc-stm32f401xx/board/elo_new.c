@@ -51,8 +51,8 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	or32(R_FLASH_ACR, 0b111);
 
 	or32(R_RCC_AHB1ENR, BIT7 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0); /* All GPIOs */
-	or32(R_RCC_APB2ENR, BIT14 | BIT4); /* USART1, SYSCFG */
-	or32(R_RCC_APB1ENR, BIT28 | BIT21 | BIT17 | BIT1 | BIT0); /* USART2, PWR, I2C1, TIM3, TIM2 */
+	or32(R_RCC_APB2ENR, BIT18 | BIT14 | BIT4); /* TIM11, SYSCFG, USART1 */
+	or32(R_RCC_APB1ENR, BIT28 | BIT21 | BIT17 | BIT2); /* USART2, PWR, I2C1, TIM4 */
 
 	gpio_func(IO(PORTA, 9), 7);
 	gpio_func(IO(PORTA, 10), 7);

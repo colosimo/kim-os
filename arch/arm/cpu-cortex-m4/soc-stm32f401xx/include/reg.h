@@ -208,6 +208,26 @@
 #define R_TIM3_DCR         reg32(0x40000448)
 #define R_TIM3_DMAR        reg32(0x4000044c)
 
+/* TIM4 registers */
+#define R_TIM4_CR1         reg32(0x40000800)
+#define R_TIM4_CR2         reg32(0x40000804)
+#define R_TIM4_SMCR        reg32(0x40000808)
+#define R_TIM4_DIER        reg32(0x4000080c)
+#define R_TIM4_SR          reg32(0x40000810)
+#define R_TIM4_EGR         reg32(0x40000814)
+#define R_TIM4_CCMR1       reg32(0x40000818)
+#define R_TIM4_CCMR2       reg32(0x4000081c)
+#define R_TIM4_CCER        reg32(0x40000820)
+#define R_TIM4_CNT         reg32(0x40000824)
+#define R_TIM4_PSC         reg32(0x40000828)
+#define R_TIM4_ARR         reg32(0x4000082c)
+#define R_TIM4_CCR1        reg32(0x40000834)
+#define R_TIM4_CCR2        reg32(0x40000838)
+#define R_TIM4_CCR3        reg32(0x4000083c)
+#define R_TIM4_CCR4        reg32(0x40000840)
+#define R_TIM4_DCR         reg32(0x40000848)
+#define R_TIM4_DMAR        reg32(0x4000084c)
+
 /* I2C1 registers */
 #define R_I2C1_CR1         reg32(0x40005400)
 #define R_I2C1_CR2         reg32(0x40005404)
