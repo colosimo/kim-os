@@ -61,6 +61,9 @@ void lcd_write_string(const char *str)
 void lcd_write_line(const char *str, int line, int centered)
 {
 	int i;
+
+	dbg("%d %s\n", line, str);
+
 	lcd_cursor(line, 0, 0);
 	if (centered) {
 		for (i = 0; i < (20 - strlen(str)) / 2; i++)

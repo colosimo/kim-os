@@ -71,7 +71,6 @@ struct task_t attr_tasks task_keys = {
 	.step = keys_step,
 	.intvl_ms = 150,
 	.name = "keys",
-	.no_autorun = 1,
 };
 
 u32 keys_get_evts(void)

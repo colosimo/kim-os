@@ -52,7 +52,8 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 
 	or32(R_RCC_AHB1ENR, BIT7 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0); /* All GPIOs */
 	or32(R_RCC_APB2ENR, BIT18 | BIT14 | BIT4); /* TIM11, SYSCFG, USART1 */
-	or32(R_RCC_APB1ENR, BIT28 | BIT21 | BIT17 | BIT2); /* USART2, PWR, I2C1, TIM4 */
+	or32(R_RCC_APB1ENR, BIT28 | BIT23 | BIT21 | BIT17 | BIT2);
+	    /* PWR, I2C3, I2C1, USART2, TIM4 */
 
 	gpio_func(IO(PORTA, 9), 7);
 	gpio_func(IO(PORTA, 10), 7);
@@ -77,12 +78,9 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	uart_init();
 
 
-	/* Configure I2C1 pins: SDA on PB9, SCL on PB8 (AF4). */
+	/* Configure I2C1 pins: SDA on PB7, SCL on PB6 (AF4). */
 	gpio_func(IO(PORTB, 6), 4);
-	//gpio_mode(IO(PORTB, 6), PULL_UP);
-
 	gpio_func(IO(PORTB, 7), 4);
-	//gpio_mode(IO(PORTB, 7), PULL_UP);
 
 	/* Perform a reset on I2C to clear BUSY bit due to a glitch, if any */
 	or32(R_I2C1_CR1, BIT15);
@@ -101,6 +99,28 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 
 	gpio_odrain(IO(PORTB, 6), 1);
 	gpio_odrain(IO(PORTB, 7), 1);
+
+	/* Configure I2C3 pins: SDA on PC9, SCL on PA8 (AF4). */
+	gpio_func(IO(PORTC, 9), 4);
+	gpio_func(IO(PORTA, 8), 4);
+
+	/* Perform a reset on I2C to clear BUSY bit due to a glitch, if any */
+	or32(R_I2C3_CR1, BIT15);
+	and32(R_I2C3_CR1, ~BIT15);
+
+	wr32(R_I2C3_CR2, *apb_freq / MHZ);
+	if (I2C_FREQ < 100 * KHZ)
+		ccr = *apb_freq / I2C_FREQ / 2;
+	else
+		ccr = BIT15 | (*apb_freq / I2C_FREQ / 3);
+	wr32(R_I2C3_CCR, ccr);
+	wr32(R_I2C3_TRISE, *apb_freq / MHZ + 1);
+	wr32(R_I2C3_FLT, 0b0111);
+
+	or32(R_I2C3_CR1, BIT0);
+
+	gpio_odrain(IO(PORTC, 9), 1);
+	gpio_odrain(IO(PORTA, 8), 1);
 
 	/* RTC initialization */
 	or32(R_PWR_CR, BIT8);
@@ -157,6 +177,8 @@ declare_gpio_dev(17, IO(PORTB, 12), DIR_OUT, PULL_NO, db7);
 declare_gpio_dev(18, IO(PORTC, 5), DIR_OUT, PULL_NO, e);
 declare_gpio_dev(19, IO(PORTA, 7), DIR_OUT, PULL_NO, rs);
 declare_gpio_dev(20, IO(PORTC, 4), DIR_OUT, PULL_NO, rw);
+declare_gpio_dev(21, IO(PORTA, 12), DIR_IN, PULL_UP, alert);
+
 
 #if 0
 declare_gpio_dev(21, IO(PORTA, 4), DIR_OUT, PULL_NO, at_cmd);
@@ -164,6 +186,7 @@ declare_gpio_dev(22, IO(PORTC, 3), DIR_OUT, PULL_NO, bt_reset);
 #endif
 
 declare_dev(MAJ_SOC_I2C, MINOR_I2C1, NULL, i2c1);
+declare_dev(MAJ_SOC_I2C, MINOR_I2C3, NULL, i2c3);
 
 const k_dev_t attr_devs uart1_dev = {
 	.id = dev_id(MAJ_SOC_UART, MINOR_UART1),
