@@ -52,8 +52,8 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 
 	or32(R_RCC_AHB1ENR, BIT7 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0); /* All GPIOs */
 	or32(R_RCC_APB2ENR, BIT18 | BIT14 | BIT4); /* TIM11, SYSCFG, USART1 */
-	or32(R_RCC_APB1ENR, BIT28 | BIT23 | BIT21 | BIT17 | BIT2);
-	    /* PWR, I2C3, I2C1, USART2, TIM4 */
+	or32(R_RCC_APB1ENR, BIT28 | BIT23 | BIT21 | BIT17 | BIT2 | BIT0);
+	    /* PWR, I2C3, I2C1, USART2, TIM4, TIM2 */
 
 	gpio_func(IO(PORTA, 9), 7);
 	gpio_func(IO(PORTA, 10), 7);
@@ -124,7 +124,9 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 
 	/* RTC initialization */
 	or32(R_PWR_CR, BIT8);
-	wr32(R_SYSCFG_EXTICR4, 0b001 << 8); /* PB14 on EXTI */
+
+	/* RF_RX pin EXTI initialization */
+	wr32(R_SYSCFG_EXTICR3, 0b001 << 4); /* PB9 on EXTI */
 
 	if (((rd32(R_RCC_BDCR) >> 8) & 0b11) != 0b01)
 		wr32(R_RCC_BDCR, BIT16);

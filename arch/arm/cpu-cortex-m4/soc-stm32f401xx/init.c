@@ -40,6 +40,10 @@ void attr_weak isr_exti15_10(void)
 {
 }
 
+void attr_weak isr_exti9_5(void)
+{
+}
+
 static const void *attr_isrv_irq _isrv_irq[] = {
 	/* STM32F401 peripheral IRQs */
 	isr_none, /* WWDG */
@@ -65,7 +69,7 @@ static const void *attr_isrv_irq _isrv_irq[] = {
 	isr_none, /* Reserved */
 	isr_none, /* Reserved */
 	isr_none, /* Reserved */
-	isr_none, /* EXTI9_5 */
+	isr_exti9_5, /* EXTI9_5 */
 	isr_none, /* TIM1_BRK_TIM9 */
 	isr_none, /* TIM1_UP_TIM10 */
 	isr_none, /* TIM1_TRG_COM_TIM11 */

@@ -75,12 +75,20 @@ void rfrx_frame_display(struct rfrx_frame_t *f)
 	lcd_write_line(buf, 1, 0);
 }
 
+#ifdef BOARD_elo_new
+void isr_exti9_5(void)
+#else
 void isr_exti15_10(void)
+#endif
 {
 	volatile u32 t;
 	u8 now;
 
+#ifdef BOARD_elo_new
+	wr32(R_EXTI_PR1, BIT9);
+#else
 	wr32(R_EXTI_PR1, BIT15);
+#endif
 	last_intr = k_ticks();
 
 	k_read(fd, &now, 1);
@@ -139,12 +147,17 @@ static void rfrx_start(struct task_t *t)
 	wr32(R_TIM2_CR1, 0);
 	wr32(R_TIM2_CNT, 0);
 	wr32(R_TIM2_CR1, BIT0);
-
+#ifdef BOARD_elo_new
+	or32(R_EXTI_FTSR1, BIT9);
+	or32(R_EXTI_RTSR1, BIT9);
+	or32(R_EXTI_IMR1, BIT9);
+	or32(R_NVIC_ISER(0), BIT23); /* EXTI9_5 is irq 23 */
+#else
 	or32(R_EXTI_FTSR1, BIT15);
 	or32(R_EXTI_RTSR1, BIT15);
 	or32(R_EXTI_IMR1, BIT15);
 	or32(R_NVIC_ISER(1), BIT8); /* EXTI15_10 is irq 40 */
-
+#endif
 	rfrx_clear_lastframe();
 	cnt = 0;
 	end_ok = 0;
@@ -281,7 +294,6 @@ struct task_t attr_tasks task_rfrx = {
 	.step = rfrx_step,
 	.intvl_ms = 1,
 	.name = "rfrx",
-	.no_autorun = 1,
 };
 
 static int rfrx_cmd_cb(int argc, char *argv[], int fdout)
