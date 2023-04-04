@@ -242,7 +242,7 @@ static int status_mode;
 static int menu_mode = 0;
 static struct pwm_cfg_t menu_p;
 
-static void update_screen_pwm()
+static void update_screen_pwm_ant()
 {
 	char buf[24];
 	int cur_line, cur_pos;
@@ -262,19 +262,19 @@ static void update_screen_pwm()
 	lcd_cursor(cur_line, cur_pos, 1);
 }
 
-static void refresh_pwm(void)
+static void refresh_pwm_ant(void)
 {
 	if (status == 0) {
 		eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &status_mode, 1);
 		menu_mode = status_mode;
 		eeprom_read(EEPROM_PWM_MODE0_ADDR + menu_mode * sizeof(menu_p),
 		    (u8*)&menu_p, sizeof(menu_p));
-		update_screen_pwm();
+		update_screen_pwm_ant();
 		status = 1;
 	}
 }
 
-static void on_evt_pwm(int key)
+static void on_evt_pwm_ant(int key)
 {
 	if (key == KEY_ESC) {
 		on_evt_def(key);
@@ -320,7 +320,7 @@ static void on_evt_pwm(int key)
 		}
 
 	}
-	update_screen_pwm();
+	update_screen_pwm_ant();
 	keys_clear_evts(1 << key);
 }
 
@@ -1202,7 +1202,7 @@ static struct menu_voice_t menu[] = {
 	{13, {"IMPOSTAZIONI", "ESPORTA DATI"}, on_evt_def, NULL, {12, 30, 0, 28}, 1},
 	{14, {"IMPOSTAZIONI", "VERSIONE FW"}, on_evt_def, NULL, {30, 5, 0, 21}, 1},
 
-	{15, {"", ""}, on_evt_pwm, refresh_pwm, {-1, -1, 5, 5}, 1},
+	{15, {"", ""}, on_evt_pwm_ant, refresh_pwm_ant, {-1, -1, 5, 5}, 1},
 	{16, {"Attendere...", "Comunicazione"}, on_evt_def, refresh_realtimesens, {-1, -1, 4, 4}, 1,
 	    .timeout_ms = (30 * 60 * 1000),},
 	{17, {STR_CONFIRM, "RESET STORICI"}, on_evt_reset_storici, refresh_reset, {-1, -1, 9, 9}, 1},
