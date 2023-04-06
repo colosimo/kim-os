@@ -51,9 +51,9 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	or32(R_FLASH_ACR, 0b111);
 
 	or32(R_RCC_AHB1ENR, BIT7 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0); /* All GPIOs */
-	or32(R_RCC_APB2ENR, BIT18 | BIT14 | BIT4); /* TIM11, SYSCFG, USART1 */
-	or32(R_RCC_APB1ENR, BIT28 | BIT23 | BIT21 | BIT17 | BIT2 | BIT0);
-	    /* PWR, I2C3, I2C1, USART2, TIM4, TIM2 */
+	or32(R_RCC_APB2ENR, BIT18 | BIT14 | BIT4 | BIT0); /* TIM11, SYSCFG, USART1, TIM1 */
+	or32(R_RCC_APB1ENR, BIT28 | BIT23 | BIT21 | BIT17 | BIT3 | BIT2 | BIT1 | BIT0);
+	    /* PWR, I2C3, I2C1, USART2, TIM5, TIM4, TIM3, TIM2 */
 
 	gpio_func(IO(PORTA, 9), 7);
 	gpio_func(IO(PORTA, 10), 7);
@@ -150,21 +150,19 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	gpio_dir(IO(PORTA, 5), DIR_OUT);
 	gpio_wr(IO(PORTA, 5), 1);
 
+	/* Disable OSM ch1 and ch2 (EL1PWR/EL2PWR HIGH -> regulator OFF) */
+	gpio_wr(IO(PORTC, 10), 1);
+	gpio_dir(IO(PORTC, 10), DIR_OUT);
+	gpio_wr(IO(PORTA, 15), 1);
+	gpio_dir(IO(PORTA, 15), DIR_OUT);
+
 	log("OK!\n");
 }
-
 
 declare_gpio_dev(0, IO(PORTC, 13), DIR_OUT, PULL_NO, user_led_1);
 declare_gpio_dev(1, IO(PORTA, 5), DIR_OUT, PULL_NO, user_led_2);
 declare_gpio_dev(2, IO(PORTC, 12), DIR_IN, PULL_NO, ant_check);
 declare_gpio_dev(3, IO(PORTD, 2), DIR_OUT, PULL_NO, alarm_out);
-#if 0
-declare_gpio_dev(4, IO(PORTB, 1), DIR_IN, PULL_DOWN, sw_up);
-declare_gpio_dev(5, IO(PORTB, 2), DIR_IN, PULL_DOWN, sw_down);
-declare_gpio_dev(6, IO(PORTB, 10), DIR_IN, PULL_DOWN, sw_esc);
-declare_gpio_dev(7, IO(PORTC, 6), DIR_IN, PULL_DOWN, sw_enter);
-#endif
-
 declare_gpio_dev(8, IO(PORTA, 6), DIR_OUT, PULL_NO, lcd_backlight);
 declare_gpio_dev(9, IO(PORTB, 9), DIR_IN, PULL_NO, rf_rx);
 
@@ -180,12 +178,8 @@ declare_gpio_dev(18, IO(PORTC, 5), DIR_OUT, PULL_NO, e);
 declare_gpio_dev(19, IO(PORTA, 7), DIR_OUT, PULL_NO, rs);
 declare_gpio_dev(20, IO(PORTC, 4), DIR_OUT, PULL_NO, rw);
 declare_gpio_dev(21, IO(PORTA, 12), DIR_IN, PULL_UP, alert);
-
-
-#if 0
-declare_gpio_dev(21, IO(PORTA, 4), DIR_OUT, PULL_NO, at_cmd);
-declare_gpio_dev(22, IO(PORTC, 3), DIR_OUT, PULL_NO, bt_reset);
-#endif
+declare_gpio_dev(22, IO(PORTA, 15), DIR_OUT, PULL_NO, el1pwr);
+declare_gpio_dev(23, IO(PORTC, 10), DIR_OUT, PULL_NO, el2pwr);
 
 declare_dev(MAJ_SOC_I2C, MINOR_I2C1, NULL, i2c1);
 declare_dev(MAJ_SOC_I2C, MINOR_I2C3, NULL, i2c3);
@@ -194,9 +188,3 @@ const k_dev_t attr_devs uart1_dev = {
 	.id = dev_id(MAJ_SOC_UART, MINOR_UART1),
 	.name = "uart1",
 };
-#if 0
-const k_dev_t attr_devs uart2_dev = {
-	.id = dev_id(MAJ_SOC_UART, MINOR_UART2),
-	.name = "uart2",
-};
-#endif
