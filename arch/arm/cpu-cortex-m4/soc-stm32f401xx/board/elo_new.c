@@ -51,7 +51,7 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	or32(R_FLASH_ACR, 0b111);
 
 	or32(R_RCC_AHB1ENR, BIT7 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0); /* All GPIOs */
-	or32(R_RCC_APB2ENR, BIT18 | BIT14 | BIT4 | BIT0); /* TIM11, SYSCFG, USART1, TIM1 */
+	or32(R_RCC_APB2ENR, BIT18 | BIT14 | BIT8 | BIT4 | BIT0); /* TIM11, SYSCFG, ADC1, USART1, TIM1 */
 	or32(R_RCC_APB1ENR, BIT28 | BIT23 | BIT21 | BIT17 | BIT3 | BIT2 | BIT1 | BIT0);
 	    /* PWR, I2C3, I2C1, USART2, TIM5, TIM4, TIM3, TIM2 */
 
@@ -155,6 +155,13 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	gpio_dir(IO(PORTC, 10), DIR_OUT);
 	gpio_wr(IO(PORTA, 15), 1);
 	gpio_dir(IO(PORTA, 15), DIR_OUT);
+
+	/* Configure ADCs */
+	or32(R_GPIOA_MODER, 0b11 << 0); /* PA0 analog mode */
+	or32(R_GPIOC_MODER, 0b11 << 0); /* PC0 analog mode */
+	or32(R_GPIOC_MODER, 0b11 << 2); /* PC1 analog mode */
+	or32(R_GPIOC_MODER, 0b11 << 4); /* PC2 analog mode */
+	or32(R_GPIOC_MODER, 0b11 << 6); /* PC3 analog mode */
 
 	log("OK!\n");
 }

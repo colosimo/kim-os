@@ -116,17 +116,43 @@ void osm_get(int channel, struct osm_cfg_t *osm)
 	*osm = osm_array[channel];
 }
 
-void osm_measure(int channel, u32 *volt, u32 *cur_mA)
+void osm_measure(int channel, u32 *volt_mV, u32 *cur_mA, u32 *temperature)
 {
+	int NITER = 4;
+	int i, j;
+	u32 adc[3];
+	int adc_in_ch1[] = {0, 10, 12};
+	int adc_in_ch2[] = {0, 11, 13};
+	int *adc_in;
+
 	if (channel < 0 || channel > OSM_CH2) {
 		print_invalid_channel(channel);
 		return;
 	}
 
-	if (channel == OSM_CH1) {
+	if (channel == OSM_CH1)
+		adc_in = adc_in_ch1;
+	else if (channel == OSM_CH2)
+		adc_in = adc_in_ch2;
+
+	wr32(R_ADC1_CR2, BIT0);
+	wr32(R_ADC1_SMPR2, (0b111 << 0) | (0b111 << 3) | (0b111 << 12));
+	for (i = 0; i < 3; i++) {
+		adc[i] = 0;
+		for (j = 0; j < NITER; j++) {
+			wr32(R_ADC1_SQR3, adc_in[i]);
+			or32(R_ADC1_CR2, BIT30);
+			while((rd32(R_ADC1_SR) & BIT1) == 0);
+			adc[i] += rd32(R_ADC1_DR);
+		}
+		adc[i] /= NITER;
 	}
-	else if (channel == OSM_CH2) {
-	}
+
+	and32(R_ADC1_CR2, ~BIT0);
+
+	*temperature = (adc[0] * 825) / 1024;
+	*volt_mV = (adc[1] * 10) / 3;
+	*cur_mA = (adc[2] * 3) / 4;
 }
 
 void osm_enable(int channel)
