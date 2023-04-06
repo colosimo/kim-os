@@ -14,3 +14,7 @@ OBJS += $(APP)/db.o
 OBJS += $(APP)/bluetooth.o
 OBJS += $(APP)/deadline.o
 OBJS += $(patsubst %.c,%.o,$(wildcard cli/*.c))
+
+ifeq ($(BOARD),elo_new)
+OBJS += $(APP)/osm.o
+endif
