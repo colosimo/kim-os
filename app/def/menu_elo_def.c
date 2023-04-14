@@ -110,6 +110,10 @@ static void on_evt_def(int key)
 		goto done;
 	}
 	new_menu = cur_menu;
+
+	if (new_menu->id_next[key] < 0)
+		goto done;
+
 	do {
 		new_menu = get_menu_voice(new_menu->id_next[key]);
 		if (new_menu && new_menu->enabled) {
