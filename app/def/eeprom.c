@@ -73,7 +73,7 @@ void eeprom_reset(void)
 	tmp8 = 1;
 	eeprom_write(EEPROM_ENABLE_DEF_OUT, &tmp8, 1);
 	tmp8 = 2;
-	eeprom_write(EEPROM_ENABLE_DEF_OSM, &tmp8, 1);
+	eeprom_write(EEPROM_ENABLE_OSM, &tmp8, 1);
 	tmp8 = 70;
 	eeprom_write(EEPROM_T_MAX, &tmp8, 1);
 
