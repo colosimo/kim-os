@@ -157,8 +157,10 @@ void osm_measure(int channel, u32 *volt_mV, u32 *cur_mA, u32 *temperature)
 		*volt_mV = (adc[1] * 10) / 3;
 	if (cur_mA) {
 		*cur_mA = (adc[2] * 3) / 4;
+#if 0
 		if (*cur_mA <= 120)
 			*cur_mA = 0; /* Compensate offset in O.A. out ~120mA */
+#endif
 	}
 }
 

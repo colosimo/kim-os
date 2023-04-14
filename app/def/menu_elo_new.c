@@ -1319,6 +1319,51 @@ static void on_evt_fmode(int key)
 {
 }
 #endif
+
+
+/* PWM OSM Setting Begin */
+
+int osm_ch = OSM_CH1;
+
+static void refresh_osm(void)
+{
+	char buf[24];
+	struct osm_cfg_t osm;
+	u32 a, v, temp;
+
+	eeprom_read(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &osm, sizeof(osm));
+	osm_measure(osm_ch, &v, &a, &temp);
+
+	k_sprintf(buf, "C%d F:%03d T:%03d D:%03d", osm_ch + 1, (uint)osm.freq,
+	    (uint)osm.volt_perc, (uint)osm.duty);
+	lcd_write_line(buf, 0, 0);
+
+	k_sprintf(buf, "T:%d.%dV C=%03dmA", (uint)v / 1000, (uint)(v % 1000) / 100, (uint)a);
+	lcd_write_line(buf, 1, 0);
+}
+
+static void on_evt_osm(int key)
+{
+	if (osm_ch == OSM_CH1 && key == KEY_DOWN) {
+		osm_ch = OSM_CH2;
+		goto refresh;
+	}
+	else if (osm_ch == OSM_CH2 && key == KEY_UP) {
+		osm_ch = OSM_CH1;
+		goto refresh;
+	}
+	else if (key != KEY_ENTER)
+		on_evt_def(key);
+
+	return;
+refresh:
+	refresh_osm();
+	keys_clear_evts(1 << key);
+
+}
+
+/* PWM OSM Setting End */
+
 static struct menu_voice_t menu[] = {
 	{10, {"VERSIONE", ""}, on_evt_def, NULL, {30, 20, -1, 11}, 1},
 	{11, {"S/N: NNNNN Beep:SSS", "V:00.0 DD/MM/AA T:TT"}, on_evt_def, NULL, {14, 12, 10, -1}, 1},
@@ -1334,7 +1379,7 @@ static struct menu_voice_t menu[] = {
 	{30, {"IMPOSTAZIONI", ""}, on_evt_def, NULL, {20, 10, -1, 31}, 1},
 	{31, {"F. Mode EDWB", "S/N NNNNN T:TT"}, on_evt_def, NULL, {38, 32, 30, -1}, 1},
 	{32, {"PARAMETRI PWM", ""}, on_evt_def, NULL, {31, 33, 30, 321}, 1},
-	{321, {"CX F:YY T:ZZ D:KK", "T:TT.TV C=FFFmA"}, on_evt_def, NULL, {325, 322, 32, -1}, 1},
+	{321, {"", ""}, on_evt_osm, refresh_osm, {325, 322, 32, -1}, 1},
 	{322, {"EPT:A P:YY", "INV:ZZ.Z"}, on_evt_def, NULL, {321, 323, 32, -1}, 1},
 	{323, {"START RIT:A", "IL:GG/MM/AA h:OO"}, on_evt_def, NULL, {322, 324, 32, -1}, 1},
 	{324, {"CX Contr. Corr:A", "%:PP T:SS"}, on_evt_def, NULL, {323, 325, 32, -1}, 1},
