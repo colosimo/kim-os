@@ -27,6 +27,7 @@ int i2c_fd;
 void eeprom_reset(void)
 {
 	u32 tmp = 0xdeadbeaf;
+	u8 tmp8;
 	struct pwm_cfg_t p;
 	int m;
 	u8 daily_avg;
@@ -67,6 +68,14 @@ void eeprom_reset(void)
 	/* Write Format Version */
 	tmp = EEPROM_FMT_VER;
 	eeprom_write(EEPROM_FMT_VER_ADDR, &tmp, sizeof(tmp));
+
+	/* Reset function mode flags */
+	tmp8 = 1;
+	eeprom_write(EEPROM_ENABLE_DEF_OUT, &tmp8, 1);
+	tmp8 = 2;
+	eeprom_write(EEPROM_ENABLE_DEF_OSM, &tmp8, 1);
+	tmp8 = 70;
+	eeprom_write(EEPROM_T_MAX, &tmp8, 1);
 
 	/* Reset alarms */
 	db_alarm_reset();

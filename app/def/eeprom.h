@@ -21,6 +21,8 @@ struct pwm_cfg_t {
 #define EEPROM_PWM_STATUS_MODE_ADDR   0x000d
 
 #define EEPROM_ENABLE_DAILY_AVG  0x0010
+#define EEPROM_ENABLE_DEF_OUT    0x0011
+#define EEPROM_ENABLE_OSM        0x0012
 #define EEPROM_ALARMS_CUR_POS    0x0014
 #define EEPROM_AVVII_CUR_POS     0x0018
 #define EEPROM_DATA_CUR_POS      0x001c
@@ -39,6 +41,11 @@ struct pwm_cfg_t {
 #define EEPROM_DEADLINE1_CFG     0x0060
 #define EEPROM_DEADLINE2_CFG     0x0070
 #define EEPROM_DEADLINE3_CFG     0x0080
+
+#define EEPROM_OSM_CH1_CFG       0x0090
+#define EEPROM_OSM_CH2_CFG       0x00a0
+
+#define EEPROM_T_MAX             0x00b0
 
 #define EEPROM_ALARMS_START_ADDR 0x0100
 #define EEPROM_ALARMS_END_ADDR   0x04f8

@@ -21,6 +21,7 @@
 #include "def.h"
 #include "bluetooth.h"
 #include "deadline.h"
+#include "osm.h"
 
 /* DEF Main task */
 
@@ -186,6 +187,8 @@ static void def_start(struct task_t *t)
 	update_last_seen_on();
 
 	dl_load_all();
+
+	osm_init();
 }
 
 static void def_step(struct task_t *t)
