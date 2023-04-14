@@ -150,10 +150,6 @@ static void def_start(struct task_t *t)
 	update_last_seen_on();
 
 	dl_load_all();
-
-#ifdef BOARD_elo_new
-	osm_init();
-#endif
 }
 
 static void def_step(struct task_t *t)

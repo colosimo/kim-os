@@ -13,14 +13,18 @@
 #include "pwm.h"
 #include "eeprom.h"
 #include "lcd.h"
+#include "osm.h"
 
 #define EEPROM_I2C_ADDR_7BIT 0b1010110
 
 #define EEPROM_SIGN     "ELOS"
-#define EEPROM_FMT_VER  2
+#define EEPROM_FMT_VER  3
 
 static u8 pwm_def_freq[3] = {200, 100, 80};
 static u8 pwm_def_duty[3] = {5, 5, 5};
+
+static struct osm_cfg_t osm_def_cfg =
+    {.enable = 1, .volt_perc = 80, .freq = 100, .duty = 50};
 
 int i2c_fd;
 
@@ -65,6 +69,10 @@ void eeprom_reset(void)
 	tmp = 1;
 	eeprom_write(EEPROM_PWM_ROL_DAYS_SETTING_ADDR, &tmp, sizeof(tmp));
 
+	/* Reset OSM */
+	eeprom_write(EEPROM_OSM_CH1_CFG, &osm_def_cfg, sizeof(osm_def_cfg));
+	eeprom_write(EEPROM_OSM_CH2_CFG, &osm_def_cfg, sizeof(osm_def_cfg));
+
 	/* Write Format Version */
 	tmp = EEPROM_FMT_VER;
 	eeprom_write(EEPROM_FMT_VER_ADDR, &tmp, sizeof(tmp));
@@ -72,7 +80,7 @@ void eeprom_reset(void)
 	/* Reset function mode flags */
 	tmp8 = 1;
 	eeprom_write(EEPROM_ENABLE_DEF_OUT, &tmp8, 1);
-	tmp8 = 2;
+	tmp8 = 1;
 	eeprom_write(EEPROM_ENABLE_OSM, &tmp8, 1);
 	tmp8 = 70;
 	eeprom_write(EEPROM_T_MAX, &tmp8, 1);

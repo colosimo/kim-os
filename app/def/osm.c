@@ -9,6 +9,7 @@
 #include <kim-io.h>
 
 #include "osm.h"
+#include "eeprom.h"
 
 /*
  * PWM1: PB0  TIM3_CH3  30Hz - 1kHz 0-100%
@@ -151,7 +152,7 @@ void osm_measure(int channel, u32 *volt_mV, u32 *cur_mA, u32 *temperature)
 	and32(R_ADC1_CR2, ~BIT0);
 
 	if (temperature)
-		*temperature = (adc[0] * 825) / 1024;
+		*temperature = (adc[0] * 83) / 1024;
 	if (volt_mV)
 		*volt_mV = (adc[1] * 10) / 3;
 	if (cur_mA) {
@@ -205,3 +206,59 @@ void osm_disable(int channel)
 	osm_array[channel].enable = 0;
 
 }
+
+static void osm_start(struct task_t *t)
+{
+	struct osm_cfg_t osm_cfg;
+	u8 osm_enable;
+	int i;
+
+	osm_init();
+	osm_disable(OSM_CH1);
+	osm_disable(OSM_CH2);
+
+	eeprom_read(EEPROM_ENABLE_OSM, &osm_enable, 1);
+	log("osm_enable =%d\n", osm_enable);
+
+	for (i = OSM_CH1; i < osm_enable; i++) {
+		eeprom_read(EEPROM_OSM_CH1_CFG + 0x10 * i, &osm_cfg, sizeof(osm_cfg));
+		log("CH%d: %d %d %d %d\n", i + 1,
+		    (uint)osm_cfg.enable, (uint)osm_cfg.volt_perc,
+		    (uint)osm_cfg.freq, (uint)osm_cfg.duty);
+		osm_set_cfg(i, &osm_cfg);
+	}
+}
+
+static int overtemp = 0;
+static void osm_step(struct task_t *t)
+{
+	u32 v, temp;
+	int i;
+	u8 temp_max;
+
+	for (i = OSM_CH1; i <= OSM_CH2; i++) {
+		osm_measure(i, &v, NULL, &temp);
+		dbg("CH%d: %dmV\n", i + 1, (uint)v);
+	}
+	dbg("T: %d\n", (uint)temp);
+
+	eeprom_read(EEPROM_T_MAX, &temp_max, 1);
+	if (!overtemp && (temp >= temp_max)) {
+		dbg("OVERTEMPERATURE!\n");
+		osm_disable(OSM_CH1);
+		osm_disable(OSM_CH2);
+		overtemp = 1;
+	}
+	else if (overtemp && (temp + 10 <= temp_max)) {
+		overtemp = 0;
+		dbg("OVERTEMPERATURE ENDED!\n");
+		osm_start(t);
+	}
+}
+
+struct task_t attr_tasks task_osm = {
+	.start = osm_start,
+	.step = osm_step,
+	.intvl_ms = 1000,
+	.name = "osm",
+};
