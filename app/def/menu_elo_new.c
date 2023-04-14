@@ -116,11 +116,12 @@ done:
 	keys_clear_evts(1 << key);
 }
 
-#if 0
 /* Date / Time setting */
 
 static struct rtc_t r;
 static u32 ticks_cancel;
+
+#if 0
 
 static void update_screen_datetime()
 {
@@ -1014,7 +1015,7 @@ static void refresh_info_readonly()
 		status = 1;
 	}
 }
-
+#endif
 /* Deadlines settings ("Funzionamento Temporizzato")*/
 static int dl_idx = 0;
 static struct deadline_t dl;
@@ -1209,7 +1210,6 @@ static void on_evt_deadline(int key)
 	keys_clear_evts(1 << key);
 }
 
-#endif
 /* Deadlines Code (password to unlock) */
 u8 dl_code[6];
 int dl_to_unlock = -1;
@@ -1325,7 +1325,7 @@ static struct menu_voice_t menu[] = {
 	{12, {"V1: XX.X V2: XX.X", "mA1: CCC mA2: CC2"}, on_evt_def, NULL, {11, 13, 10, -1}, 1},
 	{13, {"DEF RX", ""}, on_evt_def, NULL, {12, 14, 10, -1}, 1},
 	{14, {"Timeout GG/MM/AA", "Cod. Sblocco XXXXX"}, on_evt_def, NULL, {13, 11, 10, -1}, 1},
-	{20, "LOG", ""}, on_evt_def, NULL, {10, 30, -1, 21}, 1},
+	{20, {"LOG", ""}, on_evt_def, NULL, {10, 30, -1, 21}, 1},
 	{21, {"Allarmi RRR DDDDDD", "GGMMAA HH:MM"}, on_evt_def, NULL, {23, 22, 20, -1}, 1},
 	{22, {"Avvii RRR GG.CCC", "A:DDMMAA S:DDMMAA"}, on_evt_def, NULL, {21, 23, 20, -1}, 1},
 	{23, {"LETTURE", ""}, on_evt_def, NULL, {22, 21, 20, 231}, 1},
@@ -1349,7 +1349,8 @@ static struct menu_voice_t menu[] = {
 	{334, {"VISUALIZZA", "REALTIME SENSORI"}, on_evt_def, NULL, {333, 331, -1, 3340}, 1},
 	{3340, {"Attendere...", "Comunicazione"}, on_evt_def, refresh_realtimesens, {-1, -1, 334, 334}, 1},
 	{34, {"D GG/MM/AA H HH:MM", "Cont XXXX"}, on_evt_def, NULL, {33, 35, 30, -1}, 1},
-	{35, {"Funz. a tempo", ""}, on_evt_def, NULL, {34, 36, 30, -1}, 1},
+	{35, {"Funz. a tempo", ""}, on_evt_def, NULL, {34, 36, 30, 350}, 1},
+	{350, {"", ""}, on_evt_deadline, refresh_deadline, {-1, -1, 35, 35}, 1},
 	{36, {"Comunicazioni", ""}, on_evt_def, NULL, {35, 37, 30, -1}, 0},
 	{37, {"Rele errore", ""}, on_evt_def, NULL, {36, 38, 30, -1}, 1},
 	{38, {"Backup/Restore", ""}, on_evt_def, NULL, {37, 31, 30, -1}, 0},
