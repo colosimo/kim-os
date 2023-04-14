@@ -25,9 +25,7 @@
 #include "osm.h"
 
 static int status = 0; /* Generic state machine variable */
-#if 0
 static u32 ticks_exec;
-#endif
 
 #define MENU_VOICE_DEFAULT 10
 #define MENU_VOICE_PWD 32
@@ -353,6 +351,7 @@ static void on_evt_osm(int key)
 #endif
 }
 
+#endif
 /* DEF PWM setting */
 
 static int status_mode;
@@ -440,7 +439,6 @@ static void on_evt_pwm_ant(int key)
 	update_screen_pwm_ant();
 	keys_clear_evts(1 << key);
 }
-
 
 /* Modality choice */
 
@@ -593,6 +591,8 @@ static void refresh_realtimesens(void)
 		rfrx_clear_lastframe();
 	}
 }
+
+#if 0
 
 static void refresh_reset(void)
 {
@@ -893,7 +893,7 @@ static void attr_unused on_evt_pwd(int key)
 static void refresh_pwd(void)
 {
 }
-
+#endif
 
 static void on_evt_avg_en(int key)
 {
@@ -925,6 +925,7 @@ static void refresh_avg_en(void)
 
 }
 
+#if 0
 u32 bluetooth_id;
 
 static void on_evt_bluetooth_id(int key)
@@ -1332,13 +1333,21 @@ static struct menu_voice_t menu[] = {
 	{232, {"SX RRRR DDMMAA H:YY", "T:XX.Z B:KK.K mV:TTT"}, on_evt_def, NULL, {231, 231, 23, -1}, 1},
 	{30, {"    IMPOSTAZIONI", ""}, on_evt_def, NULL, {20, 10, -1, 31}, 1},
 	{31, {"F. Mode EDWB", "S/N NNNNN T:TT"}, on_evt_def, NULL, {38, 32, 30, -1}, 1},
-	{32, {"Parametri PWM", ""}, on_evt_def, NULL, {31, 33, 30, 321}, 1},
+	{32, {"PARAMETRI PWM", ""}, on_evt_def, NULL, {31, 33, 30, 321}, 1},
 	{321, {"CX F:YY T:ZZ D:KK", "T:TT.TV C=FFFmA"}, on_evt_def, NULL, {325, 322, 32, -1}, 1},
 	{322, {"EPT:A P:YY", "INV:ZZ.Z"}, on_evt_def, NULL, {321, 323, 32, -1}, 1},
 	{323, {"START RIT:A", "IL:GG/MM/AA h:OO"}, on_evt_def, NULL, {322, 324, 32, -1}, 1},
 	{324, {"CX Contr. Corr:A", "%:PP T:SS"}, on_evt_def, NULL, {323, 325, 32, -1}, 1},
 	{325, {"LIMITI C:X MIN:A", "MAX:KKK COR:ZZZZ"}, on_evt_def, NULL, {324, 321, 32, -1}, 1},
-	{33, {"Parametri DEF", ""}, on_evt_def, NULL, {32, 34, 30, -1}, 1},
+	{33, {"PARAMETRI DEF", ""}, on_evt_def, NULL, {32, 34, 30, 331}, 1},
+	{331, {"PARAMETRI DEF", "PARAMETRI F."}, on_evt_def, NULL, {334, 332, 33, 3310}, 1},
+	{3310, {"", ""}, on_evt_pwm_ant, refresh_pwm_ant, {-1, -1, 331, 331}, 1},
+	{332, {"PARAMETRI DEF", "MODALITA'"}, on_evt_def, NULL, {331, 333, 33, 3320}, 1},
+	{3320, {"", ""}, on_evt_mode, refresh_mode, {-1, -1, 332, 332}, 1},
+	{333, {"PARAMETRI DEF", "ABIL. MEDIA GIORN."}, on_evt_def, NULL, {332, 334, 0, 3330}, 1},
+	{3330, {"", ""}, on_evt_avg_en, refresh_avg_en, {-1, -1, 333, 333}, 1},
+	{334, {"VISUALIZZA", "REALTIME SENSORI"}, on_evt_def, NULL, {333, 331, -1, 3340}, 1},
+	{3340, {"Attendere...", "Comunicazione"}, on_evt_def, refresh_realtimesens, {-1, -1, 334, 334}, 1},
 	{34, {"D GG/MM/AA H HH:MM", "Cont XXXX"}, on_evt_def, NULL, {33, 35, 30, -1}, 1},
 	{35, {"Funz. a tempo", ""}, on_evt_def, NULL, {34, 36, 30, -1}, 1},
 	{36, {"Comunicazioni", ""}, on_evt_def, NULL, {35, 37, 30, -1}, 0},
