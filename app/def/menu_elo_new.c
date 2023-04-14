@@ -22,11 +22,14 @@
 #include "eeprom.h"
 #include "bluetooth.h"
 #include "deadline.h"
+#include "osm.h"
 
 static int status = 0; /* Generic state machine variable */
+#if 0
 static u32 ticks_exec;
+#endif
 
-#define MENU_VOICE_DEFAULT 0
+#define MENU_VOICE_DEFAULT 10
 #define MENU_VOICE_PWD 32
 #define STR_CONFIRM "CONFERMA?"
 #define STR_EMPTY "ARCHIVIO VUOTO"
@@ -37,7 +40,7 @@ static u32 ticks_exec;
 
 struct menu_voice_t {
 	int id;
-	const char text[2][20];
+	const char text[2][21];
 	void (*on_evt)(int evt);
 	void (*refresh)(void);
 	int id_next[4]; /* Next menu voice to be called on: UP, DOWN, ESC, ENTER */
@@ -51,9 +54,25 @@ static struct menu_voice_t *cur_menu = NULL;
 
 extern int deadline_lock;
 extern int deadline_idx;
+extern u32 hours;
 
 void show_home(void)
 {
+	char buf[24];
+	u32 mA;
+	u8 en_def_out, en_osm;
+
+	osm_measure(OSM_CH2, NULL, &mA, NULL);
+	eeprom_read(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
+
+	eeprom_read(EEPROM_ENABLE_DEF_OUT, &en_def_out, 1);
+	eeprom_read(EEPROM_ENABLE_OSM, &en_osm, 1);
+
+	k_sprintf(buf, "Elo srl Centr: %d%c", en_osm, en_def_out ? 'D' : ' ');
+	lcd_write_line(buf, 0, 0);
+	k_sprintf(buf, "%04d GG %03d mA   %c",
+	    (uint) hours / 24, (uint)mA, dl_isactive() ? 'T' : ' ');
+	lcd_write_line(buf, 1, 0);
 }
 
 static struct menu_voice_t *get_menu_voice(int id)
@@ -90,8 +109,8 @@ static void on_evt_def(int key)
 		if (new_menu && new_menu->enabled) {
 			status = 0;
 			cur_menu = new_menu;
-			lcd_write_line(cur_menu->text[0], 0, 1);
-			lcd_write_line(cur_menu->text[1], 1, 1);
+			lcd_write_line(cur_menu->text[0], 0, 0);
+			lcd_write_line(cur_menu->text[1], 1, 0);
 		}
 	} while(new_menu && !new_menu->enabled);
 
@@ -99,6 +118,7 @@ done:
 	keys_clear_evts(1 << key);
 }
 
+#if 0
 /* Date / Time setting */
 
 static struct rtc_t r;
@@ -1188,9 +1208,11 @@ static void on_evt_deadline(int key)
 	keys_clear_evts(1 << key);
 }
 
+#endif
 /* Deadlines Code (password to unlock) */
 u8 dl_code[6];
 int dl_to_unlock = -1;
+#if 0
 static void update_screen_dl_code()
 {
 	char buf[24];
@@ -1295,48 +1317,33 @@ static void refresh_fmode(void)
 static void on_evt_fmode(int key)
 {
 }
-
+#endif
 static struct menu_voice_t menu[] = {
-	{0, {"MENU", "IMPOSTAZIONI"}, on_evt_def, NULL, {29, 1, -1, 24}, 1},
-	{1, {"VISUALIZZA", "STORICO AVVII"}, on_evt_def, NULL, {0, 2, -1, 19}, 1},
-	{2, {"VISUALIZZA", "SEGNALAZIONI"}, on_evt_def, NULL, {1, 3, -1, 20}, 1},
-	{3, {"VISUALIZZA", "STORICO LETTURE"}, on_evt_def, NULL, {2, 4, -1, 22}, 1},
-	{4, {"VISUALIZZA", "REALTIME SENSORI"}, on_evt_def, NULL, {3, 33, -1, 16}, 1},
-	{5, {"IMPOSTAZIONI", "PARAMETRI DEF"}, on_evt_def, NULL, {35, 6, 0, 15}, 1},
-	{6, {"IMPOSTAZIONI", "MODALITA'"}, on_evt_def, NULL, {5, 7, 0, 23}, 1},
-	{7, {"IMPOSTAZIONI", "DATA E ORA"}, on_evt_def, NULL, {6, 8, 0, 27}, 1},
-	{8, {"IMPOSTAZIONI", "RESET CONTATORE"}, on_evt_def, NULL, {7, 9, 0, 18}, 1},
-	{9, {"IMPOSTAZIONI", "RESET STORICI"}, on_evt_def, NULL, {8, 10, 0, 17}, 1},
-	{10, {"IMPOSTAZIONI", "BLUETOOTH"}, on_evt_def, NULL, {9, 11, 0, 26}, 1},
-	{11, {"IMPOSTAZIONI", "COMUNICAZIONI RF"}, on_evt_def, NULL, {10, 12, 0, -1}, 0},
-	{12, {"IMPOSTAZIONI", "ABIL. MEDIA GIORN."}, on_evt_def, NULL, {11, 13, 0, 25}, 1},
-	{13, {"IMPOSTAZIONI", "ESPORTA DATI"}, on_evt_def, NULL, {12, 30, 0, 28}, 1},
-	{14, {"IMPOSTAZIONI", "VERSIONE FW"}, on_evt_def, NULL, {30, 34, 0, 21}, 1},
-
-	{15, {"", ""}, on_evt_pwm_ant, refresh_pwm_ant, {-1, -1, 5, 5}, 1},
-	{16, {"Attendere...", "Comunicazione"}, on_evt_def, refresh_realtimesens, {-1, -1, 4, 4}, 1,
-	    .timeout_ms = (30 * 60 * 1000),},
-	{17, {STR_CONFIRM, "RESET STORICI"}, on_evt_reset_storici, refresh_reset, {-1, -1, 9, 9}, 1},
-	{18, {STR_CONFIRM, "RESET CONTATORE"}, on_evt_reset_contatore, refresh_reset, {-1, -1, 8, 8}, 1},
-	{19, {"", ""}, on_evt_show, refresh_show_avvii, {-1, -1, 1, -1}, 1},
-	{20, {"", ""}, on_evt_show, refresh_show_alarms, {-1, -1, 2, -1}, 1},
-	{21, {HUMAN_VERSION "   " GIT_VERSION, "Date: " COMPILE_DATE}, on_evt_def, NULL, {-1, -1, 14, 14}, 1},
-	{22, {"", ""}, on_evt_show_data, refresh_show_data, {-1, -1, 3, -1}, 1},
-	{23, {"", ""}, on_evt_mode, refresh_mode, {-1, -1, 6, 6}, 1},
-	{24, {"MENU", "IMPOSTAZIONI"}, on_evt_def, refresh_pwd, {-1, -1, -1, 34}, 1},
-	{25, {"", ""}, on_evt_avg_en, refresh_avg_en, {-1, -1, 12, 12}, 1},
-	{26, {"", ""}, on_evt_bluetooth_id, refresh_bluetooth_id, {-1, -1, 10, 10}, 1},
-	{27, {"", ""}, on_evt_datetime, refresh_datetime, {-1, -1, 7, 7}, 1},
-	{28, {"ESPORTA DATI", "OK?"}, on_evt_data_dump, NULL, {-1, -1, 13, 13}, 1},
-	{29, {"", ""}, on_evt_def, refresh_info_readonly, {33, 0, -1, -1}, 1},
-	{30, {"IMPOSTAZIONI", "MODALITA' A TEMPO"}, on_evt_def, NULL, {13, 14, 0, 31}, 1},
-	{31, {"", ""}, on_evt_deadline, refresh_deadline, {-1, -1, 30, 30}, 1},
-	{32, {"CODICE SBLOCCO", ""}, on_evt_dl_code, refresh_dl_code, {-1, -1, 0, 0}, 1},
-	{33, {"AZZERAMENTO", "MOD. A TEMPO"}, on_evt_reset_dl_all, NULL, {4, 29, -1, 32}, 1},
-	{34, {"F. MODE EDWB", "S/N NNNNN T:TT"}, on_evt_fmode, refresh_fmode, {14, 35, 0, -1}, 1},
-	{35, {"IMPOSTAZIONI", "PARAMETRI PWM"}, on_evt_def, NULL, {34, 5, 0, 36}, 1},
-	{36, {"", ""}, on_evt_osm, refresh_osm, {-1, -1, 35, 35}, 1},
-
+	{10, {"      VERSIONE", ""}, on_evt_def, NULL, {30, 20, -1, 11}, 1},
+	{11, {"S/N: NNNNN Beep:SSS", "V:00.0 DD/MM/AA T:TT"}, on_evt_def, NULL, {14, 12, 10, -1}, 1},
+	{12, {"V1: XX.Z V2: XX", "Ma1: CCC Ma2: CC2"}, on_evt_def, NULL, {11, 13, 10, -1}, 1},
+	{13, {"DEF RX", ""}, on_evt_def, NULL, {12, 14, 10, -1}, 1},
+	{14, {"Timeout GG/MM/AA", "Cod. Sblocco XXXXX"}, on_evt_def, NULL, {13, 11, 10, -1}, 1},
+	{20, {"         LOG", ""}, on_evt_def, NULL, {10, 30, -1, 21}, 1},
+	{21, {"Allarmi RRR DDDDDD", "GGMMAA HH:MM"}, on_evt_def, NULL, {23, 22, 20, -1}, 1},
+	{22, {"Avvii RRR GG.CCC", "A:DDMMAA S:DDMMAA"}, on_evt_def, NULL, {21, 23, 20, -1}, 1},
+	{23, {"      LETTURE", ""}, on_evt_def, NULL, {22, 21, 20, 231}, 1},
+	{231, {"RRRR DDMMAA", "Ma1: XXX Ma2: XXX"}, on_evt_def, NULL, {232, 232, 23, -1}, 1},
+	{232, {"SX RRRR DDMMAA H:YY", "T:XX.Z B:KK.K mV:TTT"}, on_evt_def, NULL, {231, 231, 23, -1}, 1},
+	{30, {"    IMPOSTAZIONI", ""}, on_evt_def, NULL, {20, 10, -1, 31}, 1},
+	{31, {"F. Mode EDWB", "S/N NNNNN T:TT"}, on_evt_def, NULL, {38, 32, 30, -1}, 1},
+	{32, {"Parametri PWM", ""}, on_evt_def, NULL, {31, 33, 30, 321}, 1},
+	{321, {"CX F:YY T:ZZ D:KK", "T:TT.TV C=FFFmA"}, on_evt_def, NULL, {325, 322, 32, -1}, 1},
+	{322, {"EPT:A P:YY", "INV:ZZ.Z"}, on_evt_def, NULL, {321, 323, 32, -1}, 1},
+	{323, {"START RIT:A", "IL:GG/MM/AA h:OO"}, on_evt_def, NULL, {322, 324, 32, -1}, 1},
+	{324, {"CX Contr. Corr:A", "%:PP T:SS"}, on_evt_def, NULL, {323, 325, 32, -1}, 1},
+	{325, {"LIMITI C:X MIN:A", "MAX:KKK COR:ZZZZ"}, on_evt_def, NULL, {324, 321, 32, -1}, 1},
+	{33, {"Parametri DEF", ""}, on_evt_def, NULL, {32, 34, 30, -1}, 1},
+	{34, {"D GG/MM/AA H HH:MM", "Cont XXXX"}, on_evt_def, NULL, {33, 35, 30, -1}, 1},
+	{35, {"Funz. a tempo", ""}, on_evt_def, NULL, {34, 36, 30, -1}, 1},
+	{36, {"Comunicazioni", ""}, on_evt_def, NULL, {35, 37, 30, -1}, 0},
+	{37, {"Rele errore", ""}, on_evt_def, NULL, {36, 38, 30, -1}, 1},
+	{38, {"Backup/Restore", ""}, on_evt_def, NULL, {37, 31, 30, -1}, 0},
 	{-1}
 };
 
@@ -1367,8 +1374,8 @@ void menu_step(struct task_t *t)
 				cur_menu = get_menu_voice(MENU_VOICE_DEFAULT);
 			if (!cur_menu)
 				return;
-			lcd_write_line(cur_menu->text[0], 0, 1);
-			lcd_write_line(cur_menu->text[1], 1, 1);
+			lcd_write_line(cur_menu->text[0], 0, 0);
+			lcd_write_line(cur_menu->text[1], 1, 0);
 		}
 		keys_clear_evts(k);
 		return;
