@@ -1323,40 +1323,140 @@ static void on_evt_fmode(int key)
 
 /* PWM OSM Setting Begin */
 
-int osm_ch = OSM_CH1;
+static int osm_ch = OSM_CH1;
+static struct osm_cfg_t menu_osm;
+static int osm_cursor_pos;
 
-static void refresh_osm(void)
+static void update_screen(void)
 {
 	char buf[24];
-	struct osm_cfg_t osm;
 	u32 a, v, temp;
 
-	eeprom_read(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &osm, sizeof(osm));
 	osm_measure(osm_ch, &v, &a, &temp);
 
-	k_sprintf(buf, "C%d F:%03d T:%03d D:%03d", osm_ch + 1, (uint)osm.freq,
-	    (uint)osm.volt_perc, (uint)osm.duty);
+	k_sprintf(buf, "C%d F:%03d T:%03d D:%03d", osm_ch + 1, (uint)menu_osm.freq,
+		(uint)menu_osm.volt_perc, (uint)menu_osm.duty);
 	lcd_write_line(buf, 0, 0);
 
 	k_sprintf(buf, "T:%d.%dV C=%03dmA", (uint)v / 1000, (uint)(v % 1000) / 100, (uint)a);
 	lcd_write_line(buf, 1, 0);
+
+	if (osm_cursor_pos > 0)
+		lcd_cursor(0, osm_cursor_pos, 1);
+}
+
+static void refresh_osm(void)
+{
+	if (status == 0) {
+		eeprom_read(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
+		status = 1;
+	}
+	else if (status == 1) {
+		update_screen();
+	}
 }
 
 static void on_evt_osm(int key)
 {
-	if (osm_ch == OSM_CH1 && key == KEY_DOWN) {
-		osm_ch = OSM_CH2;
-		goto refresh;
-	}
-	else if (osm_ch == OSM_CH2 && key == KEY_UP) {
+	if (key == KEY_ESC) {
 		osm_ch = OSM_CH1;
-		goto refresh;
-	}
-	else if (key != KEY_ENTER)
 		on_evt_def(key);
+		return;
+	}
 
-	return;
+	if (status > 1) {
+		switch (status) {
+		case 2:
+			if (key == KEY_UP) {
+				if (menu_osm.freq <= 200)
+					menu_osm.freq++;
+				osm_set_cfg(osm_ch, &menu_osm);
+				update_screen();
+				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
+			}
+			else if (key == KEY_DOWN) {
+				if (menu_osm.freq > 0)
+					menu_osm.freq--;
+				osm_set_cfg(osm_ch, &menu_osm);
+				update_screen();
+				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
+			}
+			if (key == KEY_ENTER) {
+				osm_cursor_pos = 11;
+				update_screen();
+				status++;
+			}
+			break;
+
+		case 3:
+			if (key == KEY_UP) {
+				if (menu_osm.volt_perc < 100)
+					menu_osm.volt_perc++;
+				osm_set_cfg(osm_ch, &menu_osm);
+				update_screen();
+				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
+			}
+			else if (key == KEY_DOWN) {
+				if (menu_osm.volt_perc > 0)
+					menu_osm.volt_perc--;
+				osm_set_cfg(osm_ch, &menu_osm);
+				update_screen();
+				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
+			}
+			if (key == KEY_ENTER) {
+				osm_cursor_pos = 17;
+				update_screen();
+				status++;
+			}
+			break;
+
+		case 4:
+			if (key == KEY_UP) {
+				if (menu_osm.duty < 100)
+					menu_osm.duty++;
+				osm_set_cfg(osm_ch, &menu_osm);
+				update_screen();
+				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
+			}
+			else if (key == KEY_DOWN) {
+				if (menu_osm.duty > 0)
+					menu_osm.duty--;
+				osm_set_cfg(osm_ch, &menu_osm);
+				update_screen();
+				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
+			}
+
+			if (key == KEY_ENTER) {
+				update_screen();
+				lcd_cursor(0, 0, 0);
+				status = 0;
+				break;
+			}
+		}
+	}
+	else {
+		if (osm_ch == OSM_CH1 && key == KEY_DOWN) {
+			osm_ch = OSM_CH2;
+			goto refresh;
+		}
+		else if (osm_ch == OSM_CH2 && key == KEY_UP) {
+			osm_ch = OSM_CH1;
+			goto refresh;
+		}
+		else if (key == KEY_ENTER) {
+			osm_cursor_pos = 5;
+			update_screen();
+			status = 2;
+			keys_clear_evts(1 << key);
+		}
+		else {
+			on_evt_def(key);
+		}
+
+		return;
+	}
 refresh:
+	eeprom_read(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
 	refresh_osm();
 	keys_clear_evts(1 << key);
 
