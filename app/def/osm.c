@@ -262,3 +262,30 @@ struct task_t attr_tasks task_osm = {
 	.intvl_ms = 1000,
 	.name = "osm",
 };
+
+/* OSM out manual command */
+
+static int osm_cmd_cb(int argc, char *argv[], int fdout)
+{
+	struct osm_cfg_t osm;
+	u32 a, v, temp;
+	int i;
+
+	for (i = OSM_CH1; i <= OSM_CH2; i++) {
+		osm_get(i, &osm);
+		osm_measure(i, &v, &a, &temp);
+		k_fprintf(fdout, "CH%d %s %d %d %d %dmV, %dmA\n", i + 1, osm.enable ? "EN " : "DIS",
+		    (uint)osm.volt_perc, (uint)osm.freq, (uint)osm.duty, (uint)v, (uint)a);
+	}
+
+	k_printf("TEMP %d\n", (uint)temp);
+
+	return 0;
+}
+
+const struct cli_cmd_t attr_cli cli_osm = {
+	.narg = 0,
+	.cmd = osm_cmd_cb,
+	.name = "osm",
+	.descr = "Dump osm status",
+};
