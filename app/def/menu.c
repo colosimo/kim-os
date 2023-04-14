@@ -52,10 +52,6 @@ static struct menu_voice_t *cur_menu = NULL;
 static struct menu_voice_t *get_menu_voice(int id)
 {
 	int i;
-
-	if (id < 0)
-		return NULL;
-
 	for (i = 0; menu[i].id >= 0; i++) {
 		if (menu[i].id == id)
 			return &menu[i];
@@ -74,10 +70,6 @@ static void on_evt_def(int key)
 		goto done;
 	}
 	new_menu = cur_menu;
-
-	if (new_menu->id_next[key] < 0)
-		goto done;
-
 	do {
 		new_menu = get_menu_voice(new_menu->id_next[key]);
 		if (new_menu && new_menu->enabled) {
@@ -236,103 +228,13 @@ static void on_evt_datetime(int key)
 
 }
 
-/* OSM PWM setting */
-#if 0
-static int status_mode;
-static int menu_mode = 0;
-static struct pwm_cfg_t menu_p;
-#endif
-static void update_screen_osm()
-{
-#if 0
-	char buf[24];
-	int cur_line, cur_pos;
-
-	k_sprintf(buf, "Freq: %03d  %cMode: %d", (uint)menu_p.freq,
-	   menu_mode == status_mode ? '*' : ' ', menu_mode + 1);
-	lcd_write_line(buf, 0, 0);
-	k_sprintf(buf, "D.C.:  %02d", (uint)menu_p.duty);
-	lcd_write_line(buf, 1, 0);
-
-	switch(status) {
-		case 0:
-		case 1: cur_line = 0; cur_pos = 8; break;
-		case 2: cur_line = 1; cur_pos = 8; break;
-		default: cur_line = cur_pos = 0; break; /* Never happens */
-	}
-	lcd_cursor(cur_line, cur_pos, 1);
-#endif
-}
-
-static void refresh_osm(void)
-{
-	if (status == 0) {
-		update_screen_osm();
-		status = 1;
-	}
-}
-
-static void on_evt_osm(int key)
-{
-	on_evt_def(key);
-	return;
-#if 0
-	if (key == KEY_ESC) {
-		on_evt_def(key);
-		return;
-	}
-
-	switch (status) {
-		case 1:
-			if (key == KEY_UP && menu_p.freq < MAX_FREQ)
-				menu_p.freq++;
-			else if (key == KEY_DOWN && menu_p.freq > MIN_FREQ)
-				menu_p.freq--;
-			else if (key == KEY_ENTER)
-				status = 2;
-			break;
-
-		case 2:
-			if (key == KEY_UP && menu_p.duty < MAX_DUTY)
-				menu_p.duty++;
-			else if (key == KEY_DOWN && menu_p.duty > MIN_DUTY)
-				menu_p.duty--;
-			else if (key == KEY_ENTER)
-				status = 1;
-
-			break;
-
-		default:
-			break;
-	}
-
-	if (key == KEY_ENTER) {
-		pwm_check(&menu_p.freq, &menu_p.duty);
-		if (menu_mode == status_mode)
-			pwm_set(menu_p.freq, menu_p.duty);
-		log("Save mode %d: %d %d\n", menu_mode + 1, (uint)menu_p.freq, (uint)menu_p.duty);
-		eeprom_write(EEPROM_PWM_MODE0_ADDR + menu_mode * sizeof(menu_p),
-			(u8*)&menu_p, sizeof(menu_p));
-
-		if (status == 1) {
-			menu_mode = (menu_mode + 1) % 3;
-			eeprom_read(EEPROM_PWM_MODE0_ADDR + menu_mode * sizeof(menu_p),
-			    (u8*)&menu_p, sizeof(menu_p));
-		}
-
-	}
-	update_screen_osm();
-	keys_clear_evts(1 << key);
-#endif
-}
-
-/* DEF PWM setting */
+/* PWM setting */
 
 static int status_mode;
 static int menu_mode = 0;
 static struct pwm_cfg_t menu_p;
 
-static void update_screen_pwm_ant()
+static void update_screen_pwm()
 {
 	char buf[24];
 	int cur_line, cur_pos;
@@ -352,19 +254,19 @@ static void update_screen_pwm_ant()
 	lcd_cursor(cur_line, cur_pos, 1);
 }
 
-static void refresh_pwm_ant(void)
+static void refresh_pwm(void)
 {
 	if (status == 0) {
 		eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &status_mode, 1);
 		menu_mode = status_mode;
 		eeprom_read(EEPROM_PWM_MODE0_ADDR + menu_mode * sizeof(menu_p),
 		    (u8*)&menu_p, sizeof(menu_p));
-		update_screen_pwm_ant();
+		update_screen_pwm();
 		status = 1;
 	}
 }
 
-static void on_evt_pwm_ant(int key)
+static void on_evt_pwm(int key)
 {
 	if (key == KEY_ESC) {
 		on_evt_def(key);
@@ -410,7 +312,7 @@ static void on_evt_pwm_ant(int key)
 		}
 
 	}
-	update_screen_pwm_ant();
+	update_screen_pwm();
 	keys_clear_evts(1 << key);
 }
 
@@ -828,7 +730,7 @@ static void on_evt_show_data(int key)
 static int pwd_secret[5] = {KEY_UP, KEY_ESC, KEY_DOWN, KEY_ESC, KEY_ENTER};
 static int pwd_entered[5];
 
-static void attr_unused on_evt_pwd(int key)
+static void on_evt_pwd(int key)
 {
 	switch (status) {
 		case 0:
@@ -1275,25 +1177,6 @@ static void on_evt_reset_dl_all(int key)
 	on_evt_def(key);
 }
 
-#ifdef BOARD_elo_new
-/* Function mode (elo_new only) */
-
-static void update_screen_fmode(void)
-{
-}
-
-static void refresh_fmode(void)
-{
-}
-
-#endif
-
-static void on_evt_fmode(int key)
-{
-}
-
-
-#ifdef BOARD_elo_def
 static struct menu_voice_t menu[] = {
 	{0, {"MENU", "IMPOSTAZIONI"}, on_evt_def, NULL, {29, 1, -1, 24}, 1},
 	{1, {"VISUALIZZA", "STORICO AVVII"}, on_evt_def, NULL, {0, 2, -1, 19}, 1},
@@ -1311,7 +1194,7 @@ static struct menu_voice_t menu[] = {
 	{13, {"IMPOSTAZIONI", "ESPORTA DATI"}, on_evt_def, NULL, {12, 30, 0, 28}, 1},
 	{14, {"IMPOSTAZIONI", "VERSIONE FW"}, on_evt_def, NULL, {30, 5, 0, 21}, 1},
 
-	{15, {"", ""}, on_evt_pwm_ant, refresh_pwm_ant, {-1, -1, 5, 5}, 1},
+	{15, {"", ""}, on_evt_pwm, refresh_pwm, {-1, -1, 5, 5}, 1},
 	{16, {"Attendere...", "Comunicazione"}, on_evt_def, refresh_realtimesens, {-1, -1, 4, 4}, 1,
 	    .timeout_ms = (30 * 60 * 1000),},
 	{17, {STR_CONFIRM, "RESET STORICI"}, on_evt_reset_storici, refresh_reset, {-1, -1, 9, 9}, 1},
@@ -1333,52 +1216,6 @@ static struct menu_voice_t menu[] = {
 	{33, {"AZZERAMENTO", "MOD. A TEMPO"}, on_evt_reset_dl_all, NULL, {4, 29, -1, 32}, 1},
 	{-1}
 };
-#elif defined BOARD_elo_new
-static struct menu_voice_t menu[] = {
-	{0, {"MENU", "IMPOSTAZIONI"}, on_evt_def, NULL, {29, 1, -1, 24}, 1},
-	{1, {"VISUALIZZA", "STORICO AVVII"}, on_evt_def, NULL, {0, 2, -1, 19}, 1},
-	{2, {"VISUALIZZA", "SEGNALAZIONI"}, on_evt_def, NULL, {1, 3, -1, 20}, 1},
-	{3, {"VISUALIZZA", "STORICO LETTURE"}, on_evt_def, NULL, {2, 4, -1, 22}, 1},
-	{4, {"VISUALIZZA", "REALTIME SENSORI"}, on_evt_def, NULL, {3, 33, -1, 16}, 1},
-	{5, {"IMPOSTAZIONI", "PARAMETRI DEF"}, on_evt_def, NULL, {35, 6, 0, 15}, 1},
-	{6, {"IMPOSTAZIONI", "MODALITA'"}, on_evt_def, NULL, {5, 7, 0, 23}, 1},
-	{7, {"IMPOSTAZIONI", "DATA E ORA"}, on_evt_def, NULL, {6, 8, 0, 27}, 1},
-	{8, {"IMPOSTAZIONI", "RESET CONTATORE"}, on_evt_def, NULL, {7, 9, 0, 18}, 1},
-	{9, {"IMPOSTAZIONI", "RESET STORICI"}, on_evt_def, NULL, {8, 10, 0, 17}, 1},
-	{10, {"IMPOSTAZIONI", "BLUETOOTH"}, on_evt_def, NULL, {9, 11, 0, 26}, 1},
-	{11, {"IMPOSTAZIONI", "COMUNICAZIONI RF"}, on_evt_def, NULL, {10, 12, 0, -1}, 0},
-	{12, {"IMPOSTAZIONI", "ABIL. MEDIA GIORN."}, on_evt_def, NULL, {11, 13, 0, 25}, 1},
-	{13, {"IMPOSTAZIONI", "ESPORTA DATI"}, on_evt_def, NULL, {12, 30, 0, 28}, 1},
-	{14, {"IMPOSTAZIONI", "VERSIONE FW"}, on_evt_def, NULL, {30, 34, 0, 21}, 1},
-
-	{15, {"", ""}, on_evt_pwm_ant, refresh_pwm_ant, {-1, -1, 5, 5}, 1},
-	{16, {"Attendere...", "Comunicazione"}, on_evt_def, refresh_realtimesens, {-1, -1, 4, 4}, 1,
-	    .timeout_ms = (30 * 60 * 1000),},
-	{17, {STR_CONFIRM, "RESET STORICI"}, on_evt_reset_storici, refresh_reset, {-1, -1, 9, 9}, 1},
-	{18, {STR_CONFIRM, "RESET CONTATORE"}, on_evt_reset_contatore, refresh_reset, {-1, -1, 8, 8}, 1},
-	{19, {"", ""}, on_evt_show, refresh_show_avvii, {-1, -1, 1, -1}, 1},
-	{20, {"", ""}, on_evt_show, refresh_show_alarms, {-1, -1, 2, -1}, 1},
-	{21, {HUMAN_VERSION "   " GIT_VERSION, "Date: " COMPILE_DATE}, on_evt_def, NULL, {-1, -1, 14, 14}, 1},
-	{22, {"", ""}, on_evt_show_data, refresh_show_data, {-1, -1, 3, -1}, 1},
-	{23, {"", ""}, on_evt_mode, refresh_mode, {-1, -1, 6, 6}, 1},
-	{24, {"MENU", "IMPOSTAZIONI"}, on_evt_def, refresh_pwd, {-1, -1, -1, 34}, 1},
-	{25, {"", ""}, on_evt_avg_en, refresh_avg_en, {-1, -1, 12, 12}, 1},
-	{26, {"", ""}, on_evt_bluetooth_id, refresh_bluetooth_id, {-1, -1, 10, 10}, 1},
-	{27, {"", ""}, on_evt_datetime, refresh_datetime, {-1, -1, 7, 7}, 1},
-	{28, {"ESPORTA DATI", "OK?"}, on_evt_data_dump, NULL, {-1, -1, 13, 13}, 1},
-	{29, {"", ""}, on_evt_def, refresh_info_readonly, {33, 0, -1, -1}, 1},
-	{30, {"IMPOSTAZIONI", "MODALITA' A TEMPO"}, on_evt_def, NULL, {13, 14, 0, 31}, 1},
-	{31, {"", ""}, on_evt_deadline, refresh_deadline, {-1, -1, 30, 30}, 1},
-	{32, {"CODICE SBLOCCO", ""}, on_evt_dl_code, refresh_dl_code, {-1, -1, 0, 0}, 1},
-	{33, {"AZZERAMENTO", "MOD. A TEMPO"}, on_evt_reset_dl_all, NULL, {4, 29, -1, 32}, 1},
-	{34, {"F. MODE EDWB", "S/N NNNNN T:TT"}, on_evt_fmode, refresh_fmode, {14, 35, 0, -1}, 1},
-	{35, {"IMPOSTAZIONI", "PARAMETRI PWM"}, on_evt_def, NULL, {34, 5, 0, 36}, 1},
-	{36, {"", ""}, on_evt_osm, refresh_osm, {-1, -1, 35, 35}, 1},
-
-	{-1}
-};
-
-#endif
 
 void menu_start(struct task_t *t)
 {
