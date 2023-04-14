@@ -25,14 +25,11 @@
 
 /* DEF Main task */
 
-#define STR_ELO_BANNER "ELO Srl 0536/844420"
-#define STR_FUNZ "Funz: g:%03d h:%02d %c%c%c"
 #define MS_IN_MIN (60 * 1000)
 #define MS_IN_HOUR (60 * MS_IN_MIN)
 
-static int deadline_lock = 0;
-static int deadline_idx = -1;
-
+int deadline_lock = 0;
+int deadline_idx = -1;
 
 const char zero = 0;
 const char one = 1;
@@ -73,40 +70,6 @@ static void def_step(struct task_t *t);
 int get_deadline_idx(void)
 {
 	return deadline_idx;
-}
-
-void show_home(void)
-{
-	char buf[24];
-	int gg, hh;
-	u8 mode, status;
-
-	if (deadline_lock) {
-		lcd_write_line("Tempo Funz. Scaduto", 0, 0);
-		k_sprintf(buf, "Inserire Password %d", deadline_idx + 1);
-		lcd_write_line(buf, 1, 0);
-		return;
-	}
-
-
-	lcd_write_line(STR_ELO_BANNER, 0, 0);
-	eeprom_read(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
-
-	eeprom_read(EEPROM_PWM_CURRENT_MODE_ADDR, &mode, 1);
-	eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &status, 1);
-
-	gg = hours / 24;
-	hh = hours % 24;
-	if (mode != 4) {
-		k_sprintf(buf, STR_FUNZ, gg, hh, dl_isactive() ? 'T' : ' ',
-		    mode == 3 ? 'R' : ' ', '0' + status + 1);
-		ant_check_enable(1);
-	}
-	else {
-		k_sprintf(buf, STR_FUNZ, gg, hh, dl_isactive() ? 'T' : ' ', 'N', 'O');
-		ant_check_enable(0);
-	}
-	lcd_write_line(buf, 1, 0);
 }
 
 void set_standby(int stdby)
@@ -188,7 +151,9 @@ static void def_start(struct task_t *t)
 
 	dl_load_all();
 
+#ifdef BOARD_elo_new
 	osm_init();
+#endif
 }
 
 static void def_step(struct task_t *t)

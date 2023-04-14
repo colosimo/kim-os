@@ -29,8 +29,4 @@ void osm_disable(int channel);
 
 void osm_measure(int channel, u32 *volt_mV, u32 *cur_mA, u32 *temperature);
 
-#ifdef BOARD_elo_def
-void osm_init(void) {}
-#endif
-
 #endif /* _OSM_H_ */

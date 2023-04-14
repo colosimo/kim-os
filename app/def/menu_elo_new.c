@@ -49,6 +49,13 @@ static struct menu_voice_t menu[];
 
 static struct menu_voice_t *cur_menu = NULL;
 
+extern int deadline_lock;
+extern int deadline_idx;
+
+void show_home(void)
+{
+}
+
 static struct menu_voice_t *get_menu_voice(int id)
 {
 	int i;
