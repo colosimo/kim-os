@@ -1327,7 +1327,7 @@ static int osm_ch = OSM_CH1;
 static struct osm_cfg_t menu_osm;
 static int osm_cursor_pos;
 
-static void update_screen(void)
+static void update_osm(void)
 {
 	char buf[24];
 	u32 a, v, temp;
@@ -1352,7 +1352,7 @@ static void refresh_osm(void)
 		status = 1;
 	}
 	else if (status == 1) {
-		update_screen();
+		update_osm();
 	}
 }
 
@@ -1371,19 +1371,19 @@ static void on_evt_osm(int key)
 				if (menu_osm.freq <= 200)
 					menu_osm.freq++;
 				osm_set_cfg(osm_ch, &menu_osm);
-				update_screen();
+				update_osm();
 				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
 			}
 			else if (key == KEY_DOWN) {
 				if (menu_osm.freq > 0)
 					menu_osm.freq--;
 				osm_set_cfg(osm_ch, &menu_osm);
-				update_screen();
+				update_osm();
 				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
 			}
 			if (key == KEY_ENTER) {
 				osm_cursor_pos = 11;
-				update_screen();
+				update_osm();
 				status++;
 			}
 			break;
@@ -1393,19 +1393,19 @@ static void on_evt_osm(int key)
 				if (menu_osm.volt_perc < 100)
 					menu_osm.volt_perc++;
 				osm_set_cfg(osm_ch, &menu_osm);
-				update_screen();
+				update_osm();
 				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
 			}
 			else if (key == KEY_DOWN) {
 				if (menu_osm.volt_perc > 0)
 					menu_osm.volt_perc--;
 				osm_set_cfg(osm_ch, &menu_osm);
-				update_screen();
+				update_osm();
 				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
 			}
 			if (key == KEY_ENTER) {
 				osm_cursor_pos = 17;
-				update_screen();
+				update_osm();
 				status++;
 			}
 			break;
@@ -1415,19 +1415,19 @@ static void on_evt_osm(int key)
 				if (menu_osm.duty < 100)
 					menu_osm.duty++;
 				osm_set_cfg(osm_ch, &menu_osm);
-				update_screen();
+				update_osm();
 				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
 			}
 			else if (key == KEY_DOWN) {
 				if (menu_osm.duty > 0)
 					menu_osm.duty--;
 				osm_set_cfg(osm_ch, &menu_osm);
-				update_screen();
+				update_osm();
 				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
 			}
 
 			if (key == KEY_ENTER) {
-				update_screen();
+				update_osm();
 				lcd_cursor(0, 0, 0);
 				status = 0;
 				break;
@@ -1445,7 +1445,7 @@ static void on_evt_osm(int key)
 		}
 		else if (key == KEY_ENTER) {
 			osm_cursor_pos = 5;
-			update_screen();
+			update_osm();
 			status = 2;
 			keys_clear_evts(1 << key);
 		}
