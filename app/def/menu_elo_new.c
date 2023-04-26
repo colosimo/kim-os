@@ -1464,6 +1464,154 @@ refresh:
 
 /* PWM OSM Setting End */
 
+/* F. Mode Setting Begin */
+
+static int fmode_cursor_pos;
+static char fmode_sn[6];
+static u8 fmode_en_def_out, fmode_en_osm, fmode_temp_max;
+
+static void update_fmode(void)
+{
+	char buf[24];
+
+	k_sprintf(buf, "F. Mode %d%c", fmode_en_osm, fmode_en_def_out ? 'D' : ' ');
+	lcd_write_line(buf, 0, 0);
+
+	k_sprintf(buf, "S/N %s T:%02d", fmode_sn, fmode_temp_max);
+	lcd_write_line(buf, 1, 0);
+
+	log("%s pos %d\n", __func__, fmode_cursor_pos);
+	if (fmode_cursor_pos > 0)
+		lcd_cursor(fmode_cursor_pos / 20, fmode_cursor_pos % 20, 1);
+}
+
+static void refresh_fmode(void)
+{
+	u32 bluetooth_id;
+
+	if (status == 0) {
+		eeprom_read(EEPROM_ENABLE_DEF_OUT, &fmode_en_def_out, 1);
+		eeprom_read(EEPROM_ENABLE_OSM, &fmode_en_osm, 1);
+		eeprom_read(EEPROM_T_MAX, &fmode_temp_max, 1);
+
+		eeprom_read(EEPROM_BLUETOOTH_ID, &bluetooth_id, 4);
+		k_sprintf(fmode_sn, "%05d", (uint)bluetooth_id);
+		update_fmode();
+		status = 1;
+		fmode_cursor_pos = 0;
+	}
+}
+
+static void on_evt_fmode(int key)
+{
+	u8 digit;
+	u32 tmp;
+	if (status == 0 || key == KEY_ESC) {
+		on_evt_def(key);
+		return;
+	}
+
+	switch (status) {
+		case 1:
+			if (key == KEY_ENTER) {
+				fmode_cursor_pos = 8;
+				update_fmode();
+				status = 2;
+			}
+			else
+				on_evt_def(key);
+			break;
+
+		case 2:
+			if (key == KEY_ENTER) {
+				/* TODO Handle osm out: restart osm process? */
+				eeprom_write(EEPROM_ENABLE_OSM, &fmode_en_osm, 1);
+				fmode_cursor_pos = 9;
+				status = 3;
+			}
+			else if (key == KEY_UP)
+				fmode_en_osm = (fmode_en_osm + 1) % 3;
+			else if (key == KEY_DOWN) {
+				if (fmode_en_osm == 0)
+					fmode_en_osm = 2;
+				else
+					fmode_en_osm--;
+			}
+			update_fmode();
+			break;
+
+		case 3:
+			if (key == KEY_ENTER) {
+				eeprom_write(EEPROM_ENABLE_DEF_OUT, &fmode_en_def_out, 1);
+				/* TODO Handle def out: restart def process? */
+				fmode_cursor_pos = 24;
+				status = 4;
+			}
+			else if (key == KEY_UP || key == KEY_DOWN) {
+				fmode_en_def_out = !fmode_en_def_out;
+			}
+			update_fmode();
+			break;
+
+		case 4:
+			if (key == KEY_ENTER) {
+				if (fmode_cursor_pos < 28) {
+					fmode_cursor_pos++;
+					update_fmode();
+				}
+				else {
+					tmp = atoi(fmode_sn);
+					eeprom_write(EEPROM_BLUETOOTH_ID, &tmp, sizeof(tmp));
+					status = 5;
+					fmode_cursor_pos = 32;
+					update_fmode();
+				}
+			}
+			else {
+				digit = fmode_sn[fmode_cursor_pos - 24];
+				if (key == KEY_UP) {
+					if (digit < '9')
+						digit++;
+					else
+						digit = '0';
+				}
+				else if (key == KEY_DOWN) {
+					if (digit > '0')
+						digit--;
+					else
+						digit = '9';
+				}
+				fmode_sn[fmode_cursor_pos - 24] = digit;
+				update_fmode();
+			}
+			break;
+
+		case 5:
+			if (key == KEY_ENTER) {
+				eeprom_write(EEPROM_T_MAX, &fmode_temp_max, 1);
+				status = 0;
+				fmode_cursor_pos = 0;
+			}
+			else if (key == KEY_UP) {
+				if (fmode_temp_max < 70)
+					fmode_temp_max++;
+			}
+			else if (key == KEY_DOWN) {
+				if (fmode_temp_max > 30)
+					fmode_temp_max--;
+			}
+
+			update_fmode();
+			break;
+
+		default:
+			on_evt_def(key);
+	}
+	keys_clear_evts(1 << key);
+}
+
+/* F. Mode Setting End */
+
 static struct menu_voice_t menu[] = {
 	{10, {"VERSIONE", ""}, on_evt_def, NULL, {30, 20, -1, 11}, 1},
 	{11, {"S/N: NNNNN Beep:SSS", "V:00.0 DD/MM/AA T:TT"}, on_evt_def, NULL, {14, 12, 10, -1}, 1},
@@ -1477,7 +1625,7 @@ static struct menu_voice_t menu[] = {
 	{231, {"RRRR DDMMAA", "mA1: XXX mA2: XXX"}, on_evt_def, NULL, {232, 232, 23, -1}, 1},
 	{232, {"SX RRRR DDMMAA H:YY", "T:XX.Z B:KK.K mV:TTT"}, on_evt_def, NULL, {231, 231, 23, -1}, 1},
 	{30, {"IMPOSTAZIONI", ""}, on_evt_def, NULL, {20, 10, -1, 31}, 1},
-	{31, {"F. Mode EDWB", "S/N NNNNN T:TT"}, on_evt_def, NULL, {38, 32, 30, -1}, 1},
+	{31, {"", ""}, on_evt_fmode, refresh_fmode, {38, 32, 30, -1}, 1},
 	{32, {"PARAMETRI PWM", ""}, on_evt_def, NULL, {31, 33, 30, 321}, 1},
 	{321, {"", ""}, on_evt_osm, refresh_osm, {325, 322, 32, -1}, 1},
 	{322, {"EPT:A P:YY", "INV:ZZ.Z"}, on_evt_def, NULL, {321, 323, 32, -1}, 1},
