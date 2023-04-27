@@ -10,6 +10,7 @@
 
 #include "osm.h"
 #include "eeprom.h"
+#include "deadline.h"
 
 /*
  * PWM1: PB0  TIM3_CH3  30Hz - 1kHz 0-100%
@@ -222,20 +223,27 @@ static void osm_start(struct task_t *t)
 	eeprom_read(EEPROM_ENABLE_OSM, &osm_enable, 1);
 	log("osm_enable =%d\n", osm_enable);
 
-	for (i = OSM_CH1; i < osm_enable; i++) {
+	for (i = OSM_CH1; i <= OSM_CH2; i++) {
 		eeprom_read(EEPROM_OSM_CH1_CFG + 0x10 * i, &osm_cfg, sizeof(osm_cfg));
+
 		log("CH%d: %d %d %d %d\n", i + 1,
 		    (uint)osm_cfg.enable, (uint)osm_cfg.volt_perc,
 		    (uint)osm_cfg.freq, (uint)osm_cfg.duty);
+
+		if (dl_iselapsed() >= 0 || i >= osm_enable)
+			osm_cfg.enable = 0;
+
 		osm_set_cfg(i, &osm_cfg);
 	}
 }
 
+static int deadline_lock = 0;
 static int overtemp = 0;
 static void osm_step(struct task_t *t)
 {
 	u32 v, temp;
 	int i;
+	int idx;
 	u8 temp_max;
 
 	for (i = OSM_CH1; i <= OSM_CH2; i++) {
@@ -255,6 +263,19 @@ static void osm_step(struct task_t *t)
 		overtemp = 0;
 		dbg("OVERTEMPERATURE ENDED!\n");
 		osm_start(t);
+	}
+
+	idx = dl_iselapsed();
+	if (idx >= 0 && !deadline_lock) {
+		osm_disable(OSM_CH1);
+		osm_disable(OSM_CH2);
+	}
+	else if (deadline_lock && idx < 0) {
+		if (!overtemp) {
+			osm_enable(OSM_CH1);
+			osm_enable(OSM_CH2);
+		}
+		deadline_lock = 0;
 	}
 }
 

@@ -28,7 +28,7 @@ static int status = 0; /* Generic state machine variable */
 static u32 ticks_exec;
 
 #define MENU_VOICE_DEFAULT 10
-#define MENU_VOICE_PWD 32
+#define MENU_VOICE_PWD 14
 #define STR_CONFIRM "CONFERMA?"
 #define STR_EMPTY "ARCHIVIO VUOTO"
 #define STR_PASSWORD "PASSWORD: [     ]"
@@ -1232,22 +1232,34 @@ static void on_evt_deadline(int key)
 }
 
 /* Deadlines Code (password to unlock) */
-u8 dl_code[6];
-int dl_to_unlock = -1;
-#if 0
+static u8 dl_code[6];
+static int dl_to_unlock = -1;
+static struct deadline_t dl;
+
 static void update_screen_dl_code()
 {
 	char buf[24];
+	if (dl_to_unlock < 0)
+		return;
 
-	k_sprintf(buf, "%s", dl_code);
-	lcd_write_line(buf, 1, 1);
+	dl_get(dl_to_unlock, &dl);
+	k_sprintf(buf, "Timeout %02d/%02d/%02d", dl.rtc.day, dl.rtc.month, dl.rtc.year);
+	lcd_write_line(buf, 0, 0);
 
-	lcd_cursor(1, status + 6, 1);
+	k_sprintf(buf, "Cod. Sblocco %s", dl_code);
+	lcd_write_line(buf, 1, 0);
+
+	lcd_cursor(1, status + 12, 1);
 }
 
 static void refresh_dl_code()
 {
 	if (status == 0) {
+		if (dl_to_unlock < 0) {
+			on_evt_def(KEY_DOWN);
+			return;
+		}
+
 		status = 1;
 		strcpy((char*)dl_code, "00000");
 		update_screen_dl_code();
@@ -1319,6 +1331,7 @@ static void on_evt_dl_code(int key)
 	keys_clear_evts(1 << key);
 }
 
+#if 0
 static void on_evt_reset_dl_all(int key)
 {
 	if (key == KEY_ENTER)
@@ -1638,7 +1651,7 @@ static struct menu_voice_t menu[] = {
 	{11, {"", ""}, on_evt_def, refresh_info, {14, 12, 10, -1}, 1},
 	{12, {"", ""}, on_evt_def, refresh_measures, {11, 13, 10, -1}, 1},
 	{13, {"", ""}, on_evt_def, refresh_def_rolling, {12, 14, 10, -1}, 1},
-	{14, {"Timeout GG/MM/AA", "Cod. Sblocco XXXXX"}, on_evt_def, NULL, {13, 11, 10, -1}, 1},
+	{14, {"", ""}, on_evt_dl_code, refresh_dl_code, {13, 11, 10, -1}, 1},
 	{20, {"LOG", ""}, on_evt_def, NULL, {10, 30, -1, 21}, 1},
 	{21, {"Allarmi RRR DDDDDD", "GGMMAA HH:MM"}, on_evt_def, NULL, {23, 22, 20, -1}, 1},
 	{22, {"Avvii RRR GG.CCC", "A:DDMMAA S:DDMMAA"}, on_evt_def, NULL, {21, 23, 20, -1}, 1},
@@ -1679,6 +1692,7 @@ void menu_step(struct task_t *t)
 {
 	u32 k;
 	int i;
+	struct menu_voice_t *pwd;
 
 	if (get_standby()) {
 		cur_menu = NULL;
@@ -1691,13 +1705,19 @@ void menu_step(struct task_t *t)
 		if (k & (1 << KEY_ESC))
 			set_standby(1);
 		else {
-			dl_to_unlock = get_deadline_idx();
-			if (dl_to_unlock >= 0)
-				cur_menu = get_menu_voice(MENU_VOICE_PWD);
-			else
-				cur_menu = get_menu_voice(MENU_VOICE_DEFAULT);
+			pwd = get_menu_voice(MENU_VOICE_PWD);
+			if (pwd) {
+				dl_to_unlock = get_deadline_idx();
+				if (dl_to_unlock >= 0)
+					pwd->enabled = 1;
+				else
+					pwd->enabled = 0;
+			}
+
+			cur_menu = get_menu_voice(MENU_VOICE_DEFAULT);
 			if (!cur_menu)
 				return;
+
 			lcd_write_line(cur_menu->text[0], 0, 0);
 			lcd_write_line(cur_menu->text[1], 1, 0);
 		}
