@@ -3,7 +3,11 @@
  * Copyright: Elo System srl
  */
 
+#ifdef BOARD_elo_new
+#define HUMAN_VERSION "1.1"
+#else
 #define HUMAN_VERSION "v2"
+#endif
 
 extern const char zero;
 extern const char one;

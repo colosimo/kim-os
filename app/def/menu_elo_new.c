@@ -57,10 +57,11 @@ extern u32 hours;
 void show_home(void)
 {
 	char buf[24];
-	u32 mA;
+	u32 mA1, mA2;
 	u8 en_def_out, en_osm;
 
-	osm_measure(OSM_CH2, NULL, &mA, NULL);
+	osm_measure(OSM_CH1, NULL, &mA1, NULL);
+	osm_measure(OSM_CH2, NULL, &mA2, NULL);
 	eeprom_read(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
 
 	eeprom_read(EEPROM_ENABLE_DEF_OUT, &en_def_out, 1);
@@ -69,7 +70,7 @@ void show_home(void)
 	k_sprintf(buf, "Elo srl Centr: %d%c", en_osm, en_def_out ? 'D' : ' ');
 	lcd_write_line(buf, 0, 0);
 	k_sprintf(buf, "%04d GG %03d mA   %c",
-	    (uint) hours / 24, (uint)mA, dl_isactive() ? 'T' : ' ');
+	    (uint) hours / 24, (uint)(mA1 + mA2), dl_isactive() ? 'T' : ' ');
 	lcd_write_line(buf, 1, 0);
 }
 
@@ -116,18 +117,85 @@ done:
 	keys_clear_evts(1 << key);
 }
 
+/* Show main info */
+
+static void refresh_info()
+{
+	char buf[24];
+	u32 bluetooth_id;
+	u32 temp;
+	struct rtc_t r;
+	if (status == 0) {
+		rtc_get(&r);
+		eeprom_read(EEPROM_BLUETOOTH_ID, &bluetooth_id, 4);
+		osm_measure(OSM_CH1, NULL, NULL, &temp);
+		k_sprintf(buf, "S/N: %05d", (uint)bluetooth_id);
+		lcd_write_line(buf, 0, 0);
+		k_sprintf(buf, "V:%s %02d/%02d/%02d T:%02d",
+		    HUMAN_VERSION, r.day, r.month, r.year, (uint)temp);
+		lcd_write_line(buf, 1, 0);
+		status = 1;
+	}
+}
+
+/* Show measures */
+
+static void refresh_measures()
+{
+	char buf[24];
+	u32 v[OSM_CH2 + 1];
+	u32 a[OSM_CH2 + 1];
+	u32 t[OSM_CH2 + 1];
+	int i;
+
+	if (status == 0) {
+		for (i = OSM_CH1; i <= OSM_CH2; i++)
+			osm_measure(i, &v[i], &a[i], &t[i]);
+
+		k_sprintf(buf, "V1: %02d.%d V2: %02d.%d",
+		    (uint)v[OSM_CH1] / 1000, (uint)(v[OSM_CH1] % 1000) / 100,
+		    (uint)v[OSM_CH2] / 1000, (uint)(v[OSM_CH2] % 1000) / 100);
+		lcd_write_line(buf, 0, 0);
+
+		k_sprintf(buf, "mA1: %03d mA2: %03d", (uint)a[OSM_CH1], (uint)a[OSM_CH2]);
+		lcd_write_line(buf, 1, 0);
+
+		status = 1;
+	}
+}
+
+/* Show def rolling and mode */
+
+static void refresh_def_rolling()
+{
+	u8 mode, st;
+	char buf[24];
+
+	if (status == 0) {
+		eeprom_read(EEPROM_PWM_CURRENT_MODE_ADDR, &mode, 1);
+		if (mode != 4) {
+			eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &st, 1);
+			k_sprintf(buf, "DEF %c%c", mode == 3 ? 'R' : ' ', '0' + st + 1);
+		}
+		else
+			k_sprintf(buf, "DEF OFF");
+		lcd_write_line(buf, 0, 0);
+	}
+}
+
+
 /* Date / Time setting */
 
 static struct rtc_t r;
 static u32 ticks_cancel;
-
-#if 0
+char cont[6];
 
 static void update_screen_datetime()
 {
 	char buf[24];
 	int cur_line, cur_pos, cur_show;
 
+	log("%s %d\n", __func__, status);
 	if (status == 100) {
 		lcd_write_line("ANNULLATO", 0, 1);
 		lcd_write_line("", 1, 0);
@@ -140,42 +208,65 @@ static void update_screen_datetime()
 		return;
 	}
 
-	k_sprintf(buf, "Data: %02d/%02d/%02d", r.day, r.month, r.year);
+	k_sprintf(buf, "D %02d/%02d/%02d H %02d:%02d",
+	    r.day, r.month, r.year, r.hour, r.min);
 	lcd_write_line(buf, 0, 0);
-	k_sprintf(buf, "Ore:  %02d:%02d", r.hour, r.min);
+	k_sprintf(buf, "Cont %s", cont);
 	lcd_write_line(buf, 1, 0);
 
 	switch(status) {
 		case 0:
-		case 1: cur_line = 0; cur_pos = 7; cur_show = 1; break;
-		case 2: cur_line = 0; cur_pos = 10; cur_show = 1; break;
-		case 3: cur_line = 0; cur_pos = 13; cur_show = 1; break;
-		case 4: cur_line = 1; cur_pos = 7; cur_show = 1; break;
-		case 5: cur_line = 1; cur_pos = 10; cur_show = 1; break;
-		case 6: cur_line = 1; cur_pos = 17; cur_show = 0; break;
-		case 101: cur_show = 0;
+		case 1: cur_line = 0; cur_pos = 2; cur_show = 1; break;
+		case 2: cur_line = 0; cur_pos = 5; cur_show = 1; break;
+		case 3: cur_line = 0; cur_pos = 8; cur_show = 1; break;
+		case 4: cur_line = 0; cur_pos = 13; cur_show = 1; break;
+		case 5: cur_line = 0; cur_pos = 16; cur_show = 1; break;
+		case 6:
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+			cur_line = 1; cur_pos = 5 + status - 6; cur_show = 1; break;
+		case 11: cur_line = 1; cur_pos = 17; cur_show = 0; break;
+		case 99:
+		case 101:
 		default: cur_line = cur_pos = cur_show = 0; break; /* Never happens */
 	}
 	lcd_cursor(cur_line, cur_pos, cur_show);
 
-	if (status == 6)
+	if (status == 11)
 		lcd_write_string("OK?");
 }
 
 static void refresh_datetime()
 {
 	if (status == 0) {
+		eeprom_read(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
 		rtc_get(&r);
+		k_sprintf(cont, "%05d", (uint)hours);
+		status = 99; /* Idle */
 		update_screen_datetime();
-		status = 1;
 	}
-	else if (status >= 100 && k_elapsed(ticks_cancel) > MS_TO_TICKS(1000))
-			on_evt_def(KEY_ESC);
+	else if (status >= 100 && k_elapsed(ticks_cancel) > MS_TO_TICKS(1000)) {
+		status = 99;
+		update_screen_datetime();
+	}
 }
 
 static void on_evt_datetime(int key)
 {
+	log("%s %d\n", __func__, status);
+	u8 digit;
 	switch (status) {
+		case 99:
+			if (key == KEY_ENTER) {
+				status = 1;
+				update_screen_datetime();
+				keys_clear_evts(1 << key);
+			}
+			else
+				on_evt_def(key);
+			return;
 		case 1:
 			if (key == KEY_UP)
 				r.day = (r.day % 31) + 1;
@@ -230,11 +321,31 @@ static void on_evt_datetime(int key)
 			break;
 
 		case 6:
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+			digit = cont[status - 6];
+			if (key == KEY_UP)
+				digit++;
+			else if (key == KEY_DOWN)
+				digit--;
+
+			if (digit < '0')
+				digit = '9';
+			else if (digit > '9')
+				digit = '0';
+			cont[status - 6] = digit;
+			break;
+
+		case 11:
 			if (key == KEY_ENTER) {
 				if (rtc_valid(&r)) {
 					r.sec = 0;
 					rtc_dump(&r);
 					rtc_set(&r);
+					hours = atoi(cont);
+					eeprom_write(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
 					status = 101;
 				}
 				else
@@ -255,104 +366,14 @@ static void on_evt_datetime(int key)
 		ticks_cancel = k_ticks();
 	}
 
-	if (status < 7 && key == KEY_ENTER)
+	if (status < 11 && key == KEY_ENTER)
 		status++;
+
 	update_screen_datetime();
 	keys_clear_evts(1 << key);
 
 }
 
-/* OSM PWM setting */
-#if 0
-static int status_mode;
-static int menu_mode = 0;
-static struct pwm_cfg_t menu_p;
-#endif
-static void update_screen_osm()
-{
-#if 0
-	char buf[24];
-	int cur_line, cur_pos;
-
-	k_sprintf(buf, "Freq: %03d  %cMode: %d", (uint)menu_p.freq,
-	   menu_mode == status_mode ? '*' : ' ', menu_mode + 1);
-	lcd_write_line(buf, 0, 0);
-	k_sprintf(buf, "D.C.:  %02d", (uint)menu_p.duty);
-	lcd_write_line(buf, 1, 0);
-
-	switch(status) {
-		case 0:
-		case 1: cur_line = 0; cur_pos = 8; break;
-		case 2: cur_line = 1; cur_pos = 8; break;
-		default: cur_line = cur_pos = 0; break; /* Never happens */
-	}
-	lcd_cursor(cur_line, cur_pos, 1);
-#endif
-}
-
-static void refresh_osm(void)
-{
-	if (status == 0) {
-		update_screen_osm();
-		status = 1;
-	}
-}
-
-static void on_evt_osm(int key)
-{
-	on_evt_def(key);
-	return;
-#if 0
-	if (key == KEY_ESC) {
-		on_evt_def(key);
-		return;
-	}
-
-	switch (status) {
-		case 1:
-			if (key == KEY_UP && menu_p.freq < MAX_FREQ)
-				menu_p.freq++;
-			else if (key == KEY_DOWN && menu_p.freq > MIN_FREQ)
-				menu_p.freq--;
-			else if (key == KEY_ENTER)
-				status = 2;
-			break;
-
-		case 2:
-			if (key == KEY_UP && menu_p.duty < MAX_DUTY)
-				menu_p.duty++;
-			else if (key == KEY_DOWN && menu_p.duty > MIN_DUTY)
-				menu_p.duty--;
-			else if (key == KEY_ENTER)
-				status = 1;
-
-			break;
-
-		default:
-			break;
-	}
-
-	if (key == KEY_ENTER) {
-		pwm_check(&menu_p.freq, &menu_p.duty);
-		if (menu_mode == status_mode)
-			pwm_set(menu_p.freq, menu_p.duty);
-		log("Save mode %d: %d %d\n", menu_mode + 1, (uint)menu_p.freq, (uint)menu_p.duty);
-		eeprom_write(EEPROM_PWM_MODE0_ADDR + menu_mode * sizeof(menu_p),
-			(u8*)&menu_p, sizeof(menu_p));
-
-		if (status == 1) {
-			menu_mode = (menu_mode + 1) % 3;
-			eeprom_read(EEPROM_PWM_MODE0_ADDR + menu_mode * sizeof(menu_p),
-			    (u8*)&menu_p, sizeof(menu_p));
-		}
-
-	}
-	update_screen_osm();
-	keys_clear_evts(1 << key);
-#endif
-}
-
-#endif
 /* DEF PWM setting */
 
 static int status_mode;
@@ -1614,9 +1635,9 @@ static void on_evt_fmode(int key)
 
 static struct menu_voice_t menu[] = {
 	{10, {"VERSIONE", ""}, on_evt_def, NULL, {30, 20, -1, 11}, 1},
-	{11, {"S/N: NNNNN Beep:SSS", "V:00.0 DD/MM/AA T:TT"}, on_evt_def, NULL, {14, 12, 10, -1}, 1},
-	{12, {"V1: XX.X V2: XX.X", "mA1: CCC mA2: CC2"}, on_evt_def, NULL, {11, 13, 10, -1}, 1},
-	{13, {"DEF RX", ""}, on_evt_def, NULL, {12, 14, 10, -1}, 1},
+	{11, {"", ""}, on_evt_def, refresh_info, {14, 12, 10, -1}, 1},
+	{12, {"", ""}, on_evt_def, refresh_measures, {11, 13, 10, -1}, 1},
+	{13, {"", ""}, on_evt_def, refresh_def_rolling, {12, 14, 10, -1}, 1},
 	{14, {"Timeout GG/MM/AA", "Cod. Sblocco XXXXX"}, on_evt_def, NULL, {13, 11, 10, -1}, 1},
 	{20, {"LOG", ""}, on_evt_def, NULL, {10, 30, -1, 21}, 1},
 	{21, {"Allarmi RRR DDDDDD", "GGMMAA HH:MM"}, on_evt_def, NULL, {23, 22, 20, -1}, 1},
@@ -1641,7 +1662,7 @@ static struct menu_voice_t menu[] = {
 	{3330, {"", ""}, on_evt_avg_en, refresh_avg_en, {-1, -1, 333, 333}, 1},
 	{334, {"VISUALIZZA", "REALTIME SENSORI"}, on_evt_def, NULL, {333, 331, -1, 3340}, 1},
 	{3340, {"Attendere...", "Comunicazione"}, on_evt_def, refresh_realtimesens, {-1, -1, 334, 334}, 1},
-	{34, {"D GG/MM/AA H HH:MM", "Cont XXXX"}, on_evt_def, NULL, {33, 35, 30, -1}, 1},
+	{34, {"", ""}, on_evt_datetime, refresh_datetime, {33, 35, 30, -1}, 1},
 	{35, {"Funz. a tempo", ""}, on_evt_def, NULL, {34, 36, 30, 350}, 1},
 	{350, {"", ""}, on_evt_deadline, refresh_deadline, {-1, -1, 35, 35}, 1},
 	{36, {"Comunicazioni", ""}, on_evt_def, NULL, {35, 37, 30, -1}, 0},
