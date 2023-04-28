@@ -1432,6 +1432,63 @@ refresh:
 }
 
 /* PWM OSM Setting End */
+static u8 alrm_pol;
+static void update_alrm_pol(void)
+{
+	const char *buf[] = {"Clos", "Open", "Off"};
+
+	if (alrm_pol > 2)
+		alrm_pol = 2;
+	lcd_write_line(buf[alrm_pol], 1, 0);
+	if (status == 2)
+		lcd_cursor(1, osm_cursor_pos, 1);
+	else
+		lcd_cursor(0, 0, 0);
+}
+
+static void refresh_alrm_pol(void)
+{
+	if (status == 0) {
+		eeprom_read(EEPROM_ALRM_OUT_POL, &alrm_pol, 1);
+		update_alrm_pol();
+		status = 1;
+	}
+}
+
+static void on_evt_alrm_pol(int key)
+{
+	if (status == 1) {
+		if (key == KEY_ENTER) {
+			status = 2;
+			update_alrm_pol();
+			keys_clear_evts(1 << key);
+		}
+		else
+			on_evt_def(key);
+		return;
+	}
+	else if (status == 2) {
+		if (key == KEY_ESC) {
+			eeprom_read(EEPROM_ALRM_OUT_POL, &alrm_pol, 1);
+			status = 1;
+		}
+		else if (key == KEY_ENTER) {
+			eeprom_write(EEPROM_ALRM_OUT_POL, &alrm_pol, 1);
+			status = 1;
+		}
+		else if (key == KEY_UP)
+			alrm_pol = (alrm_pol + 1) % 3;
+		else if (key == KEY_DOWN) {
+			if (alrm_pol == 0)
+				alrm_pol = 2;
+			else
+				alrm_pol--;
+		}
+		update_alrm_pol();
+	}
+	keys_clear_evts(1 << key);
+}
+
 
 /* F. Mode Setting Begin */
 
@@ -1614,7 +1671,7 @@ static struct menu_voice_t menu[] = {
 	{35, {"Funz. a tempo", ""}, on_evt_def, NULL, {34, 36, 30, 350}, 1},
 	{350, {"", ""}, on_evt_deadline, refresh_deadline, {-1, -1, 35, 35}, 1},
 	{36, {"Comunicazioni", ""}, on_evt_def, NULL, {35, 37, 30, -1}, 0},
-	{37, {"Rele errore", ""}, on_evt_def, NULL, {36, 38, 30, -1}, 1},
+	{37, {"Rele errore", ""}, on_evt_alrm_pol, refresh_alrm_pol, {36, 38, 30, -1}, 1},
 	{38, {"Backup/Restore", ""}, on_evt_def, NULL, {37, 31, 30, -1}, 0},
 	{-1}
 };
