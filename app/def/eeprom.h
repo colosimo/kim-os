@@ -46,6 +46,7 @@ struct pwm_cfg_t {
 #define EEPROM_OSM_CH2_CFG       0x00a0
 
 #define EEPROM_T_MAX             0x00b0
+#define EEPROM_ALRM_OUT_POL      0x00b2
 
 #define EEPROM_ALARMS_START_ADDR 0x0100
 #define EEPROM_ALARMS_END_ADDR   0x04f8

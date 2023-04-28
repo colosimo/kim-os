@@ -14,6 +14,7 @@
 #include "eeprom.h"
 #include "lcd.h"
 #include "osm.h"
+#include "def.h"
 
 #define EEPROM_I2C_ADDR_7BIT 0b1010110
 
@@ -84,6 +85,9 @@ void eeprom_reset(void)
 	eeprom_write(EEPROM_ENABLE_OSM, &tmp8, 1);
 	tmp8 = 70;
 	eeprom_write(EEPROM_T_MAX, &tmp8, 1);
+
+	tmp8 = ALRM_OUT_POLARITY_CLOSE;
+	eeprom_write(EEPROM_ALRM_OUT_POL, &tmp8, 1);
 
 	/* Reset alarms */
 	db_alarm_reset();

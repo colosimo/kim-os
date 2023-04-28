@@ -30,6 +30,10 @@ extern const char led_on;
 #define ALRM_BITFIELD_BATTERY(s)   (1 << ((s) + ALRM_TYPE_BATTERY))
 #define ALRM_BITFIELD_ANY          0xff
 
+#define ALRM_OUT_POLARITY_CLOSE 0
+#define ALRM_OUT_POLARITY_OPEN  1
+#define ALRM_OUT_POLARITY_OFF   2
+
 #define BATTERY_THRES            60 /* 6V */
 
 void set_alarm(int alrm);
