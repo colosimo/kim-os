@@ -948,47 +948,6 @@ static void refresh_avg_en(void)
 }
 
 #if 0
-u32 bluetooth_id;
-
-static void on_evt_bluetooth_id(int key)
-{
-	if (key == KEY_ESC)
-		on_evt_def(key);
-	else if (key == KEY_ENTER) {
-		lcd_write_line("BLUETOOTH RESET...", 0, 0);
-		eeprom_write(EEPROM_BLUETOOTH_ID, &bluetooth_id, 4);
-		bt_init();
-		on_evt_def(key);
-	}
-
-	do_refresh = 1;
-	if (key == KEY_UP)
-		bluetooth_id = (bluetooth_id + 1) & 0xffff;
-	else if (key == KEY_DOWN)
-		bluetooth_id = (bluetooth_id - 1) & 0xffff;
-
-	keys_clear_evts(1 << key);
-}
-
-static void refresh_bluetooth_id(void)
-{
-	char buf[24];
-	if (status == 0) {
-		eeprom_read(EEPROM_BLUETOOTH_ID, &bluetooth_id, 4);
-		status = 1;
-		do_refresh = 1;
-	}
-
-	if (!do_refresh)
-		return;
-
-	do_refresh = 0;
-
-	k_sprintf(buf, "BLUETOOTH ID: %05d", (uint)bluetooth_id);
-	lcd_write_line(buf, 0, 0);
-
-	status = 1;
-}
 
 static void on_evt_data_dump(int key)
 {
@@ -1330,30 +1289,6 @@ static void on_evt_dl_code(int key)
 	update_screen_dl_code();
 	keys_clear_evts(1 << key);
 }
-
-#if 0
-static void on_evt_reset_dl_all(int key)
-{
-	if (key == KEY_ENTER)
-		dl_to_unlock = -1;
-	on_evt_def(key);
-}
-
-/* Function mode */
-static void update_screen_fmode(void)
-{
-}
-
-static void refresh_fmode(void)
-{
-	update_screen_fmode();
-}
-
-static void on_evt_fmode(int key)
-{
-}
-#endif
-
 
 /* PWM OSM Setting Begin */
 
