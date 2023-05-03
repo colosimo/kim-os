@@ -19,6 +19,7 @@ attr_packed struct osm_cfg_t {
 };
 
 void osm_init(void);
+void osm_restart(void);
 
 void osm_set(int channel, u16 enable, u32 freq, u32 duty, u16 volt_perc);
 void osm_set_cfg(int channel, struct osm_cfg_t *osm);

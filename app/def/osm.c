@@ -210,6 +210,16 @@ void osm_disable(int channel)
 
 }
 
+void osm_restart(void)
+{
+	struct task_t *t;
+	t = task_find("osm");
+	if (t) {
+		task_stop(t);
+		task_start(t);
+	}
+}
+
 static void osm_start(struct task_t *t)
 {
 	struct osm_cfg_t osm_cfg;
@@ -262,7 +272,7 @@ static void osm_step(struct task_t *t)
 	else if (overtemp && (temp + 10 <= temp_max)) {
 		overtemp = 0;
 		dbg("OVERTEMPERATURE ENDED!\n");
-		osm_start(t);
+		osm_restart();
 	}
 
 	idx = dl_iselapsed();

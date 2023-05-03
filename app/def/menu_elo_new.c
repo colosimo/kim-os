@@ -1550,7 +1550,7 @@ static void on_evt_fmode(int key)
 
 		case 2:
 			if (key == KEY_ENTER) {
-				/* TODO Handle osm out: restart osm process? */
+				osm_restart();
 				eeprom_write(EEPROM_ENABLE_OSM, &fmode_en_osm, 1);
 				fmode_cursor_pos = 9;
 				status = 3;
@@ -1569,7 +1569,7 @@ static void on_evt_fmode(int key)
 		case 3:
 			if (key == KEY_ENTER) {
 				eeprom_write(EEPROM_ENABLE_DEF_OUT, &fmode_en_def_out, 1);
-				/* TODO Handle def out: restart def process? */
+				osm_restart();
 				fmode_cursor_pos = 24;
 				status = 4;
 			}
