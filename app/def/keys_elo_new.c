@@ -94,8 +94,8 @@ void keys_start(struct task_t *t)
 	v[0] = 0;
 	cap1296_write(fd_cap1296, 0x2A, &v, 1); /* allow multiple touches */
 
-	v[0] = 0x6F;
-	cap1296_write(fd_cap1296, 0x1F, &v, 1); /* reduce sensitivity */
+	v[0] = 0x2F;
+	cap1296_write(fd_cap1296, 0x1F, &v, 1); /* sensitivity 0x2f (=32x) */
 
 	v[0] = 0;
 	cap1296_write(fd_cap1296, 0x28, &v, 1); /* disable repeat interrupts on all pins */
