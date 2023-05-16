@@ -28,6 +28,8 @@ void osm_get(int channel, struct osm_cfg_t *osm);
 void osm_enable(int channel);
 void osm_disable(int channel);
 
+int osm_is_enabled(int channel);
+
 void osm_measure(int channel, u32 *volt_mV, u32 *cur_mA, u32 *temperature);
 
 #endif /* _OSM_H_ */

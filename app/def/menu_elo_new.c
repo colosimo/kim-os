@@ -1636,6 +1636,129 @@ static void on_evt_fmode(int key)
 
 /* F. Mode Setting End */
 
+/* EPT Setting Begin */
+static int ept_cursor_pos;
+static u16 ept_en;
+static u16 ept_pause, ept_inv_10xsec;
+
+static void update_ept(void)
+{
+	char buf[24];
+
+	k_sprintf(buf, "EPT:%c P(sec):%d", ept_en ? 'S' : 'N', ept_pause);
+	lcd_write_line(buf, 0, 0);
+
+	k_sprintf(buf, "INV(sec):%2d.%d", ept_inv_10xsec / 10, ept_inv_10xsec % 10);
+	lcd_write_line(buf, 1, 0);
+
+	if (ept_cursor_pos > 0)
+		lcd_cursor(ept_cursor_pos / 20, ept_cursor_pos % 20, 1);
+}
+
+static void refresh_ept(void)
+{
+	if (status == 0) {
+		eeprom_read(EEPROM_EPT_EN, &ept_en, 1);
+		eeprom_read(EEPROM_EPT_PAUSE, &ept_pause, 2);
+		eeprom_read(EEPROM_EPT_INV, &ept_inv_10xsec, 2);
+
+		update_ept();
+		status = 1;
+		ept_cursor_pos = 0;
+	}
+}
+
+static void on_evt_ept(int key)
+{
+	if (status == 0 || key == KEY_ESC) {
+		on_evt_def(key);
+		return;
+	}
+
+	switch (status) {
+		case 1:
+			if (key == KEY_ENTER) {
+				ept_cursor_pos = 4;
+				update_ept();
+				status = 2;
+			}
+			else
+				on_evt_def(key);
+			break;
+
+		case 2:
+			if (key == KEY_ENTER) {
+				eeprom_write(EEPROM_EPT_EN, &ept_en, 1);
+				ept_cursor_pos = 14;
+				status = 3;
+			}
+			else if (key == KEY_UP || key == KEY_DOWN)
+				ept_en = !ept_en;
+			update_ept();
+			break;
+
+		case 3:
+			if (key == KEY_ENTER) {
+				eeprom_write(EEPROM_EPT_PAUSE, &ept_pause, 2);
+				ept_cursor_pos = 30;
+				status = 4;
+			}
+			else if (key == KEY_UP) {
+				if (ept_pause < 59)
+					ept_pause++;
+			}
+			else if (key == KEY_DOWN) {
+				if (ept_pause > 0)
+					ept_pause--;
+			}
+
+			update_ept();
+			break;
+
+		case 4:
+			if (key == KEY_ENTER) {
+				eeprom_write(EEPROM_EPT_INV, &ept_inv_10xsec, 2);
+				status = 5;
+				ept_cursor_pos = 32;
+			}
+
+			if (key == KEY_UP) {
+				if (ept_inv_10xsec <= 89)
+					ept_inv_10xsec += 10;
+			}
+			else if (key == KEY_DOWN) {
+				if (ept_inv_10xsec >= 10)
+					ept_inv_10xsec -= 10;
+			}
+			update_ept();
+			break;
+
+		case 5:
+			if (key == KEY_ENTER) {
+				eeprom_write(EEPROM_EPT_INV, &ept_inv_10xsec, 2);
+				status = 0;
+				ept_cursor_pos = 0;
+			}
+
+			if (key == KEY_UP) {
+				if (ept_inv_10xsec < 99)
+					ept_inv_10xsec++;
+			}
+			else if (key == KEY_DOWN) {
+				if (ept_inv_10xsec > 0)
+					ept_inv_10xsec--;
+			}
+			update_ept();
+			break;
+
+		default:
+			on_evt_def(key);
+	}
+	keys_clear_evts(1 << key);
+}
+
+/* EPT Setting End */
+
 static struct menu_voice_t menu[] = {
 	{10, {"VERSIONE", ""}, on_evt_def, NULL, {30, 20, -1, 11}, 1},
 	{11, {"", ""}, on_evt_def, refresh_info, {14, 12, 10, -1}, 1},
@@ -1652,7 +1775,7 @@ static struct menu_voice_t menu[] = {
 	{31, {"", ""}, on_evt_fmode, refresh_fmode, {38, 32, 30, -1}, 1},
 	{32, {"PARAMETRI PWM", ""}, on_evt_def, NULL, {31, 33, 30, 321}, 1},
 	{321, {"", ""}, on_evt_osm, refresh_osm, {325, 322, 32, -1}, 1},
-	{322, {"EPT:A P:YY", "INV:ZZ.Z"}, on_evt_def, NULL, {321, 323, 32, -1}, 1},
+	{322, {"EPT:A P:YY", "INV:ZZ.Z"}, on_evt_ept, refresh_ept, {321, 323, 32, -1}, 1},
 	{323, {"START RIT:A", "IL:GG/MM/AA h:OO"}, on_evt_def, NULL, {322, 324, 32, -1}, 1},
 	{324, {"CX Contr. Corr:A", "%:PP T:SS"}, on_evt_def, NULL, {323, 325, 32, -1}, 1},
 	{325, {"LIMITI C:X MIN:A", "MAX:KKK COR:ZZZZ"}, on_evt_def, NULL, {324, 321, 32, -1}, 1},

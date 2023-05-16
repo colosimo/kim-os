@@ -118,6 +118,20 @@ void osm_get(int channel, struct osm_cfg_t *osm)
 	*osm = osm_array[channel];
 }
 
+int osm_is_enabled(int channel)
+{
+	if (channel < 0 || channel > OSM_CH2) {
+		print_invalid_channel(channel);
+		return 0;
+	}
+
+	if (osm_array[channel].enable)
+		return 1;
+	else
+		return 0;
+
+}
+
 void osm_measure(int channel, u32 *volt_mV, u32 *cur_mA, u32 *temperature)
 {
 	int NITER = 4;
@@ -247,12 +261,21 @@ static void osm_start(struct task_t *t)
 
 static int deadline_lock = 0;
 static int overtemp = 0;
+static int last_ept_minutes = -1;
+static int ept_status = -1;
+static u32 ept_status_ticks;
+static u16 ept_pause, ept_inv;
+
 static void osm_step(struct task_t *t)
 {
 	u32 v, temp;
 	int i;
 	int idx;
 	u8 temp_max;
+	struct rtc_t r;
+	u8 ept_en;
+	int fd;
+	u8 tmp8;
 
 	for (i = OSM_CH1; i <= OSM_CH2; i++) {
 		osm_measure(i, &v, NULL, &temp);
@@ -271,6 +294,7 @@ static void osm_step(struct task_t *t)
 		overtemp = 0;
 		dbg("OVERTEMPERATURE ENDED!\n");
 		osm_restart();
+		return;
 	}
 
 	idx = dl_iselapsed();
@@ -279,18 +303,79 @@ static void osm_step(struct task_t *t)
 		osm_disable(OSM_CH2);
 	}
 	else if (deadline_lock && idx < 0) {
-		if (!overtemp) {
-			osm_enable(OSM_CH1);
-			osm_enable(OSM_CH2);
-		}
 		deadline_lock = 0;
+		if (!overtemp) {
+			osm_restart();
+			return;
+		}
+	}
+
+	if (osm_is_enabled(OSM_CH1) || osm_is_enabled(OSM_CH2)) {
+		rtc_get(&r);
+		if (r.min != last_ept_minutes && (r.min == 0 || r.min == 30)) {
+			eeprom_read(EEPROM_EPT_EN, &ept_en, 1);
+			if (ept_en) {
+				last_ept_minutes = r.min;
+				ept_status = 0;
+				eeprom_read(EEPROM_EPT_PAUSE, &ept_pause, 2);
+				eeprom_read(EEPROM_EPT_INV, &ept_inv, 2);
+			}
+		}
+	}
+	if (ept_status < 0)
+		return;
+
+	switch (ept_status) {
+		case 0:
+			ept_status_ticks = k_ticks();
+			if (ept_pause > 0) {
+				osm_disable(OSM_CH1);
+				osm_disable(OSM_CH2);
+				ept_status = 1;
+			}
+			else
+				ept_status = 2;
+			break;
+
+		case 1:
+			if (k_elapsed(ept_status_ticks) > MS_TO_TICKS(1000 * ept_pause)) {
+				if (ept_inv > 0) {
+					ept_status = 2;
+					ept_status_ticks = k_ticks();
+					fd = k_fd_byname("reverse");
+					if (fd >= 0) {
+						tmp8 = 1;
+						k_write(fd, &tmp8, 1);
+					}
+				}
+				else
+					ept_status = -1;
+
+				osm_restart();
+				return;
+			}
+			break;
+
+		case 2:
+			if (k_elapsed(ept_status_ticks) > MS_TO_TICKS(100 * ept_inv)) {
+				fd = k_fd_byname("reverse");
+				if (fd >= 0) {
+					tmp8 = 0;
+					k_write(fd, &tmp8, 1);
+				}
+				ept_status = -1;
+			}
+			break;
+
+		default:
+			break;
 	}
 }
 
 struct task_t attr_tasks task_osm = {
 	.start = osm_start,
 	.step = osm_step,
-	.intvl_ms = 1000,
+	.intvl_ms = 100,
 	.name = "osm",
 };
 

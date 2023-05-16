@@ -19,7 +19,7 @@
 #define EEPROM_I2C_ADDR_7BIT 0b1010110
 
 #define EEPROM_SIGN     "ELOS"
-#define EEPROM_FMT_VER  3
+#define EEPROM_FMT_VER  4
 
 static u8 pwm_def_freq[3] = {200, 100, 80};
 static u8 pwm_def_duty[3] = {5, 5, 5};
@@ -33,6 +33,7 @@ void eeprom_reset(void)
 {
 	u32 tmp = 0xdeadbeaf;
 	u8 tmp8;
+	u16 tmp16;
 	struct pwm_cfg_t p;
 	int m;
 	u8 daily_avg;
@@ -88,6 +89,14 @@ void eeprom_reset(void)
 
 	tmp8 = ALRM_OUT_POLARITY_CLOSE;
 	eeprom_write(EEPROM_ALRM_OUT_POL, &tmp8, 1);
+
+	/* Reset EPT */
+	tmp8 = 0;
+	eeprom_write(EEPROM_EPT_EN, &tmp8, 1);
+	tmp16 = 0;
+	eeprom_write(EEPROM_EPT_PAUSE, &tmp16, 2);
+	eeprom_write(EEPROM_EPT_INV, &tmp16, 2);
+
 
 	/* Reset alarms */
 	db_alarm_reset();
