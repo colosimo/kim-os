@@ -225,16 +225,15 @@ static void update_screen_datetime()
 		case 7:
 		case 8:
 		case 9:
-		case 10:
 			cur_line = 1; cur_pos = 5 + status - 6; cur_show = 1; break;
-		case 11: cur_line = 1; cur_pos = 17; cur_show = 0; break;
+		case 10: cur_line = 1; cur_pos = 17; cur_show = 0; break;
 		case 99:
 		case 101:
 		default: cur_line = cur_pos = cur_show = 0; break; /* Never happens */
 	}
 	lcd_cursor(cur_line, cur_pos, cur_show);
 
-	if (status == 11)
+	if (status == 10)
 		lcd_write_string("OK?");
 }
 
@@ -243,7 +242,7 @@ static void refresh_datetime()
 	if (status == 0) {
 		eeprom_read(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
 		rtc_get(&r);
-		k_sprintf(cont, "%05d", (uint)hours);
+		k_sprintf(cont, "%04d", (uint)(hours / 24));
 		status = 99; /* Idle */
 		update_screen_datetime();
 	}
@@ -324,7 +323,6 @@ static void on_evt_datetime(int key)
 		case 7:
 		case 8:
 		case 9:
-		case 10:
 			digit = cont[status - 6];
 			if (key == KEY_UP)
 				digit++;
@@ -338,13 +336,13 @@ static void on_evt_datetime(int key)
 			cont[status - 6] = digit;
 			break;
 
-		case 11:
+		case 10:
 			if (key == KEY_ENTER) {
 				if (rtc_valid(&r)) {
 					r.sec = 0;
 					rtc_dump(&r);
 					rtc_set(&r);
-					hours = atoi(cont);
+					hours = atoi(cont) * 24;
 					eeprom_write(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
 					status = 101;
 				}
@@ -366,7 +364,7 @@ static void on_evt_datetime(int key)
 		ticks_cancel = k_ticks();
 	}
 
-	if (status < 11 && key == KEY_ENTER)
+	if (status < 10 && key == KEY_ENTER)
 		status++;
 
 	update_screen_datetime();
