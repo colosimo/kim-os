@@ -1674,6 +1674,7 @@ static struct menu_voice_t menu[] = {
 	{-1}
 };
 
+static int menu_refresh_cnt = 0;
 void menu_start(struct task_t *t)
 {
 }
@@ -1715,18 +1716,25 @@ void menu_step(struct task_t *t)
 		return;
 	}
 
-	if (!cur_menu)
+	menu_refresh_cnt++;
+
+	if (!cur_menu) {
+		if (menu_refresh_cnt % 100 == 0)
+			show_home();
 		return;
+	}
 
 	if (k && cur_menu->on_evt) {
 		for (i = KEY_UP; i <= KEY_ENTER; i++) {
 			if (k & (1 << i))
 				cur_menu->on_evt(i);
 		}
+		if (cur_menu->refresh)
+			cur_menu->refresh();
 	}
-
-	if (cur_menu->refresh)
-		cur_menu->refresh();
+	else
+		if (cur_menu->refresh && menu_refresh_cnt % 100 == 0)
+			cur_menu->refresh();
 }
 
 struct task_t attr_tasks task_menu = {
