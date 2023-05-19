@@ -33,10 +33,6 @@ int putchar(int c)
 void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 {
 	u32 ccr;
-	uint date;
-	uint time;
-	//u32 pllcfgr;
-	const char *days[7] = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
 
 	/* Enable HSI (8MHz internal oscillator) */
 	or32(R_RCC_CR, BIT0);
@@ -134,15 +130,6 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	wr32(R_RCC_BDCR, BIT0);
 	while (!(rd32(R_RCC_BDCR) & 0b10));
 	or32(R_RCC_BDCR, BIT15 | BIT8);
-
-	date = rd32(R_RTC_DR);
-	time = rd32(R_RTC_TR);
-	log("%s done, date is %s %d%d-%d%d-%d%d %d%d:%d%d:%d%d\n", __func__,
-		days[((date >> 13) & 0x7) - 1],
-	    (date >> 20) & 0xf, (date >> 16) & 0xf, (date >> 12) & 0x1, (date >> 8) & 0xf,
-		(date >> 4) & 0x3, date & 0xf,
-	    (time >> 20) & 0x3, (time >> 16) & 0xf, (time >> 12) & 0x7, (time >> 8) & 0xf,
-	    (time >> 4) & 0x7, time & 0xf);
 
 	gpio_dir(IO(PORTC, 3), DIR_OUT);
 	gpio_wr(IO(PORTC, 3), 1);

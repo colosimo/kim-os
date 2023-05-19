@@ -133,6 +133,22 @@ static void update_last_seen_on()
 
 static void def_start(struct task_t *t)
 {
+	struct rtc_t r;
+	rtc_get(&r);
+	if (r.year < 23) {
+		r.year = 23;
+		r.month = 1;
+		r.day = 1;
+		r.hour = 12;
+		r.min = 0;
+		r.sec = 0;
+		r.wdu = 7;
+		rtc_set(&r);
+	}
+	log("Date is ");
+	rtc_dump_kprint(&r);
+	kprint("\n");
+
 	lcd_init();
 	eeprom_init();
 	ant_init();
