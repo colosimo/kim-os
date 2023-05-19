@@ -247,13 +247,14 @@ static void osm_start(struct task_t *t)
 
 	for (i = OSM_CH1; i <= OSM_CH2; i++) {
 		eeprom_read(EEPROM_OSM_CH1_CFG + 0x10 * i, &osm_cfg, sizeof(osm_cfg));
+		if (dl_iselapsed() >= 0 || i >= osm_enable)
+			osm_cfg.enable = 0;
+		else
+			osm_cfg.enable = 1;
 
 		log("CH%d: %d %d %d %d\n", i + 1,
 		    (uint)osm_cfg.enable, (uint)osm_cfg.volt_perc,
 		    (uint)osm_cfg.freq, (uint)osm_cfg.duty);
-
-		if (dl_iselapsed() >= 0 || i >= osm_enable)
-			osm_cfg.enable = 0;
 
 		osm_set_cfg(i, &osm_cfg);
 	}
