@@ -14,9 +14,9 @@
 
 static u32 last_duty, last_freq;
 
-void pwm_init(void)
+void ant_init(void)
 {
-	struct pwm_cfg_t p;
+	struct ant_cfg_t p;
 	u8 m, status_rolling_mode;
 	int i;
 
@@ -36,36 +36,36 @@ void pwm_init(void)
 	wr32(R_TIM3_PSC, 40); /* Prescaler is 40 */
 #endif
 
-	eeprom_read(EEPROM_PWM_CURRENT_MODE_ADDR, &m, 1);
+	eeprom_read(EEPROM_ANT_CURRENT_MODE_ADDR, &m, 1);
 	if (m == 3) {
-		eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &status_rolling_mode, 1);
+		eeprom_read(EEPROM_ANT_STATUS_MODE_ADDR, &status_rolling_mode, 1);
 		rolling_start(status_rolling_mode);
 	}
 	else if (m == 4)
-		log("Logger mode, no pwm out\n");
+		log("Logger mode, no ant out\n");
 	else if (m > 4) { /* Invalid mode, reset */
 		m = 0;
-		eeprom_write(EEPROM_PWM_CURRENT_MODE_ADDR, &m, 1);
+		eeprom_write(EEPROM_ANT_CURRENT_MODE_ADDR, &m, 1);
 	}
 
 	for (i = 0; i < 3; i++) {
 
-		eeprom_read(EEPROM_PWM_MODE0_ADDR + i * sizeof(p), (u8*)&p, sizeof(p));
+		eeprom_read(EEPROM_ANT_MODE0_ADDR + i * sizeof(p), (u8*)&p, sizeof(p));
 
-		if (!pwm_check(&p.freq, &p.duty))
-			eeprom_write(EEPROM_PWM_MODE0_ADDR + i * sizeof(p), (u8*)&p, sizeof(p)); /* FIXME mode */
+		if (!ant_check(&p.freq, &p.duty))
+			eeprom_write(EEPROM_ANT_MODE0_ADDR + i * sizeof(p), (u8*)&p, sizeof(p)); /* FIXME mode */
 
 		if (i == m) {
-			pwm_set(p.freq, p.duty);
-			eeprom_write(EEPROM_PWM_STATUS_MODE_ADDR, &m, 1);
+			ant_set(p.freq, p.duty);
+			eeprom_write(EEPROM_ANT_STATUS_MODE_ADDR, &m, 1);
 		}
 	}
 
 	if (m == 4)
-		pwm_set(MIN_FREQ, 0);
+		ant_set(MIN_FREQ, 0);
 }
 
-int pwm_check(u32 *freq, u32 *duty)
+int ant_check(u32 *freq, u32 *duty)
 {
 	int ret = 1;
 
@@ -93,20 +93,20 @@ int pwm_check(u32 *freq, u32 *duty)
 	return ret;
 }
 
-void pwm_set(u32 freq, u32 duty)
+void ant_set(u32 freq, u32 duty)
 {
 	u32 arr;
 
-	log("pwm set %d %d\n", (uint)freq, (uint)duty);
+	log("ant set %d %d\n", (uint)freq, (uint)duty);
 
-	pwm_check(&freq, &duty);
+	ant_check(&freq, &duty);
 
 #ifdef BOARD_elo_new
 	or32(R_TIM4_CCER, BIT8);
 #else
 	or32(R_TIM3_CCER, BIT0);
 #endif
-	pwm_enable();
+	ant_enable();
 
 	arr = 400000 / freq; /* 400000 is 16MHz / Prescaler */
 #ifdef BOARD_elo_new
@@ -121,7 +121,7 @@ void pwm_set(u32 freq, u32 duty)
 	last_freq = freq;
 }
 
-void pwm_disable(void)
+void ant_disable(void)
 {
 #ifdef BOARD_elo_new
 	and32(R_TIM4_CR1, ~BIT0);
@@ -130,7 +130,7 @@ void pwm_disable(void)
 #endif
 }
 
-void pwm_enable(void)
+void ant_enable(void)
 {
 #ifdef BOARD_elo_new
 	or32(R_TIM4_CR1, BIT0);
@@ -139,7 +139,7 @@ void pwm_enable(void)
 #endif
 }
 
-void pwm_get(u32 *_freq, u32 *_duty)
+void ant_get(u32 *_freq, u32 *_duty)
 {
 	*_freq = last_freq;
 	*_duty = last_duty;

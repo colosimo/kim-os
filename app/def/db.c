@@ -265,7 +265,7 @@ static void db_data_fill_all(struct data_t *d)
 	d->hour = r.hour;
 	d->min = r.min;
 
-	pwm_get(&freq, &duty);
+	ant_get(&freq, &duty);
 	d->freq = (u16)(freq & 0x3ff);
 	d->duty = (u16)(duty & 0x3f);
 }

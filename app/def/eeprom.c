@@ -21,8 +21,8 @@
 #define EEPROM_SIGN     "ELOS"
 #define EEPROM_FMT_VER  4
 
-static u8 pwm_def_freq[3] = {200, 100, 80};
-static u8 pwm_def_duty[3] = {5, 5, 5};
+static u8 ant_def_freq[3] = {200, 100, 80};
+static u8 ant_def_duty[3] = {5, 5, 5};
 
 static struct osm_cfg_t osm_def_cfg =
     {.enable = 1, .volt_perc = 80, .freq = 100, .duty = 50};
@@ -34,7 +34,7 @@ void eeprom_reset(void)
 	u32 tmp = 0xdeadbeaf;
 	u8 tmp8;
 	u16 tmp16;
-	struct pwm_cfg_t p;
+	struct ant_cfg_t p;
 	int m;
 	u8 daily_avg;
 
@@ -58,18 +58,18 @@ void eeprom_reset(void)
 	tmp = 0;
 	eeprom_write(EEPROM_BLUETOOTH_ID, &tmp, sizeof(tmp));
 
-	/* Reset PWM */
+	/* Reset ANT */
 	m = 0;
-	eeprom_write(EEPROM_PWM_CURRENT_MODE_ADDR, &m, 1);
+	eeprom_write(EEPROM_ANT_CURRENT_MODE_ADDR, &m, 1);
 
 	for (m = 0; m < 3; m++) {
-		p.freq = pwm_def_freq[m];
-		p.duty = pwm_def_duty[m];
-		eeprom_write(EEPROM_PWM_MODE0_ADDR + m * sizeof(p), (u8*)&p, sizeof(p));
+		p.freq = ant_def_freq[m];
+		p.duty = ant_def_duty[m];
+		eeprom_write(EEPROM_ANT_MODE0_ADDR + m * sizeof(p), (u8*)&p, sizeof(p));
 	}
 
 	tmp = 1;
-	eeprom_write(EEPROM_PWM_ROL_DAYS_SETTING_ADDR, &tmp, sizeof(tmp));
+	eeprom_write(EEPROM_ANT_ROL_DAYS_SETTING_ADDR, &tmp, sizeof(tmp));
 
 	/* Reset OSM */
 	eeprom_write(EEPROM_OSM_CH1_CFG, &osm_def_cfg, sizeof(osm_def_cfg));

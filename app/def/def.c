@@ -105,15 +105,15 @@ static int rolling_enabled = 0;
 void rolling_start(int mode)
 {
 	u32 rolling_days;
-	struct pwm_cfg_t p;
+	struct ant_cfg_t p;
 
 	/* Save mode status */
-	eeprom_write(EEPROM_PWM_STATUS_MODE_ADDR, &mode, 1);
-	eeprom_read(EEPROM_PWM_MODE0_ADDR + mode * sizeof(p), &p, sizeof(p));
-	pwm_set(p.freq, p.duty);
+	eeprom_write(EEPROM_ANT_STATUS_MODE_ADDR, &mode, 1);
+	eeprom_read(EEPROM_ANT_MODE0_ADDR + mode * sizeof(p), &p, sizeof(p));
+	ant_set(p.freq, p.duty);
 
 	/* Save hrs status, initialize countdown */
-	eeprom_read(EEPROM_PWM_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));
+	eeprom_read(EEPROM_ANT_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));
 
 	log("rolling_days init mode %d, hrs %d\n", mode, (uint)rolling_days);
 	rolling_enabled = 1;
@@ -135,7 +135,7 @@ static void def_start(struct task_t *t)
 {
 	lcd_init();
 	eeprom_init();
-	pwm_init();
+	ant_init();
 
 	db_data_init();
 	set_standby(0);
@@ -157,7 +157,7 @@ static void def_step(struct task_t *t)
 	struct rtc_t r;
 	u32 rolling_days;
 	u8 mode;
-	struct pwm_cfg_t p;
+	struct ant_cfg_t p;
 	int idx;
 
 	if (k_elapsed(last_time_seen_on) >= 10 * MS_TO_TICKS(MS_IN_MIN)) {
@@ -181,27 +181,27 @@ static void def_step(struct task_t *t)
 		db_data_save_to_eeprom();
 
 		if (!deadline_lock && rolling_enabled) {
-			eeprom_read(EEPROM_PWM_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));
+			eeprom_read(EEPROM_ANT_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));
 			if (rolling_days > 1) {
 				rolling_days--;
-				eeprom_write(EEPROM_PWM_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));
+				eeprom_write(EEPROM_ANT_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));
 				log("rolling_days countdown %d\n", (uint)rolling_days);
 			}
 			else {
 
-				eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &mode, 1);
+				eeprom_read(EEPROM_ANT_STATUS_MODE_ADDR, &mode, 1);
 				mode = (mode + 1) % 3;
 				rtc_get(&r);
 				rtc_dump(&r);
 				log("rolling_days new mode %d\n\n", (uint)mode);
-				eeprom_write(EEPROM_PWM_STATUS_MODE_ADDR, &mode, 1);
+				eeprom_write(EEPROM_ANT_STATUS_MODE_ADDR, &mode, 1);
 
-				eeprom_read(EEPROM_PWM_MODE0_ADDR + mode * sizeof(p), &p, sizeof(p));
-				pwm_set(p.freq, p.duty);
+				eeprom_read(EEPROM_ANT_MODE0_ADDR + mode * sizeof(p), &p, sizeof(p));
+				ant_set(p.freq, p.duty);
 
 				/* Reinitialize countdown */
-				eeprom_read(EEPROM_PWM_ROL_DAYS_SETTING_ADDR, &rolling_days, sizeof(rolling_days));
-				eeprom_write(EEPROM_PWM_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));
+				eeprom_read(EEPROM_ANT_ROL_DAYS_SETTING_ADDR, &rolling_days, sizeof(rolling_days));
+				eeprom_write(EEPROM_ANT_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));
 			}
 		}
 		curday = r.day;
@@ -211,7 +211,7 @@ static void def_step(struct task_t *t)
 	deadline_idx = idx;
 	if (idx >= 0 && !deadline_lock) {
 		deadline_lock = 1;
-		pwm_disable();
+		ant_disable();
 		set_alarm(ALRM_BITFIELD_ANT);
 		db_alarm_add(ALRM_TYPE_TIME, 0);
 		ant_check_enable(0);
@@ -219,7 +219,7 @@ static void def_step(struct task_t *t)
 	}
 	else if (deadline_lock && idx < 0) {
 		deadline_lock = 0;
-		pwm_enable();
+		ant_enable();
 		clr_alarm(ALRM_BITFIELD_ANT);
 		db_alarm_add(ALRM_TYPE_TIME_END, 0);
 		ant_check_enable(1);
@@ -295,22 +295,22 @@ struct task_t attr_tasks task_ant_check = {
 	.name = "ant_check",
 };
 
-/* PWM out manual command */
+/* ANT out manual command */
 
-static int pwm_cmd_cb(int argc, char *argv[], int fdout)
+static int ant_cmd_cb(int argc, char *argv[], int fdout)
 {
 	u32 freq;
 	u32 duty;
 	freq = atoi(argv[1]);
 	duty = atoi(argv[2]);
 
-	pwm_set(freq, duty);
+	ant_set(freq, duty);
 	return 0;
 }
 
-const struct cli_cmd_t attr_cli cli_pwm = {
+const struct cli_cmd_t attr_cli cli_ant = {
 	.narg = 2,
-	.cmd = pwm_cmd_cb,
-	.name = "pwm",
-	.descr = "pwm {freq} {duty}",
+	.cmd = ant_cmd_cb,
+	.name = "ant",
+	.descr = "ant {freq} {duty}",
 };

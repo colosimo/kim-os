@@ -8,13 +8,13 @@
 #define MIN_DUTY 2
 #define MAX_DUTY 10
 
-void pwm_init(void);
+void ant_init(void);
 
-int pwm_check(u32 *freq, u32 *duty);
+int ant_check(u32 *freq, u32 *duty);
 
-void pwm_set(u32 freq, u32 duty);
+void ant_set(u32 freq, u32 duty);
 
-void pwm_get(u32 *freq, u32 *duty);
+void ant_get(u32 *freq, u32 *duty);
 
-void pwm_enable(void);
-void pwm_disable(void);
+void ant_enable(void);
+void ant_disable(void);

@@ -172,9 +172,9 @@ static void refresh_def_rolling()
 	char buf[24];
 
 	if (status == 0) {
-		eeprom_read(EEPROM_PWM_CURRENT_MODE_ADDR, &mode, 1);
+		eeprom_read(EEPROM_ANT_CURRENT_MODE_ADDR, &mode, 1);
 		if (mode != 4) {
-			eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &st, 1);
+			eeprom_read(EEPROM_ANT_STATUS_MODE_ADDR, &st, 1);
 			k_sprintf(buf, "DEF %c%c", mode == 3 ? 'R' : ' ', '0' + st + 1);
 		}
 		else
@@ -372,13 +372,13 @@ static void on_evt_datetime(int key)
 
 }
 
-/* DEF PWM setting */
+/* DEF PWM ANT setting */
 
 static int status_mode;
 static int menu_mode = 0;
-static struct pwm_cfg_t menu_p;
+static struct ant_cfg_t menu_p;
 
-static void update_screen_pwm_ant()
+static void update_screen_ant()
 {
 	char buf[24];
 	int cur_line, cur_pos;
@@ -398,19 +398,19 @@ static void update_screen_pwm_ant()
 	lcd_cursor(cur_line, cur_pos, 1);
 }
 
-static void refresh_pwm_ant(void)
+static void refresh_ant(void)
 {
 	if (status == 0) {
-		eeprom_read(EEPROM_PWM_STATUS_MODE_ADDR, &status_mode, 1);
+		eeprom_read(EEPROM_ANT_STATUS_MODE_ADDR, &status_mode, 1);
 		menu_mode = status_mode;
-		eeprom_read(EEPROM_PWM_MODE0_ADDR + menu_mode * sizeof(menu_p),
+		eeprom_read(EEPROM_ANT_MODE0_ADDR + menu_mode * sizeof(menu_p),
 		    (u8*)&menu_p, sizeof(menu_p));
-		update_screen_pwm_ant();
+		update_screen_ant();
 		status = 1;
 	}
 }
 
-static void on_evt_pwm_ant(int key)
+static void on_evt_ant(int key)
 {
 	if (key == KEY_ESC) {
 		on_evt_def(key);
@@ -442,21 +442,21 @@ static void on_evt_pwm_ant(int key)
 	}
 
 	if (key == KEY_ENTER) {
-		pwm_check(&menu_p.freq, &menu_p.duty);
+		ant_check(&menu_p.freq, &menu_p.duty);
 		if (menu_mode == status_mode)
-			pwm_set(menu_p.freq, menu_p.duty);
+			ant_set(menu_p.freq, menu_p.duty);
 		log("Save mode %d: %d %d\n", menu_mode + 1, (uint)menu_p.freq, (uint)menu_p.duty);
-		eeprom_write(EEPROM_PWM_MODE0_ADDR + menu_mode * sizeof(menu_p),
+		eeprom_write(EEPROM_ANT_MODE0_ADDR + menu_mode * sizeof(menu_p),
 			(u8*)&menu_p, sizeof(menu_p));
 
 		if (status == 1) {
 			menu_mode = (menu_mode + 1) % 3;
-			eeprom_read(EEPROM_PWM_MODE0_ADDR + menu_mode * sizeof(menu_p),
+			eeprom_read(EEPROM_ANT_MODE0_ADDR + menu_mode * sizeof(menu_p),
 			    (u8*)&menu_p, sizeof(menu_p));
 		}
 
 	}
-	update_screen_pwm_ant();
+	update_screen_ant();
 	keys_clear_evts(1 << key);
 }
 
@@ -464,7 +464,7 @@ static void on_evt_pwm_ant(int key)
 
 static int current_mode; /* Mode 0, 1, 2, Rolling (mode = 3), Logger (mode = 4) */
 static int rolling_days;
-static struct pwm_cfg_t mode_pwm_cfg;
+static struct ant_cfg_t mode_ant_cfg;
 
 static void update_screen_mode()
 {
@@ -489,7 +489,7 @@ static void update_screen_mode()
 
 	if (current_mode <= 2)
 		k_sprintf(buf, "Mode: %d (%dHz %d%%)", current_mode + 1,
-		    (uint)mode_pwm_cfg.freq, (uint)mode_pwm_cfg.duty);
+		    (uint)mode_ant_cfg.freq, (uint)mode_ant_cfg.duty);
 	else if (current_mode == 3)
 		k_sprintf(buf, "Mode: Rolling");
 	else if (current_mode == 4)
@@ -516,10 +516,10 @@ static void update_screen_mode()
 static void refresh_mode(void)
 {
 	if (status == 0) {
-		eeprom_read(EEPROM_PWM_CURRENT_MODE_ADDR, &current_mode, 1);
-		eeprom_read(EEPROM_PWM_MODE0_ADDR + current_mode * sizeof(mode_pwm_cfg),
-		    (u8*)&mode_pwm_cfg, sizeof(mode_pwm_cfg));
-		eeprom_read(EEPROM_PWM_ROL_DAYS_SETTING_ADDR, &rolling_days, sizeof(rolling_days));
+		eeprom_read(EEPROM_ANT_CURRENT_MODE_ADDR, &current_mode, 1);
+		eeprom_read(EEPROM_ANT_MODE0_ADDR + current_mode * sizeof(mode_ant_cfg),
+		    (u8*)&mode_ant_cfg, sizeof(mode_ant_cfg));
+		eeprom_read(EEPROM_ANT_ROL_DAYS_SETTING_ADDR, &rolling_days, sizeof(rolling_days));
 		log("Load days %d\n", rolling_days);
 		update_screen_mode();
 		status = 1;
@@ -562,8 +562,8 @@ static void on_evt_mode(int key)
 				rolling_days--;
 			else if (key == KEY_ENTER) {
 				log("Save days %d\n", rolling_days);
-				eeprom_write(EEPROM_PWM_ROL_DAYS_SETTING_ADDR, &rolling_days, sizeof(rolling_days));
-				eeprom_write(EEPROM_PWM_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));
+				eeprom_write(EEPROM_ANT_ROL_DAYS_SETTING_ADDR, &rolling_days, sizeof(rolling_days));
+				eeprom_write(EEPROM_ANT_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));
 				status = 100;
 				ticks_exec = k_ticks();
 			}
@@ -573,8 +573,8 @@ static void on_evt_mode(int key)
 			break;
 	}
 	if (current_mode != 3 && current_mode != 4)
-		eeprom_read(EEPROM_PWM_MODE0_ADDR + current_mode * sizeof(mode_pwm_cfg),
-			(u8*)&mode_pwm_cfg, sizeof(mode_pwm_cfg));
+		eeprom_read(EEPROM_ANT_MODE0_ADDR + current_mode * sizeof(mode_ant_cfg),
+			(u8*)&mode_ant_cfg, sizeof(mode_ant_cfg));
 
 	if (key == KEY_ENTER && (status == 2 || current_mode != 3)) {
 		log("Save mode %d\n", current_mode);
@@ -582,13 +582,13 @@ static void on_evt_mode(int key)
 			rolling_start(0);
 		else
 			rolling_stop();
-		eeprom_write(EEPROM_PWM_CURRENT_MODE_ADDR, &current_mode, 1);
+		eeprom_write(EEPROM_ANT_CURRENT_MODE_ADDR, &current_mode, 1);
 		if (current_mode != 3 && current_mode != 4) {
-			pwm_set(mode_pwm_cfg.freq, mode_pwm_cfg.duty);
-			eeprom_write(EEPROM_PWM_STATUS_MODE_ADDR, &current_mode, 1);
+			ant_set(mode_ant_cfg.freq, mode_ant_cfg.duty);
+			eeprom_write(EEPROM_ANT_STATUS_MODE_ADDR, &current_mode, 1);
 		}
 		else if (current_mode == 4) {
-			pwm_set(MIN_FREQ, 0);
+			ant_set(MIN_FREQ, 0);
 			ant_check_enable(0);
 		}
 	}
@@ -1781,7 +1781,7 @@ static struct menu_voice_t menu[] = {
 	{325, {"LIMITI C:X MIN:A", "MAX:KKK COR:ZZZZ"}, on_evt_def, NULL, {324, 321, 32, -1}, 1},
 	{33, {"PARAMETRI DEF", ""}, on_evt_def, NULL, {32, 34, 30, 331}, 1},
 	{331, {"PARAMETRI DEF", "PARAMETRI F."}, on_evt_def, NULL, {334, 332, 33, 3310}, 1},
-	{3310, {"", ""}, on_evt_pwm_ant, refresh_pwm_ant, {-1, -1, 331, 331}, 1},
+	{3310, {"", ""}, on_evt_ant, refresh_ant, {-1, -1, 331, 331}, 1},
 	{332, {"PARAMETRI DEF", "MODALITA'"}, on_evt_def, NULL, {331, 333, 33, 3320}, 1},
 	{3320, {"", ""}, on_evt_mode, refresh_mode, {-1, -1, 332, 332}, 1},
 	{333, {"PARAMETRI DEF", "ABIL. MEDIA GIORN."}, on_evt_def, NULL, {332, 334, 0, 3330}, 1},
