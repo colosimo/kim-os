@@ -195,7 +195,6 @@ static void update_screen_datetime()
 	char buf[24];
 	int cur_line, cur_pos, cur_show;
 
-	log("%s %d\n", __func__, status);
 	if (status == 100) {
 		lcd_write_line("ANNULLATO", 0, 1);
 		lcd_write_line("", 1, 0);
@@ -1504,7 +1503,6 @@ static void update_fmode(void)
 	k_sprintf(buf, "S/N %s T:%02d", fmode_sn, fmode_temp_max);
 	lcd_write_line(buf, 1, 0);
 
-	log("%s pos %d\n", __func__, fmode_cursor_pos);
 	if (fmode_cursor_pos > 0)
 		lcd_cursor(fmode_cursor_pos / 20, fmode_cursor_pos % 20, 1);
 }

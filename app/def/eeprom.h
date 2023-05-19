@@ -17,7 +17,7 @@ struct ant_cfg_t {
 	u32 duty;
 };
 
-#define EEPROM_ANT_CURRENT_MODE_ADDR  0x000c
+#define EEPROM_ANT_CURRENT_MODE_ADDR  0x000c /* 3: rolling; 4: log */
 #define EEPROM_ANT_STATUS_MODE_ADDR   0x000d
 
 #define EEPROM_ENABLE_DAILY_AVG  0x0010

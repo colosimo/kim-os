@@ -265,12 +265,6 @@ void ant_check_step(struct task_t *t)
 
 
 	k_read(k_fd_byname("ant_check"), &ant_check, 1);
-	/*while (1) {
-
-		if (!ant_check)
-			break;
-		log("R_GPIOC_IDR=%02x\n", (uint)rd32(R_GPIOC_IDR));
-	}*/
 
 	if (!ant_check || !ant_check_enabled) {
 		t_last_on = k_ticks();
