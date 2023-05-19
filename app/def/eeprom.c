@@ -15,17 +15,18 @@
 #include "lcd.h"
 #include "osm.h"
 #include "def.h"
+#include "deadline.h"
 
 #define EEPROM_I2C_ADDR_7BIT 0b1010110
 
 #define EEPROM_SIGN     "ELOS"
 #define EEPROM_FMT_VER  4
 
-static u8 ant_def_freq[3] = {200, 100, 80};
+static u8 ant_def_freq[3] = {150, 200, 250};
 static u8 ant_def_duty[3] = {5, 5, 5};
 
 static struct osm_cfg_t osm_def_cfg =
-    {.enable = 1, .volt_perc = 80, .freq = 100, .duty = 50};
+    {.volt_perc = 40, .freq = 20, .duty = 40};
 
 int i2c_fd;
 
@@ -51,7 +52,7 @@ void eeprom_reset(void)
 	eeprom_write(EEPROM_HOURS_ADDR, &tmp, sizeof(tmp));
 
 	/* Reset daily average */
-	daily_avg = 1;
+	daily_avg = 0;
 	eeprom_write(EEPROM_ENABLE_DAILY_AVG, &daily_avg, 1);
 
 	/* Reset Bluetooth id */
@@ -59,7 +60,7 @@ void eeprom_reset(void)
 	eeprom_write(EEPROM_BLUETOOTH_ID, &tmp, sizeof(tmp));
 
 	/* Reset ANT */
-	m = 0;
+	m = 3; /* rolling mode enabled */
 	eeprom_write(EEPROM_ANT_CURRENT_MODE_ADDR, &m, 1);
 
 	for (m = 0; m < 3; m++) {
@@ -72,7 +73,9 @@ void eeprom_reset(void)
 	eeprom_write(EEPROM_ANT_ROL_DAYS_SETTING_ADDR, &tmp, sizeof(tmp));
 
 	/* Reset OSM */
+	osm_def_cfg.enable = 1;
 	eeprom_write(EEPROM_OSM_CH1_CFG, &osm_def_cfg, sizeof(osm_def_cfg));
+	osm_def_cfg.enable = 0;
 	eeprom_write(EEPROM_OSM_CH2_CFG, &osm_def_cfg, sizeof(osm_def_cfg));
 
 	/* Write Format Version */
@@ -87,14 +90,15 @@ void eeprom_reset(void)
 	tmp8 = 70;
 	eeprom_write(EEPROM_T_MAX, &tmp8, 1);
 
-	tmp8 = ALRM_OUT_POLARITY_CLOSE;
+	tmp8 = ALRM_OUT_POLARITY_OFF;
 	eeprom_write(EEPROM_ALRM_OUT_POL, &tmp8, 1);
 
 	/* Reset EPT */
-	tmp8 = 0;
+	tmp8 = 1;
 	eeprom_write(EEPROM_EPT_EN, &tmp8, 1);
-	tmp16 = 0;
+	tmp16 = 30;
 	eeprom_write(EEPROM_EPT_PAUSE, &tmp16, 2);
+	tmp16 = 30; /* Unit is 0.1s */
 	eeprom_write(EEPROM_EPT_INV, &tmp16, 2);
 
 

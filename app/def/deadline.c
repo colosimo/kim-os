@@ -9,7 +9,6 @@
 #include "eeprom.h"
 
 static struct deadline_t deadlines[3];
-static u32 cum_rng = 0;
 
 int dl_valid(struct deadline_t *dl)
 {
@@ -28,19 +27,29 @@ int dl_valid(struct deadline_t *dl)
 	return 1;
 }
 
-void dl_reset(struct deadline_t *dl)
+static u32 def_code[3] = {17931, 79595, 86248};
+
+void dl_reset_all(void)
 {
 	int i;
+	for (i = 0; i < 3; i++)
+		dl_reset(&deadlines[i], i);
+}
+
+void dl_reset(struct deadline_t *dl, int idx)
+{
+	int i;
+	u32 _code = def_code[idx];
+
 	rtc_get(&dl->rtc);
 	dl->rtc.sec = 0;
 	dl->enable = 0;
-	cum_rng += dl->rtc.sec + 1;
 	for (i = 0; i < 5; i++) {
-		dl->code[i] = '0' + cum_rng % 10;
-		cum_rng = (cum_rng * 7) + dl->rtc.sec;
-		k_delay(100);
+		dl->code[4 - i] = '0' + _code % 10;
+		_code /= 10;
 	}
 	dl->code[5] = '\0';
+	eeprom_write(EEPROM_DEADLINE1_CFG + 0x10 * idx, &deadlines[idx], sizeof(struct deadline_t));
 }
 
 void dl_load_all(void)
@@ -48,16 +57,22 @@ void dl_load_all(void)
 	int i;
 	for (i = 0; i < 3; i++) {
 		eeprom_read(EEPROM_DEADLINE1_CFG + 0x10 * i, &deadlines[i], sizeof(struct deadline_t));
-		if (!dl_valid(&deadlines[i])) {
-			dl_reset(&deadlines[i]);
-			eeprom_write(EEPROM_DEADLINE1_CFG + 0x10 * i, &deadlines[i], sizeof(struct deadline_t));
-		}
+		if (!dl_valid(&deadlines[i]))
+			dl_reset(&deadlines[i], i);
 	}
 }
 
 void dl_get(int idx, struct deadline_t *dl)
 {
 	memcpy(dl, &deadlines[idx], sizeof(*dl));
+	if (!dl->enable) {
+		rtc_get(&dl->rtc);
+		dl->rtc.month += 2 * (idx + 1);
+		if (dl->rtc.month > 12) {
+			dl->rtc.month = dl->rtc.month % 12;
+			dl->rtc.year++;
+		}
+	}
 }
 
 void dl_set(int idx, struct deadline_t *dl)

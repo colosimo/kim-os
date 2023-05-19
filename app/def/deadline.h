@@ -15,6 +15,8 @@ struct deadline_t {
 	u8 enable;
 };
 
+void dl_reset_all(void);
+
 void dl_load_all(void);
 
 void dl_get(int idx, struct deadline_t *dl);
@@ -23,7 +25,7 @@ void dl_set(int idx, struct deadline_t *dl);
 
 int dl_valid(struct deadline_t *dl);
 
-void dl_reset(struct deadline_t *dl);
+void dl_reset(struct deadline_t *dl, int idx);
 
 void dl_dump(struct deadline_t *dl);
 
