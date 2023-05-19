@@ -13,7 +13,7 @@
 #include <reg.h>
 
 #include "lcd.h"
-#include "pwm.h"
+#include "ant.h"
 #include "eeprom.h"
 #include "keys.h"
 #include "db.h"

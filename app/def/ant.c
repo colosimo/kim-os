@@ -10,7 +10,7 @@
 
 #include "def.h"
 #include "eeprom.h"
-#include "pwm.h"
+#include "ant.h"
 
 static u32 last_duty, last_freq;
 

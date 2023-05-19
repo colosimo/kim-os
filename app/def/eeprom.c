@@ -10,7 +10,7 @@
 #include <errcode.h>
 
 #include "db.h"
-#include "pwm.h"
+#include "ant.h"
 #include "eeprom.h"
 #include "lcd.h"
 #include "osm.h"

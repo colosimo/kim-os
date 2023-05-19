@@ -16,7 +16,7 @@
 #include "keys.h"
 #include "lcd.h"
 #include "rtc.h"
-#include "pwm.h"
+#include "ant.h"
 #include "rfrx.h"
 #include "db.h"
 #include "eeprom.h"

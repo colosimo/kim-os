@@ -16,7 +16,7 @@
 #include "eeprom.h"
 #include "rtc.h"
 #include "lcd.h"
-#include "pwm.h"
+#include "ant.h"
 
 static void fill_alarm(struct alarm_t *a, int type)
 {
