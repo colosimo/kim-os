@@ -1327,6 +1327,8 @@ static void on_evt_osm(int key)
 	if (key == KEY_ESC) {
 		osm_ch = OSM_CH1;
 		on_evt_def(key);
+		osm_cursor_pos = 0;
+		osm_ch = OSM_CH1;
 		return;
 	}
 
@@ -1646,7 +1648,7 @@ static void update_ept(void)
 	k_sprintf(buf, "EPT:%c P(sec):%d", ept_en ? 'S' : 'N', ept_pause);
 	lcd_write_line(buf, 0, 0);
 
-	k_sprintf(buf, "INV(sec):%2d.%d", ept_inv_10xsec / 10, ept_inv_10xsec % 10);
+	k_sprintf(buf, "INV(sec):%d.%d", ept_inv_10xsec / 10, ept_inv_10xsec % 10);
 	lcd_write_line(buf, 1, 0);
 
 	if (ept_cursor_pos > 0)
@@ -1670,6 +1672,7 @@ static void on_evt_ept(int key)
 {
 	if (status == 0 || key == KEY_ESC) {
 		on_evt_def(key);
+		ept_cursor_pos = 0;
 		return;
 	}
 
@@ -1698,7 +1701,7 @@ static void on_evt_ept(int key)
 		case 3:
 			if (key == KEY_ENTER) {
 				eeprom_write(EEPROM_EPT_PAUSE, &ept_pause, 2);
-				ept_cursor_pos = 30;
+				ept_cursor_pos = 29;
 				status = 4;
 			}
 			else if (key == KEY_UP) {
@@ -1717,16 +1720,20 @@ static void on_evt_ept(int key)
 			if (key == KEY_ENTER) {
 				eeprom_write(EEPROM_EPT_INV, &ept_inv_10xsec, 2);
 				status = 5;
-				ept_cursor_pos = 32;
+				ept_cursor_pos = 31;
 			}
 
 			if (key == KEY_UP) {
 				if (ept_inv_10xsec <= 89)
 					ept_inv_10xsec += 10;
+				else
+					ept_inv_10xsec = 99;
 			}
 			else if (key == KEY_DOWN) {
 				if (ept_inv_10xsec >= 10)
 					ept_inv_10xsec -= 10;
+				else
+					ept_inv_10xsec = 0;
 			}
 			update_ept();
 			break;
