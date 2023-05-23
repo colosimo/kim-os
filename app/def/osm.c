@@ -11,6 +11,7 @@
 #include "osm.h"
 #include "eeprom.h"
 #include "deadline.h"
+#include "def.h"
 
 /*
  * PWM1: PB0  TIM3_CH3  30Hz - 1kHz 0-100%
@@ -301,10 +302,12 @@ static void osm_step(struct task_t *t)
 		osm_disable(OSM_CH1);
 		osm_disable(OSM_CH2);
 		overtemp = 1;
+		set_alarm(ALRM_BITFIELD_OVERTEMP);
 	}
 	else if (overtemp && (temp + 10 <= temp_max)) {
 		overtemp = 0;
 		log("OVERTEMPERATURE ENDED!\n");
+		clr_alarm(ALRM_BITFIELD_OVERTEMP);
 		osm_restart();
 		return;
 	}

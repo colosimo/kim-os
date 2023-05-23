@@ -17,7 +17,7 @@ extern const char led_on;
 
 /* Alarm is handled as a bitfield */
 #define ALRM_TYPE_ANT      0
-#define ALRM_TYPE_UNUSED   1
+#define ALRM_TYPE_OVERTEMP 1
 #define ALRM_TYPE_START    2
 #define ALRM_TYPE_STOP     3
 #define ALRM_TYPE_BATTERY  4
@@ -28,6 +28,7 @@ extern const char led_on;
 
 #define ALRM_BITFIELD_ANT          (1 << ALRM_TYPE_ANT)
 #define ALRM_BITFIELD_BATTERY(s)   (1 << ((s) + ALRM_TYPE_BATTERY))
+#define ALRM_BITFIELD_OVERTEMP     (1 << ALRM_TYPE_OVERTEMP)
 #define ALRM_BITFIELD_ANY          0xff
 
 #define ALRM_OUT_POLARITY_CLOSE 0
