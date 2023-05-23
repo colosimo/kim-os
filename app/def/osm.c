@@ -21,6 +21,8 @@
 
 static struct osm_cfg_t osm_array[2];
 
+static int overtemp = 0;
+
 #define PRESCALER 40
 #define COUNTER_HZ ((16 * MHZ) / PRESCALER)
 
@@ -186,6 +188,10 @@ void osm_enable(int channel)
 {
 	u8 tmp = 0;
 
+	if (overtemp) {
+		wrn("OVERTEMPERATURE, do not enable\n");
+		return;
+	}
 	if (channel < 0 || channel > OSM_CH2) {
 		print_invalid_channel(channel);
 		return;
@@ -267,7 +273,6 @@ static void osm_start(struct task_t *t)
 }
 
 static int deadline_lock = 0;
-static int overtemp = 0;
 static int last_ept_minutes = -1;
 static int ept_status = -1;
 static u32 ept_status_ticks;
@@ -292,14 +297,14 @@ static void osm_step(struct task_t *t)
 
 	eeprom_read(EEPROM_T_MAX, &temp_max, 1);
 	if (!overtemp && (temp >= temp_max)) {
-		dbg("OVERTEMPERATURE!\n");
+		log("OVERTEMPERATURE!\n");
 		osm_disable(OSM_CH1);
 		osm_disable(OSM_CH2);
 		overtemp = 1;
 	}
 	else if (overtemp && (temp + 10 <= temp_max)) {
 		overtemp = 0;
-		dbg("OVERTEMPERATURE ENDED!\n");
+		log("OVERTEMPERATURE ENDED!\n");
 		osm_restart();
 		return;
 	}
