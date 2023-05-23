@@ -1319,9 +1319,7 @@ static void refresh_osm(void)
 		eeprom_read(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
 		status = 1;
 	}
-	else {
-		update_osm();
-	}
+	update_osm();
 }
 
 static void on_evt_osm(int key)
