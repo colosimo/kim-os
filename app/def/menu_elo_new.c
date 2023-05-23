@@ -1319,7 +1319,7 @@ static void refresh_osm(void)
 		eeprom_read(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
 		status = 1;
 	}
-	else if (status == 1) {
+	else {
 		update_osm();
 	}
 }
@@ -1346,19 +1346,16 @@ static void on_evt_osm(int key)
 				if (menu_osm.freq <= 200)
 					menu_osm.freq++;
 				osm_set_cfg(osm_ch, &menu_osm);
-				update_osm();
 				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
 			}
 			else if (key == KEY_DOWN) {
 				if (menu_osm.freq > 0)
 					menu_osm.freq--;
 				osm_set_cfg(osm_ch, &menu_osm);
-				update_osm();
 				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
 			}
 			if (key == KEY_ENTER) {
 				osm_cursor_pos = 11;
-				update_osm();
 				status++;
 			}
 			break;
@@ -1368,19 +1365,16 @@ static void on_evt_osm(int key)
 				if (menu_osm.volt_perc < 100)
 					menu_osm.volt_perc++;
 				osm_set_cfg(osm_ch, &menu_osm);
-				update_osm();
 				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
 			}
 			else if (key == KEY_DOWN) {
 				if (menu_osm.volt_perc > 0)
 					menu_osm.volt_perc--;
 				osm_set_cfg(osm_ch, &menu_osm);
-				update_osm();
 				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
 			}
 			if (key == KEY_ENTER) {
 				osm_cursor_pos = 17;
-				update_osm();
 				status++;
 			}
 			break;
@@ -1390,20 +1384,17 @@ static void on_evt_osm(int key)
 				if (menu_osm.duty < 100)
 					menu_osm.duty++;
 				osm_set_cfg(osm_ch, &menu_osm);
-				update_osm();
 				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
 			}
 			else if (key == KEY_DOWN) {
 				if (menu_osm.duty > 0)
 					menu_osm.duty--;
 				osm_set_cfg(osm_ch, &menu_osm);
-				update_osm();
 				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
 			}
 
 			if (key == KEY_ENTER) {
 				osm_cursor_pos = 0;
-				update_osm();
 				status = 0;
 				break;
 			}
@@ -1420,7 +1411,6 @@ static void on_evt_osm(int key)
 		}
 		else if (key == KEY_ENTER) {
 			osm_cursor_pos = 5;
-			update_osm();
 			status = 2;
 			keys_clear_evts(1 << key);
 		}
@@ -1854,7 +1844,7 @@ void menu_step(struct task_t *t)
 	menu_refresh_cnt++;
 
 	if (!cur_menu) {
-		if (menu_refresh_cnt % 100 == 0)
+		if (menu_refresh_cnt % 200 == 0)
 			show_home();
 		return;
 	}
@@ -1868,7 +1858,7 @@ void menu_step(struct task_t *t)
 			cur_menu->refresh();
 	}
 	else
-		if (cur_menu->refresh && menu_refresh_cnt % 100 == 0)
+		if (cur_menu->refresh && menu_refresh_cnt % 200 == 0)
 			cur_menu->refresh();
 }
 
