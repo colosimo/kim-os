@@ -125,17 +125,16 @@ static void refresh_info()
 	u32 bluetooth_id;
 	u32 temp;
 	struct rtc_t r;
-	if (status == 0) {
-		rtc_get(&r);
-		eeprom_read(EEPROM_BLUETOOTH_ID, &bluetooth_id, 4);
-		osm_measure(OSM_CH1, NULL, NULL, &temp);
-		k_sprintf(buf, "S/N: %05d", (uint)bluetooth_id);
-		lcd_write_line(buf, 0, 0);
-		k_sprintf(buf, "V:%s %02d/%02d/%02d T:%02d",
-		    HUMAN_VERSION, r.day, r.month, r.year, (uint)temp);
-		lcd_write_line(buf, 1, 0);
-		status = 1;
-	}
+	rtc_get(&r);
+	eeprom_read(EEPROM_BLUETOOTH_ID, &bluetooth_id, 4);
+	osm_measure(OSM_CH1, NULL, NULL, &temp);
+	k_sprintf(buf, "S/N: %05d", (uint)bluetooth_id);
+	lcd_write_line(buf, 0, 0);
+
+	k_sprintf(buf, "V:%s %02d/%02d/%02d T:%02d",
+		HUMAN_VERSION, r.day, r.month, r.year, (uint)temp);
+	lcd_write_line(buf, 1, 0);
+	status = 1;
 }
 
 /* Show measures */
