@@ -251,6 +251,7 @@ static void osm_start(struct task_t *t)
 			osm_cfg.enable = 0;
 		else
 			osm_cfg.enable = 1;
+		eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * i, &osm_cfg, sizeof(osm_cfg));
 
 		log("CH%d: %d %d %d %d\n", i + 1,
 		    (uint)osm_cfg.enable, (uint)osm_cfg.volt_perc,

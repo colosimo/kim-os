@@ -1309,6 +1309,8 @@ static void update_osm(void)
 
 	if (osm_cursor_pos > 0)
 		lcd_cursor(0, osm_cursor_pos, 1);
+	else
+		lcd_cursor(0, 0, 0);
 }
 
 static void refresh_osm(void)
@@ -1325,11 +1327,16 @@ static void refresh_osm(void)
 static void on_evt_osm(int key)
 {
 	if (key == KEY_ESC) {
-		osm_ch = OSM_CH1;
-		on_evt_def(key);
 		osm_cursor_pos = 0;
-		osm_ch = OSM_CH1;
-		return;
+
+		if (status == 0 || status == 1) {
+			osm_ch = OSM_CH1;
+			on_evt_def(key);
+		}
+		else {
+			status = 0;
+			goto refresh;
+		}
 	}
 
 	if (status > 1) {
@@ -1395,8 +1402,8 @@ static void on_evt_osm(int key)
 			}
 
 			if (key == KEY_ENTER) {
+				osm_cursor_pos = 0;
 				update_osm();
-				lcd_cursor(0, 0, 0);
 				status = 0;
 				break;
 			}
@@ -1548,8 +1555,8 @@ static void on_evt_fmode(int key)
 
 		case 2:
 			if (key == KEY_ENTER) {
-				osm_restart();
 				eeprom_write(EEPROM_ENABLE_OSM, &fmode_en_osm, 1);
+				osm_restart();
 				fmode_cursor_pos = 9;
 				status = 3;
 			}
