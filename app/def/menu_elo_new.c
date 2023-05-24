@@ -696,6 +696,7 @@ static void on_evt_reset_contatore(int key)
 
 	keys_clear_evts(1 << key);
 }
+#endif
 
 static int do_refresh;
 static int show_type; /* 0: avvii, 1: alarms */
@@ -886,6 +887,7 @@ static void on_evt_show_data(int key)
 	}
 }
 
+#if 0
 static int pwd_secret[5] = {KEY_UP, KEY_ESC, KEY_DOWN, KEY_ESC, KEY_ENTER};
 static int pwd_entered[5];
 
@@ -1837,9 +1839,12 @@ static struct menu_voice_t menu[] = {
 	{13, {"", ""}, on_evt_def, refresh_def_rolling, {12, 14, 10, -1}, 1},
 	{14, {"", ""}, on_evt_dl_code, refresh_dl_code, {13, 11, 10, -1}, 1},
 	{20, {"LOG", ""}, on_evt_def, NULL, {10, 30, -1, 21}, 1},
-	{21, {"Allarmi RRR DDDDDD", "GGMMAA HH:MM"}, on_evt_def, NULL, {23, 22, 20, -1}, 1},
-	{22, {"Avvii RRR GG.CCC", "A:DDMMAA S:DDMMAA"}, on_evt_def, NULL, {21, 23, 20, -1}, 1},
-	{23, {"LETTURE", ""}, on_evt_def, NULL, {22, 21, 20, 231}, 1},
+	{21, {"LOG", "ALLARMI"}, on_evt_def, NULL, {23, 22, 20, 210}, 1},
+	{210, {"", ""}, on_evt_show, refresh_show_alarms, {-1, -1, 21, -1}, 1},
+	{22, {"LOG", "AVVII"}, on_evt_def, NULL, {21, 23, 20, 220}, 1},
+	{220, {"", ""}, on_evt_show, refresh_show_avvii, {-1, -1, 22, -1}, 1},
+	{23, {"LOG", "LETTURE"}, on_evt_def, NULL, {22, 21, 20, 230}, 1},
+	{230, {"", ""}, on_evt_show_data, refresh_show_data, {-1, -1, 23, -1}, 1},
 	{231, {"RRRR DDMMAA", "mA1: XXX mA2: XXX"}, on_evt_def, NULL, {232, 232, 23, -1}, 1},
 	{232, {"SX RRRR DDMMAA H:YY", "T:XX.Z B:KK.K mV:TTT"}, on_evt_def, NULL, {231, 231, 23, -1}, 1},
 	{30, {"IMPOSTAZIONI", ""}, on_evt_def, NULL, {20, 10, -1, 31}, 1},
