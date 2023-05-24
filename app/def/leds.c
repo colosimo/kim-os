@@ -14,16 +14,31 @@
 #include "def.h"
 #include "eeprom.h"
 
-void ledg_step(struct task_t *t)
+void ledblink_step(struct task_t *t)
 {
 	char cur;
+	u32 alarm_bits;
+
 	k_read(k_fd_byname("user_led_1"), &cur, 1);
 	cur = !cur;
 	k_write(k_fd_byname("user_led_1"), &cur, 1);
+
+	alarm_bits = get_alarm_bitfield();
+	if ((alarm_bits & ALRM_BITFIELD_ANT))
+		return;
+
+	if (!alarm_bits) {
+		cur = led_off;
+		k_write(k_fd_byname("user_led_2"), &cur, 1);
+	}
+	else {
+		/* red led blink on alarms different than Antenna */
+		k_write(k_fd_byname("user_led_2"), &cur, 1);
+	}
 }
 
-struct task_t attr_tasks task_ledg = {
-	.step = ledg_step,
+struct task_t attr_tasks task_ledblink = {
+	.step = ledblink_step,
 	.intvl_ms = 500,
 	.name = "ledg",
 };
@@ -43,7 +58,9 @@ void ledr_step(struct task_t *t)
 
 	if (first_step || (alarm && tmp == led_off) || (!alarm && tmp == led_on)) {
 		tmp = alarm ? led_on : led_off;
-		k_write(k_fd_byname("user_led_2"), &tmp, 1);
+
+		if (get_alarm(ALRM_BITFIELD_ANT))
+			k_write(k_fd_byname("user_led_2"), &tmp, 1);
 
 		eeprom_read(EEPROM_ALRM_OUT_POL, &tmp, 1);
 
