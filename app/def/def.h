@@ -29,7 +29,7 @@ extern const char led_on;
 #define ALRM_BITFIELD_ANT          (1 << ALRM_TYPE_ANT)
 #define ALRM_BITFIELD_BATTERY(s)   (1 << ((s) + ALRM_TYPE_BATTERY))
 #define ALRM_BITFIELD_OVERTEMP     (1 << ALRM_TYPE_OVERTEMP)
-#define ALRM_BITFIELD_ANY          0xff
+#define ALRM_BITFIELD_ANY          0xffffffff
 
 #define ALRM_OUT_POLARITY_CLOSE 0
 #define ALRM_OUT_POLARITY_OPEN  1
@@ -40,8 +40,12 @@ extern const char led_on;
 void set_alarm(int alrm);
 void clr_alarm(int alrm);
 int get_alarm(int alrm);
+const char *get_alarm_str_by_type(u32 alrm_type);
+
+int get_alarm_bitfield(void);
 
 void show_home(void);
+void reset_active_alarms(void);
 
 void set_standby(int stdby);
 int get_standby(void);

@@ -109,15 +109,12 @@ int db_alarm_get(struct alarm_t *a, int pos)
 	return DB_POS_INVALID;
 }
 
-static const char *alarm_str[ALRM_TYPE_LAST] =
-    {"Err. Antenna", "", "Start", "Stop", "Batteria Bassa", "Err. Tempo On", "Err. Tempo Off"};
-
 void db_alarm_dump(struct alarm_t *a)
 {
 	char buf[24];
 	if (a->type > ALRM_TYPE_BATTERY)
 		return;
-	k_sprintf(buf, "%s\n", alarm_str[a->type]);
+	k_sprintf(buf, "%s\n", get_alarm_str_by_type(a->type));
 	log(buf);
 	k_sprintf(buf, "SEN:%d %02d/%02d/%02d %02d:%02d\n",
 	    a->sens, a->day, a->month, a->year, a->hour, a->min);
@@ -142,7 +139,7 @@ void db_alarm_dump_all()
 			else
 				s = a.sens + 1;
 			kprint("%d,%s,%d,%02d/%02d/%02d,%02d:%02d\r\n",
-		        a.type, alarm_str[a.type], s, a.day, a.month, a.year, a.hour, a.min);
+		        a.type, get_alarm_str_by_type(a.type), s, a.day, a.month, a.year, a.hour, a.min);
 		}
 		p = (p + 1) % ALRM_MAX_NUM;
 		if (p == p_init)
@@ -163,7 +160,7 @@ void db_avvii_dump_all(void)
 		p = db_avvii_get(&a, p);
 		if (a.type != ALRM_TYPE_INVALID) {
 			kprint("%d,%s,%02d/%02d/%02d,%02d:%02d\r\n",
-		        a.type, alarm_str[a.type], a.day, a.month, a.year, a.hour, a.min);
+		        a.type, get_alarm_str_by_type(a.type), a.day, a.month, a.year, a.hour, a.min);
 		}
 		p = (p + 1) % AVVII_MAX_NUM;
 		if (p == p_init)
@@ -178,9 +175,9 @@ void db_alarm_display(struct alarm_t *a)
 		return;
 
 	if (a->type == ALRM_TYPE_BATTERY)
-		k_sprintf(buf, "%s S:%d", alarm_str[a->type], a->sens + 1);
+		k_sprintf(buf, "%s S:%d", get_alarm_str_by_type(a->type), a->sens + 1);
 	else
-		k_sprintf(buf, "%s", alarm_str[a->type]);
+		k_sprintf(buf, "%s", get_alarm_str_by_type(a->type));
 
 	lcd_write_line(buf, 0, 0);
 

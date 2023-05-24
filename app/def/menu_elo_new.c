@@ -29,6 +29,7 @@ static u32 ticks_exec;
 
 #define MENU_VOICE_DEFAULT 10
 #define MENU_VOICE_PWD 14
+#define MENU_VOICE_ACTIVE_ALARMS 39
 #define STR_CONFIRM "CONFERMA?"
 #define STR_EMPTY "ARCHIVIO VUOTO"
 #define STR_PASSWORD "PASSWORD: [     ]"
@@ -54,11 +55,26 @@ extern int deadline_lock;
 extern int deadline_idx;
 extern u32 hours;
 
+static struct menu_voice_t *get_menu_voice(int id);
+
+static int active_alarms;
+
+void reset_active_alarms(void)
+{
+	active_alarms = get_alarm_bitfield();
+}
+
 void show_home(void)
 {
 	char buf[24];
 	u32 mA1, mA2;
 	u8 en_def_out, en_osm;
+	status = 0;
+
+	if (active_alarms) {
+		cur_menu = get_menu_voice(MENU_VOICE_ACTIVE_ALARMS);
+		return;
+	}
 
 	osm_measure(OSM_CH1, NULL, &mA1, NULL);
 	osm_measure(OSM_CH2, NULL, &mA2, NULL);
@@ -1758,6 +1774,62 @@ static void on_evt_ept(int key)
 
 /* EPT Setting End */
 
+/* Active Alarms Begin */
+
+static int active_alarms;
+int alrm_showing_type = ALRM_TYPE_INVALID;
+
+static void update_active_alarms(void)
+{
+	if (active_alarms & ALRM_BITFIELD_ANT) {
+		alrm_showing_type = ALRM_TYPE_ANT;
+		active_alarms &= ~ALRM_BITFIELD_ANT;
+	}
+	else if (active_alarms & ALRM_BITFIELD_BATTERY(0) ||
+	    active_alarms & ALRM_BITFIELD_BATTERY(1)) {
+		alrm_showing_type = ALRM_TYPE_BATTERY;
+		active_alarms &= ~ALRM_BITFIELD_BATTERY(0);
+		active_alarms &= ~ALRM_BITFIELD_BATTERY(1);
+	}
+	else if (active_alarms & ALRM_BITFIELD_OVERTEMP) {
+		alrm_showing_type = ALRM_TYPE_OVERTEMP;
+		active_alarms &= ~ALRM_BITFIELD_OVERTEMP;
+	}
+	else
+		alrm_showing_type = ALRM_TYPE_INVALID;
+
+	if (alrm_showing_type != ALRM_TYPE_INVALID) {
+		lcd_write_line("Allarme", 0, 0);
+		lcd_write_line(get_alarm_str_by_type(alrm_showing_type), 1, 0);
+	}
+	else
+		on_evt_def(KEY_ESC);
+}
+
+static void refresh_active_alarms(void)
+{
+	if (status == 0) {
+		update_active_alarms();
+		status = 1;
+	}
+}
+
+static void on_evt_active_alarms(int key)
+{
+	if (key == KEY_ESC) {
+		active_alarms = 0;
+		on_evt_def(key);
+		return;
+	}
+
+	if (key == KEY_ENTER)
+		update_active_alarms();
+
+	keys_clear_evts(1 << key);
+}
+
+/* Active Alarms End */
+
 static struct menu_voice_t menu[] = {
 	{10, {"VERSIONE", ""}, on_evt_def, NULL, {30, 20, -1, 11}, 1},
 	{11, {"", ""}, on_evt_def, refresh_info, {14, 12, 10, -1}, 1},
@@ -1793,6 +1865,7 @@ static struct menu_voice_t menu[] = {
 	{36, {"Comunicazioni", ""}, on_evt_def, NULL, {35, 37, 30, -1}, 0},
 	{37, {"Rele errore", ""}, on_evt_alrm_pol, refresh_alrm_pol, {36, 38, 30, -1}, 1},
 	{38, {"Backup/Restore", ""}, on_evt_def, NULL, {37, 31, 30, -1}, 0},
+	{39, {"Active Alarms", ""}, on_evt_active_alarms, refresh_active_alarms, {-1, -1, MENU_VOICE_DEFAULT, -1}, 0},
 	{-1}
 };
 

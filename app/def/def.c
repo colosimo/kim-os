@@ -45,9 +45,15 @@ const char led_on = 1;
 static int alrm = 0;
 static int curday = -1;
 
+static const char *alarm_str[ALRM_TYPE_LAST] =
+    {"Err. Antenna", "Overtemperature", "Start", "Stop", "Batteria Bassa", "Err. Tempo On", "Err. Tempo Off"};
+
 void set_alarm(int _alrm)
 {
-	alrm |= _alrm;
+	if (!(alrm & _alrm)) {
+		alrm |= _alrm;
+		reset_active_alarms();
+	}
 }
 
 void clr_alarm(int _alrm)
@@ -55,9 +61,22 @@ void clr_alarm(int _alrm)
 	alrm &= ~_alrm;
 }
 
+int get_alarm_bitfield(void)
+{
+	return alrm;
+}
+
 int get_alarm(int _alrm)
 {
 	return (alrm & _alrm) ? 1 : 0;
+}
+
+const char *get_alarm_str_by_type(u32 alrm_type)
+{
+	if (alrm_type > array_size(alarm_str))
+		return "Unknown";
+
+	return alarm_str[alrm_type];
 }
 
 u32 last_time_inc;
@@ -78,10 +97,12 @@ void set_standby(int stdby)
 	stdby_old = !lcd_get_backlight();
 
 	lcd_set_backlight(!stdby);
-	show_home();
 
 	if (stdby)
 		last_time_key = 0;
+
+	reset_active_alarms();
+	show_home();
 
 	if (stdby != stdby_old) {
 		if (stdby)
@@ -231,6 +252,7 @@ static void def_step(struct task_t *t)
 		set_alarm(ALRM_BITFIELD_ANT);
 		db_alarm_add(ALRM_TYPE_TIME, 0);
 		ant_check_enable(0);
+		reset_active_alarms();
 		show_home();
 	}
 	else if (deadline_lock && idx < 0) {
@@ -239,6 +261,7 @@ static void def_step(struct task_t *t)
 		clr_alarm(ALRM_BITFIELD_ANT);
 		db_alarm_add(ALRM_TYPE_TIME_END, 0);
 		ant_check_enable(1);
+		reset_active_alarms();
 		show_home();
 	}
 }

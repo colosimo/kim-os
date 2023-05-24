@@ -65,6 +65,10 @@ extern u32 hours;
 #define STR_ELO_BANNER "ELO Srl 0536/844420"
 #define STR_FUNZ "Funz: g:%03d h:%02d %c%c%c"
 
+void reset_active_alarms(void)
+{
+}
+
 void show_home(void)
 {
 	char buf[24];
