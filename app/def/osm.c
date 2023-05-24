@@ -22,8 +22,6 @@
 
 static struct osm_cfg_t osm_array[2];
 
-static int overtemp = 0;
-
 #define PRESCALER 40
 #define COUNTER_HZ ((16 * MHZ) / PRESCALER)
 
@@ -189,7 +187,7 @@ void osm_enable(int channel)
 {
 	u8 tmp = 0;
 
-	if (overtemp) {
+	if (get_alarm(ALRM_BITFIELD_OVERTEMP)) {
 		wrn("OVERTEMPERATURE, do not enable\n");
 		return;
 	}
@@ -289,6 +287,9 @@ static void osm_step(struct task_t *t)
 	u8 ept_en;
 	int fd;
 	u8 tmp8;
+	int overtemp;
+
+	overtemp = get_alarm(ALRM_BITFIELD_OVERTEMP);
 
 	for (i = OSM_CH1; i <= OSM_CH2; i++) {
 		osm_measure(i, &v, NULL, &temp);
@@ -301,11 +302,9 @@ static void osm_step(struct task_t *t)
 		log("OVERTEMPERATURE!\n");
 		osm_disable(OSM_CH1);
 		osm_disable(OSM_CH2);
-		overtemp = 1;
 		set_alarm(ALRM_BITFIELD_OVERTEMP);
 	}
 	else if (overtemp && (temp + 10 <= temp_max)) {
-		overtemp = 0;
 		log("OVERTEMPERATURE ENDED!\n");
 		clr_alarm(ALRM_BITFIELD_OVERTEMP);
 		osm_restart();
@@ -319,10 +318,7 @@ static void osm_step(struct task_t *t)
 	}
 	else if (deadline_lock && idx < 0) {
 		deadline_lock = 0;
-		if (!overtemp) {
-			osm_restart();
-			return;
-		}
+		osm_restart();
 	}
 
 	if (osm_is_enabled(OSM_CH1) || osm_is_enabled(OSM_CH2)) {
