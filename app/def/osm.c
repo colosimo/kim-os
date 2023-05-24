@@ -12,6 +12,7 @@
 #include "eeprom.h"
 #include "deadline.h"
 #include "def.h"
+#include "db.h"
 
 /*
  * PWM1: PB0  TIM3_CH3  30Hz - 1kHz 0-100%
@@ -302,6 +303,7 @@ static void osm_step(struct task_t *t)
 		log("OVERTEMPERATURE!\n");
 		osm_disable(OSM_CH1);
 		osm_disable(OSM_CH2);
+		db_alarm_add(ALRM_TYPE_OVERTEMP, 0);
 		set_alarm(ALRM_BITFIELD_OVERTEMP);
 	}
 	else if (overtemp && (temp + 10 <= temp_max)) {
