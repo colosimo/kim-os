@@ -1779,6 +1779,137 @@ static void on_evt_ept(int key)
 
 /* EPT Setting End */
 
+/* Current check Begin */
+static struct osm_cur_check_t menu_check;
+
+static void update_cur_check()
+{
+	char buf[24];
+
+	k_sprintf(buf, "C%d Contr. Corr.:%c", osm_ch + 1, (uint)menu_check.enable ? 'S': 'N');
+	lcd_write_line(buf, 0, 0);
+
+	k_sprintf(buf, "%%:%02d T=%02d", menu_check.max_perc, menu_check.intvl);
+	lcd_write_line(buf, 1, 0);
+
+	if (osm_cursor_pos > 0)
+		lcd_cursor(osm_cursor_pos / 20, osm_cursor_pos % 20, 1);
+	else
+		lcd_cursor(0, 0, 0);
+}
+
+static void refresh_cur_check(void)
+{
+	if (status == 0) {
+		osm_get_cur_check(osm_ch, &menu_check);
+		status = 1;
+		update_cur_check();
+	}
+}
+
+static void on_evt_cur_check(int key)
+{
+	if (key == KEY_ESC) {
+		osm_cursor_pos = 0;
+
+		if (status == 0 || status == 1) {
+			osm_ch = OSM_CH1;
+			on_evt_def(key);
+			return;
+		}
+		else {
+			status = 0;
+			goto refresh;
+		}
+	}
+
+	if (status > 1) {
+		switch (status) {
+		case 2:
+			if (key == KEY_UP || key == KEY_DOWN) {
+				menu_check.enable = !menu_check.enable;
+				osm_set_cur_check(osm_ch, &menu_check);
+			}
+			else if (key == KEY_ENTER) {
+				osm_cursor_pos = 23;
+				status++;
+			}
+			break;
+
+		case 3:
+			if (key == KEY_UP) {
+				if (menu_check.max_perc < 50)
+					menu_check.max_perc++;
+				osm_set_cur_check(osm_ch, &menu_check);
+			}
+			else if (key == KEY_DOWN) {
+				if (menu_check.max_perc > 0)
+					menu_check.max_perc--;
+				osm_set_cur_check(osm_ch, &menu_check);
+			}
+			if (key == KEY_ENTER) {
+				osm_cursor_pos = 28;
+				status++;
+			}
+			break;
+
+		case 4:
+			if (key == KEY_UP) {
+				if (menu_check.intvl < 10)
+					menu_check.intvl++;
+				osm_set_cur_check(osm_ch, &menu_check);
+			}
+			else if (key == KEY_DOWN) {
+				if (menu_check.intvl > 0)
+					menu_check.intvl--;
+				osm_set_cur_check(osm_ch, &menu_check);
+			}
+
+			if (key == KEY_ENTER) {
+				osm_cursor_pos = 0;
+				status = 0;
+			}
+			break;
+		}
+	}
+	else {
+		if (osm_ch == OSM_CH1 && key == KEY_DOWN) {
+			status = 0;
+			osm_ch = OSM_CH2;
+			goto refresh;
+		}
+		else if (osm_ch == OSM_CH2 && key == KEY_UP) {
+			status = 0;
+			osm_ch = OSM_CH1;
+			goto refresh;
+		}
+		else if (key == KEY_ENTER) {
+			osm_cursor_pos = 16;
+			status = 2;
+			update_cur_check();
+			keys_clear_evts(1 << key);
+		}
+		else {
+			osm_ch = OSM_CH1;
+			on_evt_def(key);
+		}
+
+		return;
+	}
+
+	update_cur_check();
+	keys_clear_evts(1 << key);
+
+	return;
+
+refresh:
+	log("enable =%d\n", menu_check.enable);
+	refresh_cur_check();
+	keys_clear_evts(1 << key);
+}
+
+/* Current check End */
+
 /* Active Alarms Begin */
 
 static int active_alarms;
@@ -1854,9 +1985,9 @@ static struct menu_voice_t menu[] = {
 	{31, {"", ""}, on_evt_fmode, refresh_fmode, {38, 32, 30, -1}, 1},
 	{32, {"PARAMETRI PWM", ""}, on_evt_def, NULL, {31, 33, 30, 321}, 1},
 	{321, {"", ""}, on_evt_osm, refresh_osm, {325, 322, 32, -1}, 1},
-	{322, {"EPT:A P:YY", "INV:ZZ.Z"}, on_evt_ept, refresh_ept, {321, 323, 32, -1}, 1},
+	{322, {"", ""}, on_evt_ept, refresh_ept, {321, 323, 32, -1}, 1},
 	{323, {"START RIT:A", "IL:GG/MM/AA h:OO"}, on_evt_def, NULL, {322, 324, 32, -1}, 1},
-	{324, {"CX Contr. Corr:A", "%:PP T:SS"}, on_evt_def, NULL, {323, 325, 32, -1}, 1},
+	{324, {"", ""}, on_evt_cur_check, refresh_cur_check, {323, 325, 32, -1}, 1},
 	{325, {"LIMITI C:X MIN:A", "MAX:KKK COR:ZZZZ"}, on_evt_def, NULL, {324, 321, 32, -1}, 1},
 	{33, {"PARAMETRI DEF", ""}, on_evt_def, NULL, {32, 34, 30, 331}, 1},
 	{331, {"PARAMETRI DEF", "PARAMETRI F."}, on_evt_def, NULL, {334, 332, 33, 3310}, 1},

@@ -279,7 +279,8 @@ void osm_get_cur_check(int channel, struct osm_cur_check_t *_check)
 	if (channel < OSM_CH1 || channel > OSM_CH2)
 		return;
 
-	if (check[channel].enable == 0xff) {
+	if (check[channel].enable > 1 || check[channel].max_perc == 0xff ||
+	    check[channel].intvl == 0xff) {
 		eeprom_read(EEPROM_CUR_CHECK1 + channel * sizeof(*_check), &check[channel],
 		    sizeof(*_check));
 		if (check[channel].enable == 0xff) {
