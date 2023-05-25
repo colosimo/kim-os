@@ -1903,7 +1903,6 @@ static void on_evt_cur_check(int key)
 	return;
 
 refresh:
-	log("enable =%d\n", menu_check.enable);
 	refresh_cur_check();
 	keys_clear_evts(1 << key);
 }

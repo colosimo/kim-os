@@ -149,8 +149,6 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	or32(R_GPIOC_MODER, 0b11 << 2); /* PC1 analog mode */
 	or32(R_GPIOC_MODER, 0b11 << 4); /* PC2 analog mode */
 	or32(R_GPIOC_MODER, 0b11 << 6); /* PC3 analog mode */
-
-	log("OK!\n");
 }
 
 declare_gpio_dev(0, IO(PORTC, 13), DIR_OUT, PULL_NO, user_led_1);

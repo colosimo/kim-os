@@ -315,7 +315,6 @@ static void osm_start(struct task_t *t)
 	osm_disable(OSM_CH2);
 
 	eeprom_read(EEPROM_ENABLE_OSM, &osm_enable, 1);
-	log("osm_enable =%d\n", osm_enable);
 
 	for (i = OSM_CH1; i <= OSM_CH2; i++) {
 		eeprom_read(EEPROM_OSM_CH1_CFG + 0x10 * i, &osm_cfg, sizeof(osm_cfg));
