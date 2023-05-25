@@ -179,7 +179,7 @@ void osm_measure(int channel, u32 *volt_mV, u32 *cur_mA, u32 *temperature)
 		else
 			*cur_mA = 0;
 
-		if (*cur_mA <= 35)
+		if (*cur_mA < 2) /*FIXME : totally remove if unused */
 			*cur_mA = 0; /* filter threshold in O.A. out: if < 150mA, it is 0 */
 	}
 }
