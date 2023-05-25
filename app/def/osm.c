@@ -233,6 +233,66 @@ void osm_disable(int channel)
 
 }
 
+static u16 cur_max[2] = {0xffff, 0xffff};
+static struct osm_cur_check_t check[2] = {{0xff, 0xff, 0xff}, {0xff, 0xff, 0xff}};
+
+void osm_set_max(int channel, u16 _cur_max)
+{
+	if (channel < OSM_CH1 || channel > OSM_CH2)
+		return;
+
+	cur_max[channel] = _cur_max;
+	eeprom_write(EEPROM_CUR_MAX1 + 0x2 * channel, &_cur_max, sizeof(u16));
+}
+
+void osm_get_max(int channel, u16 *_cur_max)
+{
+	if (channel < OSM_CH1 || channel > OSM_CH2) {
+		*_cur_max = 0xffff;
+		return;
+	}
+
+	if (cur_max[channel] == 0xffff) {
+		eeprom_read(EEPROM_CUR_MAX1 + 0x2 * channel, &cur_max[channel], sizeof(u16));
+		if (cur_max[channel] == 0xffff) {
+			cur_max[channel] = CUR_MAX_DEF;
+			eeprom_write(EEPROM_CUR_MAX1 + 0x2 * channel, &cur_max[channel], sizeof(u16));
+		}
+	}
+
+	*_cur_max = cur_max[channel];
+}
+
+
+void osm_set_cur_check(int channel, struct osm_cur_check_t *_check)
+{
+	if (channel < OSM_CH1 || channel > OSM_CH2)
+		return;
+
+	memcpy(&check[channel], _check, sizeof(*_check));
+	eeprom_write(EEPROM_CUR_CHECK1 + channel * sizeof(*_check),
+	    _check, sizeof(sizeof(*_check)));
+}
+
+void osm_get_cur_check(int channel, struct osm_cur_check_t *_check)
+{
+	if (channel < OSM_CH1 || channel > OSM_CH2)
+		return;
+
+	if (check[channel].enable == 0xff) {
+		eeprom_read(EEPROM_CUR_CHECK1 + channel * sizeof(*_check), &check[channel],
+		    sizeof(*_check));
+		if (check[channel].enable == 0xff) {
+			check[channel].enable = 1;
+			check[channel].max_perc = 10;
+			check[channel].intvl = 10;
+			eeprom_write(EEPROM_CUR_CHECK1 + channel * sizeof(*_check),
+			    &check[channel], sizeof(sizeof(*_check)));
+		}
+	}
+	memcpy(_check, &check[channel], sizeof(*_check));
+}
+
 void osm_restart(void)
 {
 	struct task_t *t;

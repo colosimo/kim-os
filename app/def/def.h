@@ -37,6 +37,8 @@ extern const char led_on;
 
 #define BATTERY_THRES            60 /* 6V */
 
+#define CUR_MAX_DEF 500 /* mA */
+
 void set_alarm(int alrm);
 void clr_alarm(int alrm);
 int get_alarm(int alrm);

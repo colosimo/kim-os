@@ -38,6 +38,7 @@ void eeprom_reset(void)
 	struct ant_cfg_t p;
 	int m;
 	u8 daily_avg;
+	struct osm_cur_check_t osm_check = {.enable = 1, .max_perc = 10, .intvl = 10};
 
 	log("%s\n", __func__);
 
@@ -101,6 +102,12 @@ void eeprom_reset(void)
 	tmp16 = 30; /* Unit is 0.1s */
 	eeprom_write(EEPROM_EPT_INV, &tmp16, 2);
 
+	/* Reset osm alarm thresholds */
+	tmp16 = CUR_MAX_DEF;
+	eeprom_write(EEPROM_CUR_MAX1, &tmp16, sizeof(tmp16));
+	eeprom_write(EEPROM_CUR_MAX2, &tmp16, sizeof(tmp16));
+	osm_set_cur_check(OSM_CH1, &osm_check);
+	osm_set_cur_check(OSM_CH2, &osm_check);
 
 	/* Reset alarms */
 	db_alarm_reset();

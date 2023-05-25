@@ -18,6 +18,13 @@ attr_packed struct osm_cfg_t {
 	u32 duty;
 };
 
+attr_packed struct osm_cur_check_t {
+	u8 enable;
+	u8 max_perc;
+	u8 intvl;
+	u8 unused;
+};
+
 void osm_init(void);
 void osm_restart(void);
 
@@ -27,6 +34,11 @@ void osm_set_cfg(int channel, struct osm_cfg_t *osm);
 void osm_get(int channel, struct osm_cfg_t *osm);
 void osm_enable(int channel);
 void osm_disable(int channel);
+
+void osm_set_max(int channel, u16 cur_max);
+void osm_get_max(int channel, u16 *cur_max);
+void osm_set_cur_check(int channel, struct osm_cur_check_t *check);
+void osm_get_cur_check(int channel, struct osm_cur_check_t *check);
 
 int osm_is_enabled(int channel);
 
