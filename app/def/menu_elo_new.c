@@ -1909,6 +1909,112 @@ refresh:
 
 /* Current check End */
 
+/* Short Circuit Begin */
+static u16 max_cur;
+
+static void update_short_circuit()
+{
+	char buf[24];
+
+	k_sprintf(buf, "C%d Corto Circuito", osm_ch + 1);
+	lcd_write_line(buf, 0, 0);
+
+	k_sprintf(buf, "mA: %04d", max_cur);
+	lcd_write_line(buf, 1, 0);
+
+	if (osm_cursor_pos > 0)
+		lcd_cursor(osm_cursor_pos / 20, osm_cursor_pos % 20, 1);
+	else
+		lcd_cursor(0, 0, 0);
+}
+
+static void refresh_short_circuit(void)
+{
+	if (status == 0) {
+		osm_get_max(osm_ch, &max_cur);
+		status = 1;
+		update_short_circuit();
+	}
+}
+
+static void on_evt_short_circuit(int key)
+{
+	if (key == KEY_ESC) {
+		osm_cursor_pos = 0;
+
+		if (status == 0 || status == 1) {
+			osm_ch = OSM_CH1;
+			on_evt_def(key);
+			return;
+		}
+		else {
+			status = 0;
+			goto refresh;
+		}
+	}
+
+	if (status > 1) {
+		switch (status) {
+
+		case 2:
+			if (key == KEY_UP) {
+				if (max_cur < 1990)
+					max_cur += 10;
+				else
+					max_cur = 2000;
+				osm_set_max(osm_ch, max_cur);
+			}
+			else if (key == KEY_DOWN) {
+				if (max_cur > 10)
+					max_cur -= 10;
+				else
+					max_cur = 0;
+				osm_set_max(osm_ch, max_cur);
+			}
+			if (key == KEY_ENTER) {
+				osm_cursor_pos = 0;
+				status = 0;
+			}
+			break;
+		}
+	}
+	else {
+		if (osm_ch == OSM_CH1 && key == KEY_DOWN) {
+			status = 0;
+			osm_ch = OSM_CH2;
+			goto refresh;
+		}
+		else if (osm_ch == OSM_CH2 && key == KEY_UP) {
+			status = 0;
+			osm_ch = OSM_CH1;
+			goto refresh;
+		}
+		else if (key == KEY_ENTER) {
+			osm_cursor_pos = 27;
+			status = 2;
+			update_short_circuit();
+			keys_clear_evts(1 << key);
+		}
+		else {
+			osm_ch = OSM_CH1;
+			on_evt_def(key);
+		}
+
+		return;
+	}
+
+	update_short_circuit();
+	keys_clear_evts(1 << key);
+
+	return;
+
+refresh:
+	refresh_short_circuit();
+	keys_clear_evts(1 << key);
+}
+
+/* Short Circuit End */
+
 /* Active Alarms Begin */
 
 static int active_alarms;
@@ -1987,7 +2093,7 @@ static struct menu_voice_t menu[] = {
 	{322, {"", ""}, on_evt_ept, refresh_ept, {321, 323, 32, -1}, 1},
 	{323, {"START RIT:A", "IL:GG/MM/AA h:OO"}, on_evt_def, NULL, {322, 324, 32, -1}, 1},
 	{324, {"", ""}, on_evt_cur_check, refresh_cur_check, {323, 325, 32, -1}, 1},
-	{325, {"LIMITI C:X MIN:A", "MAX:KKK COR:ZZZZ"}, on_evt_def, NULL, {324, 321, 32, -1}, 1},
+	{325, {"", ""}, on_evt_short_circuit, refresh_short_circuit, {324, 321, 32, -1}, 1},
 	{33, {"PARAMETRI DEF", ""}, on_evt_def, NULL, {32, 34, 30, 331}, 1},
 	{331, {"PARAMETRI DEF", "PARAMETRI F."}, on_evt_def, NULL, {334, 332, 33, 3310}, 1},
 	{3310, {"", ""}, on_evt_ant, refresh_ant, {-1, -1, 331, 331}, 1},
