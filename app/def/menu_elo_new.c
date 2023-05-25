@@ -1347,6 +1347,7 @@ static void on_evt_osm(int key)
 		if (status == 0 || status == 1) {
 			osm_ch = OSM_CH1;
 			on_evt_def(key);
+			return;
 		}
 		else {
 			status = 0;
@@ -1430,6 +1431,8 @@ static void on_evt_osm(int key)
 			keys_clear_evts(1 << key);
 		}
 		else {
+			osm_ch = OSM_CH1;
+			osm_cursor_pos = 0;
 			on_evt_def(key);
 		}
 
@@ -1503,7 +1506,7 @@ static void on_evt_alrm_pol(int key)
 
 /* F. Mode Setting Begin */
 
-static int fmode_cursor_pos;
+static int fmode_cursor_pos = 0;
 static char fmode_sn[6];
 static u8 fmode_en_def_out, fmode_en_osm, fmode_temp_max;
 
