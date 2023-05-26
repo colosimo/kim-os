@@ -308,6 +308,77 @@ void osm_get_cur_check(int channel, struct osm_cur_check_t *_check)
 	memcpy(_check, &check[channel], sizeof(*_check));
 }
 
+/* Current check task begin */
+static u32 cur_check_count[2];
+static u32 cur_check_sum[2];
+static u32 cur_check_min[2];
+static u32 cur_check_max[2];
+struct osm_cur_check_t cur_check[2];
+
+static void cur_check_start(struct task_t *t)
+{
+	int i;
+	for (i = OSM_CH1; i <= OSM_CH2; i++) {
+		osm_get_cur_check(i, &cur_check[i]);
+		cur_check_min[i] = ~0;
+		cur_check_max[i] = 0;
+		cur_check_sum[i] = 0;
+		cur_check_count[i] = cur_check[i].intvl * 2;
+	}
+}
+
+static void cur_check_step(struct task_t *t)
+{
+	u32 cur;
+	int i;
+	u32 avg;
+	u32 delta;
+	for (i = OSM_CH1; i <= OSM_CH2; i++) {
+
+		if (cur_check_count[i] == 0)
+			continue;
+
+		osm_measure(i, NULL, &cur, NULL);
+
+		cur_check_sum[i] += cur;
+		if (cur < cur_check_min[i])
+			cur_check_min[i] = cur;
+		if (cur > cur_check_max[i])
+			cur_check_max[i] = cur;
+
+		cur_check_count[i]--;
+		if (!cur_check_count[i]) {
+			avg = cur_check_sum[i] / (cur_check[i].intvl * 2);
+
+			delta = ((avg * cur_check[i].max_perc) / 100);
+			if (delta < 5)
+				delta = 5;
+			log("CH%d: min=%d max=%d avg=%d\n", i,
+			    (uint)cur_check_min[i], (uint)cur_check_max[i], (uint)avg);
+			if (avg - cur_check_min[i] > delta || cur_check_max[i] - avg > delta) {
+				log("Unstable ch%d\n", i + 1);
+				set_alarm(ALRM_BITFIELD_PEAK(i));
+				db_alarm_add(ALRM_TYPE_PEAK(i), i);
+			}
+		}
+
+	}
+	if (!cur_check_count[OSM_CH1] && !cur_check_count[OSM_CH2]) {
+		task_done(t);
+		return;
+	}
+}
+
+struct task_t attr_tasks task_cur_check = {
+	.start = cur_check_start,
+	.step = cur_check_step,
+	.intvl_ms = 500,
+	.name = "cur_check",
+	.no_autorun = 1,
+};
+
+/* Current check task end */
+
 void osm_restart(void)
 {
 	struct task_t *t;
@@ -316,11 +387,16 @@ void osm_restart(void)
 		task_stop(t);
 		task_start(t);
 	}
+
+	t = task_find("cur_check");
+	if (t && t->running)
+		task_stop(t);
 }
 
 
 static int deadline_lock;
-static int last_ept_minutes;
+static int last_ept_minutes = -1;
+static int last_check_minutes = -1;
 static int ept_status;
 static u32 ept_status_ticks;
 static u16 ept_pause, ept_inv;
@@ -345,14 +421,12 @@ static void osm_start(struct task_t *t)
 	}
 
 	deadline_lock = 0;
-	last_ept_minutes = -1;
 	ept_status = -1;
 	short_circuit[OSM_CH1] = short_circuit[OSM_CH2] = 0;
 	short_retry[OSM_CH1] = short_retry[OSM_CH2] = -1;
 
 	osm_init();
 
-	osm_disable(OSM_CH2);
 	for (i = OSM_CH1; i <= OSM_CH2; i++) {
 		osm_disable(i);
 		clr_alarm(ALRM_BITFIELD_SHORT(i));
@@ -398,6 +472,7 @@ static void osm_step(struct task_t *t)
 	int overtemp;
 	u16 cur_max;
 	u32 cur_meas;
+	struct task_t *check;
 
 	overtemp = get_alarm(ALRM_BITFIELD_OVERTEMP);
 
@@ -411,7 +486,7 @@ static void osm_step(struct task_t *t)
 				osm_disable(i);
 				if (!get_alarm(ALRM_BITFIELD_SHORT(i)) && short_retry[i] < 0) {
 					short_retry[i] = 2;
-					db_alarm_add(ALRM_TYPE_SHORT(i), 0);
+					db_alarm_add(ALRM_TYPE_SHORT(i), i);
 				}
 				short_retry_ticks[i] = k_ticks();
 				set_alarm(ALRM_BITFIELD_SHORT(i));
@@ -470,6 +545,14 @@ static void osm_step(struct task_t *t)
 				eeprom_read(EEPROM_EPT_PAUSE, &ept_pause, 2);
 				eeprom_read(EEPROM_EPT_INV, &ept_inv, 2);
 			}
+		}
+
+		if (r.min != last_check_minutes &&
+		    ept_status < 0 && r.min % 5 == 0 && r.sec == 0 && k_elapsed(osm_start_ticks) > 12000) {
+			check = task_find("cur_check");
+			if (check && !check->running)
+				task_start(check);
+			last_check_minutes = r.min;
 		}
 	}
 	if (ept_status < 0)

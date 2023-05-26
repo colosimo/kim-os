@@ -49,6 +49,7 @@ static const char *alarm_str[ALRM_TYPE_LAST] = {
     "Err. Antenna", "Overtemperature", "Start", "Stop", "Batteria Bassa",
     "Err. Tempo On", "Err. Tempo Off", "", "", "", "", "",
     "Corto Circuito C1", "Corto Circuito C2",
+	"Corr. Instabile C1", "Corr. Instabile C2"
 };
 
 void set_alarm(int _alrm)

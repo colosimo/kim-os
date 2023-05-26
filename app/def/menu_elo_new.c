@@ -1852,7 +1852,7 @@ static void on_evt_cur_check(int key)
 				osm_set_cur_check(osm_ch, &menu_check);
 			}
 			else if (key == KEY_DOWN) {
-				if (menu_check.max_perc > 0)
+				if (menu_check.max_perc > 1)
 					menu_check.max_perc--;
 				osm_set_cur_check(osm_ch, &menu_check);
 			}
@@ -2051,6 +2051,14 @@ static void update_active_alarms(void)
 		alrm_showing_type = ALRM_TYPE_OVERTEMP;
 		active_alarms &= ~ALRM_BITFIELD_OVERTEMP;
 	}
+	else if (active_alarms & ALRM_BITFIELD_PEAK(OSM_CH1)) {
+		alrm_showing_type = ALRM_TYPE_PEAK(OSM_CH1);
+		active_alarms &= ~ALRM_BITFIELD_PEAK(OSM_CH1);
+	}
+	else if (active_alarms & ALRM_BITFIELD_PEAK(OSM_CH2)) {
+		alrm_showing_type = ALRM_TYPE_PEAK(OSM_CH2);
+		active_alarms &= ~ALRM_BITFIELD_PEAK(OSM_CH2);
+	}
 	else if (active_alarms & ALRM_BITFIELD_SHORT(OSM_CH1)) {
 		alrm_showing_type = ALRM_TYPE_SHORT(OSM_CH1);
 		active_alarms &= ~ALRM_BITFIELD_SHORT(OSM_CH1);
@@ -2090,6 +2098,11 @@ static void on_evt_active_alarms(int key)
 		if (alrm_showing_type == ALRM_TYPE_SHORT(OSM_CH1) ||
 		    alrm_showing_type == ALRM_TYPE_SHORT(OSM_CH2)) {
 			clr_alarm(ALRM_BITFIELD_SHORT(alrm_showing_type - ALRM_TYPE_SHORT(OSM_CH1)));
+			osm_restart();
+		}
+		else if (alrm_showing_type == ALRM_TYPE_PEAK(OSM_CH1) ||
+		    alrm_showing_type == ALRM_TYPE_PEAK(OSM_CH2)) {
+			clr_alarm(ALRM_BITFIELD_PEAK(alrm_showing_type - ALRM_TYPE_PEAK(OSM_CH1)));
 			osm_restart();
 		}
 
