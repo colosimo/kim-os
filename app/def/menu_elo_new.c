@@ -253,9 +253,9 @@ static void update_screen_datetime()
 
 static void refresh_datetime()
 {
-	if (status == 0) {
+	rtc_get(&r);
+	if (status == 0 || r.sec == 0) {
 		eeprom_read(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
-		rtc_get(&r);
 		k_sprintf(cont, "%04d", (uint)(hours / 24));
 		status = 99; /* Idle */
 		update_screen_datetime();
