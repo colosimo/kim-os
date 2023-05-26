@@ -16,19 +16,26 @@ extern const char led_off;
 extern const char led_on;
 
 /* Alarm is handled as a bitfield */
-#define ALRM_TYPE_ANT      0
-#define ALRM_TYPE_OVERTEMP 1
-#define ALRM_TYPE_START    2
-#define ALRM_TYPE_STOP     3
-#define ALRM_TYPE_BATTERY  4
-#define ALRM_TYPE_TIME     5
-#define ALRM_TYPE_TIME_END 6
-#define ALRM_TYPE_LAST     7
-#define ALRM_TYPE_INVALID  0xff
+#define ALRM_TYPE_ANT           0
+#define ALRM_TYPE_OVERTEMP      1
+#define ALRM_TYPE_START         2
+#define ALRM_TYPE_STOP          3
+#define ALRM_TYPE_BATTERY       4
+#define ALRM_TYPE_TIME          5
+#define ALRM_TYPE_TIME_END      6
+#define ALRM_TYPE_UNUSED0       7
+#define ALRM_TYPE_UNUSED1       8
+#define ALRM_TYPE_UNUSED2       9
+#define ALRM_TYPE_UNUSED3      10
+#define ALRM_TYPE_UNUSED4      11
+#define ALRM_TYPE_SHORT(c)    (12 + (c))
+#define ALRM_TYPE_LAST         14
+#define ALRM_TYPE_INVALID    0xff
 
 #define ALRM_BITFIELD_ANT          (1 << ALRM_TYPE_ANT)
 #define ALRM_BITFIELD_BATTERY(s)   (1 << ((s) + ALRM_TYPE_BATTERY))
 #define ALRM_BITFIELD_OVERTEMP     (1 << ALRM_TYPE_OVERTEMP)
+#define ALRM_BITFIELD_SHORT(c)     (1 << ((c) + ALRM_TYPE_SHORT(c)))
 #define ALRM_BITFIELD_ANY          0xffffffff
 
 #define ALRM_OUT_POLARITY_CLOSE 0

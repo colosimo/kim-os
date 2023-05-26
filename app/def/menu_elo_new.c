@@ -2036,14 +2036,28 @@ static void update_active_alarms(void)
 		active_alarms &= ~ALRM_BITFIELD_ANT;
 	}
 	else if (active_alarms & ALRM_BITFIELD_BATTERY(0) ||
-	    active_alarms & ALRM_BITFIELD_BATTERY(1)) {
+        active_alarms & ALRM_BITFIELD_BATTERY(1) ||
+        active_alarms & ALRM_BITFIELD_BATTERY(2) ||
+        active_alarms & ALRM_BITFIELD_BATTERY(3) ) {
+
+		/* FIXME: handle batteries separately */
 		alrm_showing_type = ALRM_TYPE_BATTERY;
 		active_alarms &= ~ALRM_BITFIELD_BATTERY(0);
 		active_alarms &= ~ALRM_BITFIELD_BATTERY(1);
+		active_alarms &= ~ALRM_BITFIELD_BATTERY(2);
+		active_alarms &= ~ALRM_BITFIELD_BATTERY(3);
 	}
 	else if (active_alarms & ALRM_BITFIELD_OVERTEMP) {
 		alrm_showing_type = ALRM_TYPE_OVERTEMP;
 		active_alarms &= ~ALRM_BITFIELD_OVERTEMP;
+	}
+	else if (active_alarms & ALRM_BITFIELD_SHORT(OSM_CH1)) {
+		alrm_showing_type = ALRM_TYPE_SHORT(OSM_CH1);
+		active_alarms &= ~ALRM_BITFIELD_SHORT(OSM_CH1);
+	}
+	else if (active_alarms & ALRM_BITFIELD_SHORT(OSM_CH2)) {
+		alrm_showing_type = ALRM_TYPE_SHORT(OSM_CH2);
+		active_alarms &= ~ALRM_BITFIELD_SHORT(OSM_CH2);
 	}
 	else
 		alrm_showing_type = ALRM_TYPE_INVALID;
@@ -2072,8 +2086,15 @@ static void on_evt_active_alarms(int key)
 		return;
 	}
 
-	if (key == KEY_ENTER)
+	if (key == KEY_ENTER) {
+		if (alrm_showing_type == ALRM_TYPE_SHORT(OSM_CH1) ||
+		    alrm_showing_type == ALRM_TYPE_SHORT(OSM_CH2)) {
+			clr_alarm(ALRM_BITFIELD_SHORT(alrm_showing_type - ALRM_TYPE_SHORT(OSM_CH1)));
+			osm_restart();
+		}
+
 		update_active_alarms();
+	}
 
 	keys_clear_evts(1 << key);
 }

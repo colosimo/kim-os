@@ -44,4 +44,6 @@ int osm_is_enabled(int channel);
 
 void osm_measure(int channel, u32 *volt_mV, u32 *cur_mA, u32 *temperature);
 
+int osm_short_circuit(int channel);
+
 #endif /* _OSM_H_ */

@@ -45,8 +45,11 @@ const char led_on = 1;
 static int alrm = 0;
 static int curday = -1;
 
-static const char *alarm_str[ALRM_TYPE_LAST] =
-    {"Err. Antenna", "Overtemperature", "Start", "Stop", "Batteria Bassa", "Err. Tempo On", "Err. Tempo Off"};
+static const char *alarm_str[ALRM_TYPE_LAST] = {
+    "Err. Antenna", "Overtemperature", "Start", "Stop", "Batteria Bassa",
+    "Err. Tempo On", "Err. Tempo Off", "", "", "", "", "",
+    "Corto Circuito C1", "Corto Circuito C2",
+};
 
 void set_alarm(int _alrm)
 {

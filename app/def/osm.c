@@ -184,6 +184,8 @@ void osm_measure(int channel, u32 *volt_mV, u32 *cur_mA, u32 *temperature)
 	}
 }
 
+static int delayed_osm_enable = 0;
+
 void osm_enable(int channel)
 {
 	u8 tmp = 0;
@@ -196,14 +198,26 @@ void osm_enable(int channel)
 		print_invalid_channel(channel);
 		return;
 	}
+	if (osm_short_circuit(channel)) {
+		wrn("Short circuit %d, do not enable\n", channel);
+		return;
+	}
 
 	if (channel == OSM_CH1) {
 		or32(R_TIM1_CR1, BIT0);
 		or32(R_TIM1_BDTR, BIT15); /* Moe */
+		if (delayed_osm_enable) {
+			k_delay(200);
+			delayed_osm_enable = 0;
+		}
 		k_write(k_fd_byname("el1pwr"), &tmp, 1);
 	}
 	else if (channel == OSM_CH2) {
 		or32(R_TIM5_CR1, BIT0);
+		if (delayed_osm_enable) {
+			k_delay(200);
+			delayed_osm_enable = 0;
+		}
 		k_write(k_fd_byname("el2pwr"), &tmp, 1);
 	}
 
@@ -304,15 +318,46 @@ void osm_restart(void)
 	}
 }
 
+
+static int deadline_lock;
+static int last_ept_minutes;
+static int ept_status;
+static u32 ept_status_ticks;
+static u16 ept_pause, ept_inv;
+static int short_circuit[2];
+static int short_retry[2];
+static int short_retry_ticks[2];
+static int osm_start_ticks = 0;
+
 static void osm_start(struct task_t *t)
 {
 	struct osm_cfg_t osm_cfg;
 	u8 osm_enable;
 	int i;
 
+	if (osm_start_ticks == 0) {
+		osm_start_ticks = k_ticks();
+
+		if (osm_start_ticks < 3000)
+			delayed_osm_enable = 1;
+		else
+			delayed_osm_enable = 0;
+	}
+
+	deadline_lock = 0;
+	last_ept_minutes = -1;
+	ept_status = -1;
+	short_circuit[OSM_CH1] = short_circuit[OSM_CH2] = 0;
+	short_retry[OSM_CH1] = short_retry[OSM_CH2] = -1;
+
 	osm_init();
-	osm_disable(OSM_CH1);
+
 	osm_disable(OSM_CH2);
+	for (i = OSM_CH1; i <= OSM_CH2; i++) {
+		osm_disable(i);
+		clr_alarm(ALRM_BITFIELD_SHORT(i));
+		short_retry[i] = -1;
+	}
 
 	eeprom_read(EEPROM_ENABLE_OSM, &osm_enable, 1);
 
@@ -332,11 +377,13 @@ static void osm_start(struct task_t *t)
 	}
 }
 
-static int deadline_lock = 0;
-static int last_ept_minutes = -1;
-static int ept_status = -1;
-static u32 ept_status_ticks;
-static u16 ept_pause, ept_inv;
+int osm_short_circuit(int ch)
+{
+	if (ch < OSM_CH1 || ch > OSM_CH2)
+		return 0;
+
+	return short_circuit[ch];
+}
 
 static void osm_step(struct task_t *t)
 {
@@ -349,11 +396,41 @@ static void osm_step(struct task_t *t)
 	int fd;
 	u8 tmp8;
 	int overtemp;
+	u16 cur_max;
+	u32 cur_meas;
 
 	overtemp = get_alarm(ALRM_BITFIELD_OVERTEMP);
 
 	for (i = OSM_CH1; i <= OSM_CH2; i++) {
-		osm_measure(i, &v, NULL, &temp);
+		osm_measure(i, &v, &cur_meas, &temp);
+		osm_get_max(i, &cur_max);
+		if (osm_is_enabled(i)) {
+			/* Short circuit detection; 3s grace time at startup */
+			if (cur_meas > cur_max && k_elapsed(osm_start_ticks) > 10000) {
+				short_circuit[i] = 1;
+				osm_disable(i);
+				if (!get_alarm(ALRM_BITFIELD_SHORT(i)) && short_retry[i] < 0) {
+					short_retry[i] = 2;
+					db_alarm_add(ALRM_TYPE_SHORT(i), 0);
+				}
+				short_retry_ticks[i] = k_ticks();
+				set_alarm(ALRM_BITFIELD_SHORT(i));
+			}
+			else {
+				clr_alarm(ALRM_BITFIELD_SHORT(i));
+				short_circuit[i] = 0;
+			}
+		}
+		if (short_retry[i] > 0 && !osm_is_enabled(i) &&
+		    k_elapsed(short_retry_ticks[i]) >= MS_TO_TICKS(10000)) {
+			short_circuit[i] = 0;
+			clr_alarm(ALRM_BITFIELD_SHORT(i));
+			osm_enable(i);
+			set_alarm(ALRM_BITFIELD_SHORT(i));
+			short_retry[i]--;
+			short_retry_ticks[i] = k_ticks();
+		}
+
 		dbg("CH%d: %dmV\n", i + 1, (uint)v);
 	}
 	dbg("T: %d\n", (uint)temp);
