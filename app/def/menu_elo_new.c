@@ -44,7 +44,7 @@ struct menu_voice_t {
 	void (*refresh)(void);
 	int id_next[4]; /* Next menu voice to be called on: UP, DOWN, ESC, ENTER */
 	int enabled;
-	u32 timeout_ms;
+	void (*on_enter)(int evt);
 };
 
 static struct menu_voice_t menu[];
@@ -126,6 +126,8 @@ static void on_evt_def(int key)
 			cur_menu = new_menu;
 			lcd_write_line(cur_menu->text[0], 0, 0);
 			lcd_write_line(cur_menu->text[1], 1, 0);
+			if (cur_menu->on_enter)
+				cur_menu->on_enter(key);
 		}
 	} while(new_menu && !new_menu->enabled);
 
@@ -1339,13 +1341,20 @@ static void refresh_osm(void)
 	update_osm();
 }
 
+static void enter_osm_double_ch_page(int key)
+{
+	if (key == KEY_ENTER || key == KEY_DOWN)
+		osm_ch = OSM_CH1;
+	else
+		osm_ch = OSM_CH2;
+}
+
 static void on_evt_osm(int key)
 {
 	if (key == KEY_ESC) {
 		osm_cursor_pos = 0;
 
 		if (status == 0 || status == 1) {
-			osm_ch = OSM_CH1;
 			on_evt_def(key);
 			return;
 		}
@@ -2089,11 +2098,11 @@ static struct menu_voice_t menu[] = {
 	{30, {"IMPOSTAZIONI", ""}, on_evt_def, NULL, {20, 10, -1, 31}, 1},
 	{31, {"", ""}, on_evt_fmode, refresh_fmode, {38, 32, 30, -1}, 1},
 	{32, {"PARAMETRI PWM", ""}, on_evt_def, NULL, {31, 33, 30, 321}, 1},
-	{321, {"", ""}, on_evt_osm, refresh_osm, {325, 322, 32, -1}, 1},
+	{321, {"", ""}, on_evt_osm, refresh_osm, {325, 322, 32, -1}, 1, enter_osm_double_ch_page},
 	{322, {"", ""}, on_evt_ept, refresh_ept, {321, 323, 32, -1}, 1},
 	{323, {"START RIT:A", "IL:GG/MM/AA h:OO"}, on_evt_def, NULL, {322, 324, 32, -1}, 1},
-	{324, {"", ""}, on_evt_cur_check, refresh_cur_check, {323, 325, 32, -1}, 1},
-	{325, {"", ""}, on_evt_short_circuit, refresh_short_circuit, {324, 321, 32, -1}, 1},
+	{324, {"", ""}, on_evt_cur_check, refresh_cur_check, {323, 325, 32, -1}, 1, enter_osm_double_ch_page},
+	{325, {"", ""}, on_evt_short_circuit, refresh_short_circuit, {324, 321, 32, -1}, 1, enter_osm_double_ch_page},
 	{33, {"PARAMETRI DEF", ""}, on_evt_def, NULL, {32, 34, 30, 331}, 1},
 	{331, {"PARAMETRI DEF", "PARAMETRI F."}, on_evt_def, NULL, {334, 332, 33, 3310}, 1},
 	{3310, {"", ""}, on_evt_ant, refresh_ant, {-1, -1, 331, 331}, 1},
@@ -2185,8 +2194,5 @@ struct task_t attr_tasks task_menu = {
 
 u32 get_menu_timeout_ms(void)
 {
-	if (cur_menu && cur_menu->timeout_ms != 0)
-		return cur_menu->timeout_ms;
-
 	return DEF_TIMEOUT_MS; /* default timeout 1 min */
 }
