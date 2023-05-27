@@ -255,8 +255,8 @@ static void update_screen_datetime()
 
 static void refresh_datetime()
 {
-	rtc_get(&r);
-	if (status == 0 || r.sec == 0) {
+	if (status == 0) {
+		rtc_get(&r);
 		eeprom_read(EEPROM_HOURS_ADDR, (u8*)&hours, sizeof(hours));
 		k_sprintf(cont, "%04d", (uint)(hours / 24));
 		status = 99; /* Idle */
@@ -270,7 +270,6 @@ static void refresh_datetime()
 
 static void on_evt_datetime(int key)
 {
-	log("%s %d\n", __func__, status);
 	u8 digit;
 	switch (status) {
 		case 99:
