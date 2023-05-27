@@ -1554,6 +1554,7 @@ static void on_evt_fmode(int key)
 	u8 digit;
 	u32 tmp;
 	if (status == 0 || key == KEY_ESC) {
+		fmode_cursor_pos = 0;
 		on_evt_def(key);
 		return;
 	}
