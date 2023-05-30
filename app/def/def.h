@@ -4,7 +4,7 @@
  */
 
 #ifdef BOARD_elo_new
-#define HUMAN_VERSION "1.4"
+#define HUMAN_VERSION "1.5"
 #else
 #define HUMAN_VERSION "v2"
 #endif
