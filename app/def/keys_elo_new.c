@@ -21,6 +21,7 @@ static const u8 keys_cap1296_idx[4] = {0, 4, 1, 3};
 static int last_key_off[4];
 static u8 keys_stat[4];
 static u32 keys_evts;
+static int long_evt[4];
 
 #define CAP1296_I2C_ADDR_7BIT 0b0101000
 
@@ -136,6 +137,11 @@ void keys_step(struct task_t *t)
 		if (!tmp[i])
 			last_key_off[i] = ticks;
 
+		if (k_elapsed(last_key_off[i]) > MS_TO_TICKS(2000))
+			long_evt[i] = 1;
+		else
+			long_evt[i] = 0;
+
 		if (i <= KEY_DOWN && tmp[i] &&
 		    k_elapsed(last_key_off[i]) > MS_TO_TICKS(1000))
 			fast_key = 1;
@@ -154,6 +160,14 @@ void keys_step(struct task_t *t)
 
 		keys_stat[i] = tmp[i];
 	}
+}
+
+int keys_is_long_evt(int key)
+{
+	if (key > KEY_ENTER)
+		return 0;
+
+	return keys_stat[key] && long_evt[key];
 }
 
 struct task_t attr_tasks task_keys = {

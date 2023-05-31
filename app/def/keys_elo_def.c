@@ -89,3 +89,8 @@ u8 keys_get_stat(int id)
 		return keys_stat[id];
 	return 0;
 }
+
+int keys_is_long_evt(int key)
+{
+	return 0;
+}

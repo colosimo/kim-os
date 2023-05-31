@@ -9,6 +9,7 @@
 #define KEY_ENTER	3
 
 u32 keys_get_evts(void);
+int keys_is_long_evt(int key);
 
 void keys_clear_evts(u32 evts_bitfield);
 
