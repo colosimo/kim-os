@@ -311,10 +311,9 @@ void osm_get_cur_check(int channel, struct osm_cur_check_t *_check)
 }
 
 /* Current check task begin */
-static u32 cur_check_count[2];
-static u32 cur_check_sum[2];
-static u32 cur_check_min[2];
-static u32 cur_check_max[2];
+static u32 cur_check_history[2][2] = {{0, 0}, {0, 0}};
+u32 cur_check_count[2];
+u32 cur_check_sum[2];
 struct osm_cur_check_t cur_check[2];
 
 static void cur_check_start(struct task_t *t)
@@ -322,10 +321,8 @@ static void cur_check_start(struct task_t *t)
 	int i;
 	for (i = OSM_CH1; i <= OSM_CH2; i++) {
 		osm_get_cur_check(i, &cur_check[i]);
-		cur_check_min[i] = ~0;
-		cur_check_max[i] = 0;
-		cur_check_sum[i] = 0;
 		cur_check_count[i] = cur_check[i].intvl * 2;
+		cur_check_sum[i] = 0;
 	}
 }
 
@@ -343,25 +340,26 @@ static void cur_check_step(struct task_t *t)
 		osm_measure(i, NULL, &cur, NULL);
 
 		cur_check_sum[i] += cur;
-		if (cur < cur_check_min[i])
-			cur_check_min[i] = cur;
-		if (cur > cur_check_max[i])
-			cur_check_max[i] = cur;
 
 		cur_check_count[i]--;
 		if (!cur_check_count[i]) {
 			avg = cur_check_sum[i] / (cur_check[i].intvl * 2);
 
-			delta = ((avg * cur_check[i].max_perc) / 100);
+			delta = ((cur_check_history[i][0] * cur_check[i].max_perc) / 100);
 			if (delta < 5)
 				delta = 5;
-			log("CH%d: min=%d max=%d avg=%d\n", i,
-			    (uint)cur_check_min[i], (uint)cur_check_max[i], (uint)avg);
-			if (avg - cur_check_min[i] > delta || cur_check_max[i] - avg > delta) {
+
+			log("delta=%d cur history CH%d: %d %d %d\n", (uint)delta, i,
+			    (uint)cur_check_history[i][0], (uint)cur_check_history[i][1], (uint)avg);
+
+			if (cur_check_history[i][0] > cur_check_history[i][1] + delta &&
+			    cur_check_history[i][0] > avg + delta) {
 				log("Unstable ch%d\n", i + 1);
 				set_alarm(ALRM_BITFIELD_PEAK(i));
 				db_alarm_add(ALRM_TYPE_PEAK(i), i);
 			}
+			cur_check_history[i][0] = cur_check_history[i][1];
+			cur_check_history[i][1] = avg;
 		}
 
 	}
@@ -550,7 +548,7 @@ static void osm_step(struct task_t *t)
 		}
 
 		if (r.min != last_check_minutes &&
-		    ept_status < 0 && r.min % 5 == 0 && r.sec == 0 && k_elapsed(osm_start_ticks) > 12000) {
+		    ept_status < 0 && r.min % 2 == 0 && r.sec == 0 && k_elapsed(osm_start_ticks) > 12000) {
 			check = task_find("cur_check");
 			if (check && !check->running)
 				task_start(check);
