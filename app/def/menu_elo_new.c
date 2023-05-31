@@ -2095,6 +2095,9 @@ static void on_evt_active_alarms(int key)
 	}
 
 	if (key == KEY_ENTER) {
+		if (!keys_is_long_evt(KEY_ENTER))
+			return;
+
 		if (alrm_showing_type == ALRM_TYPE_SHORT(OSM_CH1) ||
 		    alrm_showing_type == ALRM_TYPE_SHORT(OSM_CH2)) {
 			clr_alarm(ALRM_BITFIELD_SHORT(alrm_showing_type - ALRM_TYPE_SHORT(OSM_CH1)));
