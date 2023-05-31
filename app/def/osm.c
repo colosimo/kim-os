@@ -174,6 +174,7 @@ void osm_measure(int channel, u32 *volt_mV, u32 *cur_mA, u32 *temperature)
 		*volt_mV = (adc[1] * 10) / 3;
 	if (cur_mA) {
 		*cur_mA = (adc[2] * 721) / 1000; /* current conversion: 1.118 * 3300/4096 = 0.721 */
+#ifdef OFFSET_COMPENSATION
 		if (*cur_mA > 115)
 			*cur_mA -= 115;
 		else
@@ -181,6 +182,7 @@ void osm_measure(int channel, u32 *volt_mV, u32 *cur_mA, u32 *temperature)
 
 		if (*cur_mA < 2) /*FIXME : totally remove if unused */
 			*cur_mA = 0; /* filter threshold in O.A. out: if < 150mA, it is 0 */
+#endif
 	}
 }
 
