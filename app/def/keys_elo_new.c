@@ -164,10 +164,16 @@ void keys_step(struct task_t *t)
 
 int keys_is_long_evt(int key)
 {
+	int ret;
 	if (key > KEY_ENTER)
 		return 0;
 
-	return keys_stat[key] && long_evt[key];
+	ret = keys_stat[key] && long_evt[key];
+	if (ret) {
+		last_key_off[key] = 0;
+		long_evt[key] = 0;
+	}
+	return ret;
 }
 
 struct task_t attr_tasks task_keys = {
