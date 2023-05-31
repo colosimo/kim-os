@@ -334,6 +334,9 @@ static void cur_check_step(struct task_t *t)
 	u32 delta;
 	for (i = OSM_CH1; i <= OSM_CH2; i++) {
 
+		if (!osm_is_enabled(i))
+			continue;
+
 		if (cur_check_count[i] == 0)
 			continue;
 
