@@ -253,7 +253,7 @@ static void def_step(struct task_t *t)
 	if (idx >= 0 && !deadline_lock) {
 		deadline_lock = 1;
 		ant_disable();
-		set_alarm(ALRM_BITFIELD_ANT);
+		set_alarm(ALRM_BITFIELD_TIME);
 		db_alarm_add(ALRM_TYPE_TIME, 0);
 		ant_check_enable(0);
 		reset_active_alarms();
@@ -262,7 +262,7 @@ static void def_step(struct task_t *t)
 	else if (deadline_lock && idx < 0) {
 		deadline_lock = 0;
 		ant_enable();
-		clr_alarm(ALRM_BITFIELD_ANT);
+		clr_alarm(ALRM_BITFIELD_TIME);
 		db_alarm_add(ALRM_TYPE_TIME_END, 0);
 		ant_check_enable(1);
 		reset_active_alarms();
