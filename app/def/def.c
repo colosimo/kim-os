@@ -172,7 +172,8 @@ static void def_start(struct task_t *t)
 		rtc_set(&r);
 	}
 
-	log("Avvii=%d allarmi=%d data=%d\n", AVVII_MAX_NUM, ALRM_MAX_NUM, DATA_MAX_NUM);
+	log("Avvii=%d allarmi=%d ant=%d osm=%d\n",
+	    AVVII_MAX_NUM, ALRM_MAX_NUM, ANT_MAX_NUM, OSM_MAX_NUM);
 
 	log("Date is ");
 	rtc_dump_kprint(&r);

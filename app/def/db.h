@@ -47,11 +47,23 @@ attr_packed struct data_ant_t
 	u8 unused[2];
 };
 
+attr_packed struct data_osm_t
+{
+	u8 year;
+	u8 month;
+	u8 day;
+	u8 mA1;
+	u8 mA2;
+	u8 unused[11];
+};
+
 #define ALRM_MAX_NUM ((EEPROM_ALARMS_END_ADDR - EEPROM_ALARMS_START_ADDR) / \
     sizeof(struct alarm_t))
 #define AVVII_MAX_NUM ((EEPROM_AVVII_END_ADDR - EEPROM_AVVII_START_ADDR) / \
     sizeof(struct alarm_t))
-#define DATA_MAX_NUM ((EEPROM_ANT_END_ADDR - EEPROM_ANT_START_ADDR) / \
+#define ANT_MAX_NUM ((EEPROM_ANT_END_ADDR - EEPROM_ANT_START_ADDR) / \
+    sizeof(struct data_ant_t))
+#define OSM_MAX_NUM ((EEPROM_OSM_END_ADDR - EEPROM_OSM_START_ADDR) / \
     sizeof(struct data_ant_t))
 
 void db_alarm_add(int type, int sens);
@@ -88,6 +100,6 @@ void db_ant_display(struct data_ant_t *d, int npage);
 
 void db_ant_save_to_eeprom(void);
 
-void db_ant_reset(int erase_all);
-
 void db_ant_dump_all();
+
+void db_data_reset(int erase_all);

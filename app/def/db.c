@@ -306,7 +306,7 @@ static void db_ant_save_record(struct data_ant_t *d)
 	addr = EEPROM_ANT_START_ADDR + pos * sizeof(struct data_ant_t);
 	eeprom_write(addr, d, sizeof(*d));
 
-	pos = (pos + 1) % DATA_MAX_NUM;
+	pos = (pos + 1) % ANT_MAX_NUM;
 	eeprom_write(EEPROM_ANT_CUR_POS, &pos, sizeof(pos));
 
 	/* Invalidate current record */
@@ -396,14 +396,14 @@ int db_ant_get(struct data_ant_t *d, int pos)
 	u32 addr;
 	u32 p;
 
-	if (pos != DB_POS_INVALID && pos >= DATA_MAX_NUM)
+	if (pos != DB_POS_INVALID && pos >= ANT_MAX_NUM)
 		return DB_POS_INVALID;
 
 	p = pos;
 	if (p == DB_POS_INVALID) {
 		eeprom_read(EEPROM_ANT_CUR_POS, &p, sizeof(p));
 		if (p == 0)
-			p = DATA_MAX_NUM - 1;
+			p = ANT_MAX_NUM - 1;
 		else
 			p--;
 	}
@@ -443,7 +443,7 @@ void db_ant_display(struct data_ant_t *d, int npage)
 	}
 }
 
-void db_ant_reset(int erase_all)
+void db_data_reset(int erase_all)
 {
 	u32 tmp;
 	u8 page[64];
@@ -473,7 +473,7 @@ void db_ant_dump_all()
 		        d.sens + 1, d.day, d.month, d.year, d.hour, d.min,
 				d.temp,d.vread, d.hum, d.vbat, d.freq, d.duty);
 		}
-		p = (p + 1) % DATA_MAX_NUM;
+		p = (p + 1) % ANT_MAX_NUM;
 		if (p == p_init)
 			break;
 	}

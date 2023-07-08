@@ -868,10 +868,10 @@ static void on_evt_show_data(int key)
 		}
 	}
 	else if (key == KEY_UP)
-		pos = (pos + 1) % DATA_MAX_NUM;
+		pos = (pos + 1) % ANT_MAX_NUM;
 	else if (key == KEY_DOWN) {
 		if (pos == 0)
-			pos = DATA_MAX_NUM - 1;
+			pos = ANT_MAX_NUM - 1;
 		else
 			pos--;
 	}
