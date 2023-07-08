@@ -614,7 +614,7 @@ static void refresh_show_avvii(void)
 	pos = status & ~BIT30;
 	pos = db_avvii_get(&a, pos);
 
-	db_alarm_display(&a);
+	db_alarm_display(&a, pos);
 }
 
 static void refresh_show_alarms(void)
@@ -642,7 +642,7 @@ static void refresh_show_alarms(void)
 	pos = status & ~BIT30;
 	pos = db_alarm_get(&a, pos);
 
-	db_alarm_display(&a);
+	db_alarm_display(&a, pos);
 }
 
 static void on_evt_show(int key)

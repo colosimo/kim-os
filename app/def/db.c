@@ -21,13 +21,7 @@
 static void fill_alarm(struct alarm_t *a, int type)
 {
 	struct rtc_t r;
-	if (type != ALRM_TYPE_STOP)
-		rtc_get(&r);
-	else {
-		eeprom_read(EEPROM_LAST_SEEN_ON_RTC, &r, sizeof(r));
-		if (!rtc_valid(&r))
-			return;
-	}
+	rtc_get(&r);
 
 	a->type = type;
 	a->year = r.year;
@@ -35,10 +29,6 @@ static void fill_alarm(struct alarm_t *a, int type)
 	a->day = r.day;
 	a->hour = r.hour;
 	a->min = r.min;
-	if (type == ALRM_TYPE_STOP) {
-		r.month = 0xff; /* Invalidate last seen on */
-		eeprom_write(EEPROM_LAST_SEEN_ON_RTC, &r, sizeof(r));
-	}
 }
 
 void db_alarm_add(int type, int sens)
@@ -59,26 +49,49 @@ void db_alarm_add(int type, int sens)
 	eeprom_write(EEPROM_ALARMS_CUR_POS, &pos, sizeof(pos));
 }
 
-void db_start_stop_add(u8 type)
+void db_avvii_add_start()
 {
 	u32 pos;
 	u32 addr;
-	struct alarm_t a;
+	struct avvii_t a;
+	struct rtc_t r;
 
-	if (type != ALRM_TYPE_START && type != ALRM_TYPE_STOP) {
-		err("%s invalid type %d\n", __func__, type);
-		return;
-	}
-
-	fill_alarm(&a, type);
-
+	/* Increase pos, so to "close" previous record, belonging to
+	 * previous boot */
 	eeprom_read(EEPROM_AVVII_CUR_POS, &pos, sizeof(pos));
-
-	addr = EEPROM_AVVII_START_ADDR + pos * sizeof(struct alarm_t);
-	eeprom_write(addr, &a, sizeof(a));
-
 	pos = (pos + 1) % AVVII_MAX_NUM;
 	eeprom_write(EEPROM_AVVII_CUR_POS, &pos, sizeof(pos));
+
+	/* Create a new record for the current boot */
+	rtc_get(&r);
+	a.start_year = a.stop_year = r.year;
+	a.start_month = a.stop_month = r.month;
+	a.start_day = a.stop_day = r.day;
+	a.days = 0;
+
+	addr = EEPROM_AVVII_START_ADDR + pos * sizeof(struct avvii_t);
+	eeprom_write(addr, &a, sizeof(a));
+}
+
+void db_avvii_refresh_stop(u16 days)
+{
+	u32 pos;
+	u32 addr;
+	struct avvii_t a;
+	struct rtc_t r;
+
+	/* To be called periodically, update the stop date and the days count */
+	rtc_get(&r);
+
+	eeprom_read(EEPROM_AVVII_CUR_POS, &pos, sizeof(pos));
+	addr = EEPROM_AVVII_START_ADDR + pos * sizeof(struct avvii_t);
+	eeprom_read(addr, &a, sizeof(a));
+
+	a.stop_year = r.year;
+	a.stop_month = r.month;
+	a.stop_day = r.day;
+	a.days = days;
+	eeprom_write(addr, &a, sizeof(a));
 }
 
 int db_alarm_get(struct alarm_t *a, int pos)
@@ -150,17 +163,18 @@ void db_alarm_dump_all()
 void db_avvii_dump_all(void)
 {
 	int p, p_init;
-	struct alarm_t a;
+	struct avvii_t a;
 
 	eeprom_read(EEPROM_AVVII_CUR_POS, &p_init, sizeof(p_init));
 	p = p_init;
 
-	kprint("\r\n\r\nEVT_ID,EVT_STR,DATE,TIME\r\n");
+	kprint("\r\n\rSTART,STOP,DAYS\r\n");
 	while (p != DB_POS_INVALID) {
 		p = db_avvii_get(&a, p);
-		if (a.type != ALRM_TYPE_INVALID) {
-			kprint("%d,%s,%02d/%02d/%02d,%02d:%02d\r\n",
-		        a.type, get_alarm_str_by_type(a.type), a.day, a.month, a.year, a.hour, a.min);
+		if (a.start_year != ALRM_TYPE_INVALID) {
+			kprint("%02d/%02d/%02d,%02d/%02d/%02d,%d\r\n",
+		        a.start_day, a.start_month, a.start_year,
+			    a.stop_day, a.stop_month, a.stop_year, a.days);
 		}
 		p = (p + 1) % AVVII_MAX_NUM;
 		if (p == p_init)
@@ -168,16 +182,31 @@ void db_avvii_dump_all(void)
 	}
 }
 
-void db_alarm_display(struct alarm_t *a)
+void db_avvii_display(struct avvii_t *a, u16 pos)
+{
+	char buf[24];
+
+	k_sprintf(buf, "Avvii %03d GG:%03d", pos, a->days);
+
+	lcd_write_line(buf, 0, 0);
+
+	k_sprintf(buf, "A:%02d%02d%02d S:%02d%02d%02d",
+		a->start_day, a->start_month, a->start_year,
+		a->stop_day, a->stop_month, a->stop_year);
+
+	lcd_write_line(buf, 1, 0);
+}
+
+void db_alarm_display(struct alarm_t *a, u16 pos)
 {
 	char buf[24];
 	if (a->type >= ALRM_TYPE_LAST)
 		return;
 
 	if (a->type == ALRM_TYPE_BATTERY)
-		k_sprintf(buf, "%s S:%d", get_alarm_str_by_type(a->type), a->sens + 1);
+		k_sprintf(buf, "%03d %s S:%d", pos, get_alarm_str_by_type(a->type), a->sens + 1);
 	else
-		k_sprintf(buf, "%s", get_alarm_str_by_type(a->type));
+		k_sprintf(buf, "%03d %s", pos, get_alarm_str_by_type(a->type));
 
 	lcd_write_line(buf, 0, 0);
 
@@ -213,13 +242,13 @@ void db_avvii_reset(void)
 		eeprom_write(tmp, page, sizeof(page));
 }
 
-int db_avvii_get(struct alarm_t *a, int pos)
+int db_avvii_get(struct avvii_t *a, int pos)
 {
 	u32 addr;
 	u32 p;
 
 	if (pos != DB_POS_INVALID && pos >= AVVII_MAX_NUM) {
-		a->type = ALRM_TYPE_INVALID;
+		memset(a, 0xff, sizeof(*a));
 		return DB_POS_INVALID;
 	}
 
@@ -232,10 +261,10 @@ int db_avvii_get(struct alarm_t *a, int pos)
 			p--;
 	}
 
-	addr = EEPROM_AVVII_START_ADDR + p * sizeof(struct alarm_t);
+	addr = EEPROM_AVVII_START_ADDR + p * sizeof(struct avvii_t);
 	eeprom_read(addr, a, sizeof(*a));
 
-	if (a->type != ALRM_TYPE_INVALID)
+	if (a->start_year != 0xff)
 		return p;
 
 	return DB_POS_INVALID;

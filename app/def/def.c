@@ -48,8 +48,8 @@ static int curday = -1;
 static const char *alarm_str[ALRM_TYPE_LAST] = {
     "Err. Antenna", "Overtemperature", "Start", "Stop", "Batteria Bassa",
     "Err. Tempo On", "Err. Tempo Off", "", "", "", "", "",
-    "Corto Circuito C1", "Corto Circuito C2",
-	"Corr. Instabile C1", "Corr. Instabile C2"
+    "C. Circ. C1", "C. Circ. C2",
+	"Corrente C1", "Corrente C2"
 };
 
 void set_alarm(int _alrm)
@@ -154,6 +154,7 @@ static void update_last_seen_on()
 	struct rtc_t r;
 	rtc_get(&r);
 	eeprom_write(EEPROM_LAST_SEEN_ON_RTC, (u8*)&r, sizeof(r));
+	db_avvii_refresh_stop(hours / 24);
 }
 
 static void def_start(struct task_t *t)
@@ -185,8 +186,7 @@ static void def_start(struct task_t *t)
 
 	def_step(t);
 
-	db_start_stop_add(ALRM_TYPE_STOP);
-	db_start_stop_add(ALRM_TYPE_START);
+	db_avvii_add_start();
 
 	update_last_seen_on();
 

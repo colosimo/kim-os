@@ -19,6 +19,17 @@ attr_packed struct alarm_t
 	u8 dummy;
 };
 
+attr_packed struct avvii_t
+{
+	u8 start_year;
+	u8 start_month;
+	u8 start_day;
+	u8 stop_year;
+	u8 stop_month;
+	u8 stop_day;
+	u16 days;
+};
+
 attr_packed struct data_t
 {
 	u8 sens;
@@ -43,8 +54,6 @@ attr_packed struct data_t
 #define DATA_MAX_NUM ((EEPROM_DATA_END_ADDR - EEPROM_DATA_START_ADDR) / \
     sizeof(struct data_t))
 
-void db_start_stop_add(u8 type);
-
 void db_alarm_add(int type, int sens);
 
 int db_alarm_get(struct alarm_t *a, int pos);
@@ -53,15 +62,21 @@ void db_alarm_dump(struct alarm_t *a);
 
 void db_alarm_dump_all();
 
-void db_alarm_display(struct alarm_t *a);
+void db_alarm_display(struct alarm_t *a, u16 idx);
 
 void db_alarm_reset(void);
 
+void db_avvii_add_start();
+
+void db_avvii_refresh_stop(u16 days);
+
 void db_avvii_dump_all(void);
+
+void db_avvii_display(struct avvii_t *a, u16 pos);
 
 void db_avvii_reset(void);
 
-int db_avvii_get(struct alarm_t *a, int pos);
+int db_avvii_get(struct avvii_t *a, int pos);
 
 void db_data_init(void);
 

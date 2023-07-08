@@ -35,6 +35,7 @@ extern const char led_on;
 
 #define ALRM_BITFIELD_ANT          (1 << ALRM_TYPE_ANT)
 #define ALRM_BITFIELD_BATTERY(s)   (1 << ((s) + ALRM_TYPE_BATTERY))
+#define ALRM_BITFIELD_TIME         (1 << (ALRM_TYPE_TIME))
 #define ALRM_BITFIELD_OVERTEMP     (1 << ALRM_TYPE_OVERTEMP)
 #define ALRM_BITFIELD_SHORT(c)     (1 << (ALRM_TYPE_SHORT(c)))
 #define ALRM_BITFIELD_PEAK(c)      (1 << (ALRM_TYPE_PEAK(c)))

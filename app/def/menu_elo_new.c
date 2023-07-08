@@ -705,7 +705,7 @@ static int show_type; /* 0: avvii, 1: alarms */
 static void refresh_show_avvii(void)
 {
 	int pos;
-	struct alarm_t a;
+	struct avvii_t a;
 
 	if (status == 0) {
 		show_type = 0;
@@ -727,7 +727,7 @@ static void refresh_show_avvii(void)
 	pos = status & ~BIT30;
 	pos = db_avvii_get(&a, pos);
 
-	db_alarm_display(&a);
+	db_avvii_display(&a, pos);
 }
 
 static void refresh_show_alarms(void)
@@ -755,14 +755,16 @@ static void refresh_show_alarms(void)
 	pos = status & ~BIT30;
 	pos = db_alarm_get(&a, pos);
 
-	db_alarm_display(&a);
+	db_alarm_display(&a, pos);
 }
 
 static void on_evt_show(int key)
 {
 	int pos;
 	struct alarm_t a;
+	struct avvii_t av;
 	int max;
+	int ret;
 
 	if (status < 0) {
 		on_evt_def(key);
@@ -792,11 +794,11 @@ static void on_evt_show(int key)
 	keys_clear_evts(1 << key);
 
 	if (show_type)
-		db_alarm_get(&a, pos);
+		ret = db_alarm_get(&a, pos);
 	else
-		db_avvii_get(&a, pos);
+		ret = db_avvii_get(&av, pos);
 
-	if (a.type != ALRM_TYPE_INVALID) {
+	if (ret != DB_POS_INVALID) {
 		status = BIT30 | pos;
 		do_refresh = 1;
 	}
@@ -2128,10 +2130,9 @@ static struct menu_voice_t menu[] = {
 	{210, {"", ""}, on_evt_show, refresh_show_alarms, {-1, -1, 21, -1}, 1},
 	{22, {"LOG", "AVVII"}, on_evt_def, NULL, {21, 23, 20, 220}, 1},
 	{220, {"", ""}, on_evt_show, refresh_show_avvii, {-1, -1, 22, -1}, 1},
-	{23, {"LOG", "LETTURE"}, on_evt_def, NULL, {22, 21, 20, 230}, 1},
-	{230, {"", ""}, on_evt_show_data, refresh_show_data, {-1, -1, 23, -1}, 1},
+	{23, {"LOG", "LETTURE"}, on_evt_def, NULL, {22, 21, 20, 231}, 1},
 	{231, {"RRRR DDMMAA", "mA1: XXX mA2: XXX"}, on_evt_def, NULL, {232, 232, 23, -1}, 1},
-	{232, {"SX RRRR DDMMAA H:YY", "T:XX.Z B:KK.K mV:TTT"}, on_evt_def, NULL, {231, 231, 23, -1}, 1},
+	{232, {"", ""}, on_evt_show_data, refresh_show_data, {231, 231, 23, -1}, 1},
 	{30, {"IMPOSTAZIONI", ""}, on_evt_def, NULL, {20, 10, -1, 31}, 1},
 	{31, {"", ""}, on_evt_fmode, refresh_fmode, {38, 32, 30, -1}, 1},
 	{32, {"PARAMETRI PWM", ""}, on_evt_def, NULL, {31, 33, 30, 321}, 1},
