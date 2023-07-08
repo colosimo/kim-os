@@ -263,7 +263,7 @@ frame_error:
 
 		if (f.msg_id != last_msg_id[f.addr] &&
 		    parity_check == 0 && f.vbat > 0) {
-			struct data_t d;
+			struct data_ant_t d;
 
 			d.sens = f.addr;
 			d.temp = f.temp;
@@ -271,7 +271,7 @@ frame_error:
 			d.hum = f.hum;
 			d.vbat = f.vbat;
 
-			db_data_add(&d);
+			db_ant_add(&d);
 
 			memcpy(&lastf, &f, sizeof(f));
 			lastf_ptr = &lastf;

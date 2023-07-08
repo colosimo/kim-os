@@ -542,7 +542,7 @@ static void on_evt_reset_storici(int key)
 				status = 100;
 				db_alarm_reset();
 				db_avvii_reset();
-				db_data_reset(1);
+				db_ant_reset(1);
 				ticks_exec = k_ticks();
 			}
 			else if (key == KEY_ESC) {
@@ -696,7 +696,7 @@ static int show_data_page = 1;
 static void refresh_show_data(void)
 {
 	int pos;
-	struct data_t d;
+	struct data_ant_t d;
 
 	if (ent_pressed && !keys_get_stat(KEY_ENTER))
 			ent_pressed = 0;
@@ -708,7 +708,7 @@ static void refresh_show_data(void)
 	}
 
 	if (status == 0) {
-		pos = db_data_get(&d, -1);
+		pos = db_ant_get(&d, -1);
 		if (pos != DB_POS_INVALID)
 			status = BIT30 | pos;
 		else
@@ -724,16 +724,16 @@ static void refresh_show_data(void)
 		return;
 	}
 	pos = status & ~BIT30;
-	pos = db_data_get(&d, pos);
+	pos = db_ant_get(&d, pos);
 
-	db_data_display(&d, show_data_page);
+	db_ant_display(&d, show_data_page);
 }
 
 static void on_evt_show_data(int key)
 {
 	int pos;
 
-	struct data_t d;
+	struct data_ant_t d;
 
 	if (status < 0) {
 		on_evt_def(key);
@@ -767,7 +767,7 @@ static void on_evt_show_data(int key)
 
 	keys_clear_evts(1 << key);
 
-	pos = db_data_get(&d, pos);
+	pos = db_ant_get(&d, pos);
 
 	if (pos != DB_POS_INVALID) {
 		status = BIT30 | pos;
@@ -905,7 +905,7 @@ static void on_evt_data_dump(int key)
 		rtc_dump_kprint(&r);
 		kprint(" =====");
 		db_avvii_dump_all();
-		db_data_dump_all();
+		db_ant_dump_all();
 		db_alarm_dump_all();
 		lcd_write_line("INVIO DATI FINITO", 1, 1);
 		on_evt_def(KEY_ESC);

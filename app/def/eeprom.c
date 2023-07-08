@@ -116,7 +116,7 @@ void eeprom_reset(void)
 	db_avvii_reset();
 
 	/* Reset data */
-	db_data_reset(1);
+	db_ant_reset(1);
 
 	/* Everything is ok, now write signature */
 	eeprom_write(EEPROM_SIGN_ADDR, EEPROM_SIGN, 4);

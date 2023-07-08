@@ -30,7 +30,7 @@ attr_packed struct avvii_t
 	u16 days;
 };
 
-attr_packed struct data_t
+attr_packed struct data_ant_t
 {
 	u8 sens;
 	u8 year;
@@ -51,8 +51,8 @@ attr_packed struct data_t
     sizeof(struct alarm_t))
 #define AVVII_MAX_NUM ((EEPROM_AVVII_END_ADDR - EEPROM_AVVII_START_ADDR) / \
     sizeof(struct alarm_t))
-#define DATA_MAX_NUM ((EEPROM_DATA_END_ADDR - EEPROM_DATA_START_ADDR) / \
-    sizeof(struct data_t))
+#define DATA_MAX_NUM ((EEPROM_ANT_END_ADDR - EEPROM_ANT_START_ADDR) / \
+    sizeof(struct data_ant_t))
 
 void db_alarm_add(int type, int sens);
 
@@ -78,16 +78,16 @@ void db_avvii_reset(void);
 
 int db_avvii_get(struct avvii_t *a, int pos);
 
-void db_data_init(void);
+void db_ant_init(void);
 
-void db_data_add(struct data_t *d);
+void db_ant_add(struct data_ant_t *d);
 
-int db_data_get(struct data_t *d, int pos);
+int db_ant_get(struct data_ant_t *d, int pos);
 
-void db_data_display(struct data_t *d, int npage);
+void db_ant_display(struct data_ant_t *d, int npage);
 
-void db_data_save_to_eeprom(void);
+void db_ant_save_to_eeprom(void);
 
-void db_data_reset(int erase_all);
+void db_ant_reset(int erase_all);
 
-void db_data_dump_all();
+void db_ant_dump_all();

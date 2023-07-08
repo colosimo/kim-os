@@ -171,6 +171,9 @@ static void def_start(struct task_t *t)
 		r.wdu = 7;
 		rtc_set(&r);
 	}
+
+	log("Avvii=%d allarmi=%d data=%d\n", AVVII_MAX_NUM, ALRM_MAX_NUM, DATA_MAX_NUM);
+
 	log("Date is ");
 	rtc_dump_kprint(&r);
 	kprint("\n");
@@ -179,7 +182,7 @@ static void def_start(struct task_t *t)
 	eeprom_init();
 	ant_init();
 
-	db_data_init();
+	db_ant_init();
 	set_standby(0);
 	last_time_key = last_time_inc = last_time_seen_on = k_ticks();
 	bt_init();
@@ -219,7 +222,7 @@ static void def_step(struct task_t *t)
 	rtc_get(&r);
 	if (r.hour == 23 && r.min == 59 && r.day != curday) {
 
-		db_data_save_to_eeprom();
+		db_ant_save_to_eeprom();
 
 		if (!deadline_lock && rolling_enabled) {
 			eeprom_read(EEPROM_ANT_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));
