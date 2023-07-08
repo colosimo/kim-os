@@ -67,7 +67,7 @@ void reset_active_alarms(void)
 void show_home(void)
 {
 	char buf[24];
-	u32 mA1, mA2;
+	u16 mA1, mA2;
 	u8 en_def_out, en_osm;
 	status = 0;
 
@@ -161,7 +161,7 @@ static void refresh_measures()
 {
 	char buf[24];
 	u32 v[OSM_CH2 + 1];
-	u32 a[OSM_CH2 + 1];
+	u16 a[OSM_CH2 + 1];
 	u32 t[OSM_CH2 + 1];
 	int i;
 
@@ -808,7 +808,7 @@ static int ent_pressed;
 static u32 ent_pressed_ticks = 0;
 static int show_data_page = 1;
 
-static void refresh_show_data(void)
+static void refresh_show_data_ant(void)
 {
 	int pos;
 	struct data_ant_t d;
@@ -844,7 +844,7 @@ static void refresh_show_data(void)
 	db_ant_display(&d, show_data_page);
 }
 
-static void on_evt_show_data(int key)
+static void on_evt_show_data_ant(int key)
 {
 	int pos;
 
@@ -889,6 +889,75 @@ static void on_evt_show_data(int key)
 		do_refresh = 1;
 	}
 }
+
+static void refresh_show_data_osm(void)
+{
+	int pos;
+	struct data_osm_t d;
+
+	if (ent_pressed && !keys_get_stat(KEY_ENTER))
+			ent_pressed = 0;
+
+	if (status == 0) {
+		pos = db_osm_get(&d, -1);
+		if (pos != DB_POS_INVALID)
+			status = BIT30 | pos;
+		else
+			status = -1;
+	}
+	else if (!do_refresh)
+		return;
+
+	do_refresh = 0;
+
+	if (status < 0) {
+		lcd_write_line(STR_EMPTY, 0, 1);
+		return;
+	}
+	pos = status & ~BIT30;
+	pos = db_osm_get(&d, pos);
+
+	db_osm_display(&d, pos);
+}
+
+static void on_evt_show_data_osm(int key)
+{
+	int pos;
+
+	struct data_osm_t d;
+
+	if (status < 0) {
+		on_evt_def(key);
+		return;
+	}
+
+	pos = status & ~BIT30;
+
+	if (key == KEY_ESC)
+		on_evt_def(key);
+	else if (key == KEY_UP)
+		pos = (pos + 1) % OSM_MAX_NUM;
+	else if (key == KEY_DOWN) {
+		if (pos == 0)
+			pos = OSM_MAX_NUM - 1;
+		else
+			pos--;
+	}
+	else if (key == KEY_ENTER) {
+		ent_pressed_ticks = k_ticks();
+		ent_pressed = 1;
+	}
+
+	keys_clear_evts(1 << key);
+
+	pos = db_osm_get(&d, pos);
+
+	if (pos != DB_POS_INVALID) {
+		status = BIT30 | pos;
+		do_refresh = 1;
+	}
+}
+
 
 #if 0
 static int pwd_secret[5] = {KEY_UP, KEY_ESC, KEY_DOWN, KEY_ESC, KEY_ENTER};
@@ -1316,7 +1385,8 @@ static int osm_cursor_pos;
 static void update_osm(void)
 {
 	char buf[24];
-	u32 a, v, temp;
+	u32 v, temp;
+	u16 a;
 
 	osm_measure(osm_ch, &v, &a, &temp);
 
@@ -2130,9 +2200,10 @@ static struct menu_voice_t menu[] = {
 	{210, {"", ""}, on_evt_show, refresh_show_alarms, {-1, -1, 21, -1}, 1},
 	{22, {"LOG", "AVVII"}, on_evt_def, NULL, {21, 23, 20, 220}, 1},
 	{220, {"", ""}, on_evt_show, refresh_show_avvii, {-1, -1, 22, -1}, 1},
-	{23, {"LOG", "LETTURE"}, on_evt_def, NULL, {22, 21, 20, 231}, 1},
-	{231, {"RRRR DDMMAA", "mA1: XXX mA2: XXX"}, on_evt_def, NULL, {232, 232, 23, -1}, 1},
-	{232, {"", ""}, on_evt_show_data, refresh_show_data, {231, 231, 23, -1}, 1},
+	{23, {"LOG", "LETTURE PWM"}, on_evt_def, NULL, {22, 24, 20, 231}, 1},
+	{24, {"LOG", "LETTURE DEF"}, on_evt_def, NULL, {23, 22, 20, 232}, 1},
+	{231, {"", ""}, on_evt_show_data_osm, refresh_show_data_osm, {232, 232, 23, -1}, 1},
+	{232, {"", ""}, on_evt_show_data_ant, refresh_show_data_ant, {231, 231, 23, -1}, 1},
 	{30, {"IMPOSTAZIONI", ""}, on_evt_def, NULL, {20, 10, -1, 31}, 1},
 	{31, {"", ""}, on_evt_fmode, refresh_fmode, {38, 32, 30, -1}, 1},
 	{32, {"PARAMETRI PWM", ""}, on_evt_def, NULL, {31, 33, 30, 321}, 1},

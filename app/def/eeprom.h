@@ -67,9 +67,9 @@ struct ant_cfg_t {
 #define EEPROM_AVVII_END_ADDR    0x08f8
 
 #define EEPROM_ANT_START_ADDR    0x1000
-#define EEPROM_ANT_END_ADDR      0x3ff0
+#define EEPROM_ANT_END_ADDR      0x5ff0
 
-#define EEPROM_OSM_START_ADDR    0x4000
+#define EEPROM_OSM_START_ADDR    0x6000
 #define EEPROM_OSM_END_ADDR      0x7ff0
 
 void eeprom_init(void);

@@ -17,6 +17,7 @@
 #include "rtc.h"
 #include "lcd.h"
 #include "ant.h"
+#include "osm.h"
 
 static void fill_alarm(struct alarm_t *a, int type)
 {
@@ -270,13 +271,13 @@ int db_avvii_get(struct avvii_t *a, int pos)
 	return DB_POS_INVALID;
 }
 
-static struct data_ant_t data_status[4][24];
-static int data_pos[4];
+static struct data_ant_t data_ant_status[4][24];
+static int data_ant_pos[4];
 
 void db_ant_init(void)
 {
-	memset(data_status, 0, sizeof(data_status));
-	memset(data_pos, 0, sizeof(data_pos));
+	memset(data_ant_status, 0, sizeof(data_ant_status));
+	memset(data_ant_pos, 0, sizeof(data_ant_pos));
 }
 
 static void db_ant_fill_all(struct data_ant_t *d)
@@ -329,10 +330,10 @@ void db_ant_add(struct data_ant_t *d)
 		return;
 	}
 
-	cnt = data_pos[s];
-	memcpy(&data_status[s][cnt], d, sizeof(*d));
+	cnt = data_ant_pos[s];
+	memcpy(&data_ant_status[s][cnt], d, sizeof(*d));
 
-	data_pos[s] = (data_pos[s] + 1) % 24;
+	data_ant_pos[s] = (data_ant_pos[s] + 1) % 24;
 
 	eeprom_read(EEPROM_ENABLE_DAILY_AVG, &en_daily_avg, 1);
 	en_daily_avg &= BIT0;
@@ -360,13 +361,13 @@ void db_ant_save_to_eeprom(void)
 		vbat = 255;
 
 		for (j = 0; j < 24; j++) {
-			if (!data_status[s][j].vbat && !data_status[s][j].vread)
+			if (!data_ant_status[s][j].vbat && !data_ant_status[s][j].vread)
 				continue;
 			cnt++;
-			vread += data_status[s][j].vread;
-			temp += data_status[s][j].temp;
-			hum += data_status[s][j].hum;
-			vbat = min(vbat, data_status[s][j].vbat);
+			vread += data_ant_status[s][j].vread;
+			temp += data_ant_status[s][j].temp;
+			hum += data_ant_status[s][j].hum;
+			vbat = min(vbat, data_ant_status[s][j].vbat);
 		}
 
 		if (!cnt)
@@ -464,6 +465,114 @@ void db_ant_dump_all()
 	}
 }
 
+static struct data_osm_t data_osm_status[24];
+static int data_osm_pos;
+
+void db_osm_init(void)
+{
+	memset(data_osm_status, 0, sizeof(data_osm_status));
+	data_osm_pos = 0;
+}
+
+void db_osm_add(struct data_osm_t *d)
+{
+	struct rtc_t r;
+	rtc_get(&r);
+	d->year = r.year;
+	d->month = r.month;
+	d->day = r.day;
+	memcpy(&data_osm_status[data_osm_pos], d, sizeof(*d));
+	data_osm_pos = (data_osm_pos + 1) % 24;
+}
+
+int db_osm_get(struct data_osm_t *d, int pos)
+{
+	u32 addr;
+	u32 p;
+
+	if (pos != DB_POS_INVALID && pos >= OSM_MAX_NUM)
+		return DB_POS_INVALID;
+
+	p = pos;
+	if (p == DB_POS_INVALID) {
+		eeprom_read(EEPROM_OSM_CUR_POS, &p, sizeof(p));
+		if (p == 0)
+			p = OSM_MAX_NUM - 1;
+		else
+			p--;
+	}
+
+	addr = EEPROM_OSM_START_ADDR + p * sizeof(struct data_osm_t);
+	eeprom_read(addr, d, sizeof(*d));
+
+	if (d->month > 12 || d->day > 31)
+		return DB_POS_INVALID;
+
+	return p;
+}
+
+void db_osm_display(struct data_osm_t *d, int pos)
+{
+	char buf[24];
+
+	k_sprintf(buf, "%04d %02d%02d%02d", pos, d->day, d->month, d->year);
+	lcd_write_line(buf, 0, 0);
+
+	k_sprintf(buf, "mA1: %03d mA2:%03d", d->mA1, d->mA2);
+	lcd_write_line(buf, 1, 0);
+}
+
+void db_osm_save_to_eeprom(void)
+{
+	int j;
+	struct data_osm_t d;
+	struct rtc_t r;
+	int mA1, mA2;
+	int cnt;
+	u32 pos;
+	u32 addr;
+
+	cnt = 0;
+	mA1 = mA2 = 0;
+
+	for (j = 0; j < 24; j++) {
+		if (!data_osm_status[j].day)
+			continue;
+		cnt++;
+		mA1 += data_osm_status[j].mA1;
+		mA2 += data_osm_status[j].mA2;
+	}
+
+	if (!cnt)
+		return;
+
+	rtc_get(&r);
+	d.day = r.day;
+	d.month = r.month;
+	d.year = r.year;
+	d.mA1 = mA1 / cnt;
+	d.mA2 = mA1 / cnt;
+
+	eeprom_read(EEPROM_OSM_CUR_POS, &pos, sizeof(pos));
+
+	addr = EEPROM_OSM_START_ADDR + pos * sizeof(struct data_osm_t);
+	eeprom_write(addr, &d, sizeof(d));
+
+	/* Increase pos and invalidate next record */
+
+	pos = (pos + 1) % OSM_MAX_NUM;
+	eeprom_write(EEPROM_OSM_CUR_POS, &pos, sizeof(pos));
+	memset(&d, 0xff, sizeof(d));
+	addr = EEPROM_OSM_START_ADDR + pos * sizeof(struct data_osm_t);
+	eeprom_write(addr, &d, sizeof(d));
+
+	db_osm_init();
+}
+
+void db_osm_dump_all()
+{
+	/* TODO */
+}
 
 void db_data_reset()
 {

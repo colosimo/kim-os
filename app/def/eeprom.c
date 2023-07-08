@@ -20,7 +20,7 @@
 #define EEPROM_I2C_ADDR_7BIT 0b1010110
 
 #define EEPROM_SIGN     "ELOS"
-#define EEPROM_FMT_VER  4
+#define EEPROM_FMT_VER  5
 
 static u8 ant_def_freq[3] = {150, 200, 250};
 static u8 ant_def_duty[3] = {5, 5, 5};

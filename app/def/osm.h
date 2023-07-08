@@ -42,7 +42,7 @@ void osm_get_cur_check(int channel, struct osm_cur_check_t *check);
 
 int osm_is_enabled(int channel);
 
-void osm_measure(int channel, u32 *volt_mV, u32 *cur_mA, u32 *temperature);
+void osm_measure(int channel, u32 *volt_mV, u16 *cur_mA, u32 *temperature);
 
 int osm_short_circuit(int channel);
 

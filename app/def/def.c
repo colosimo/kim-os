@@ -224,6 +224,7 @@ static void def_step(struct task_t *t)
 	if (r.hour == 23 && r.min == 59 && r.day != curday) {
 
 		db_ant_save_to_eeprom();
+		db_osm_save_to_eeprom();
 
 		if (!deadline_lock && rolling_enabled) {
 			eeprom_read(EEPROM_ANT_ROL_DAYS_STATUS_ADDR, &rolling_days, sizeof(rolling_days));

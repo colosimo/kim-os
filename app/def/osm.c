@@ -134,7 +134,7 @@ int osm_is_enabled(int channel)
 
 }
 
-void osm_measure(int channel, u32 *volt_mV, u32 *cur_mA, u32 *temperature)
+void osm_measure(int channel, u32 *volt_mV, u16 *cur_mA, u32 *temperature)
 {
 	int NITER = 4;
 	int i, j;
@@ -328,7 +328,7 @@ static void cur_check_start(struct task_t *t)
 
 static void cur_check_step(struct task_t *t)
 {
-	u32 cur;
+	u16 cur;
 	int i;
 	u32 avg;
 	u32 delta;
@@ -400,6 +400,7 @@ void osm_restart(void)
 static int deadline_lock;
 static int last_ept_minutes = -1;
 static int last_check_minutes = -1;
+static int last_db_add_hour = -1;
 static int ept_status;
 static u32 ept_status_ticks;
 static u16 ept_pause, ept_inv;
@@ -474,8 +475,9 @@ static void osm_step(struct task_t *t)
 	u8 tmp8;
 	int overtemp;
 	u16 cur_max;
-	u32 cur_meas;
+	u16 cur_meas;
 	struct task_t *check;
+	struct data_osm_t d;
 
 	overtemp = get_alarm(ALRM_BITFIELD_OVERTEMP);
 
@@ -540,6 +542,14 @@ static void osm_step(struct task_t *t)
 
 	if (osm_is_enabled(OSM_CH1) || osm_is_enabled(OSM_CH2)) {
 		rtc_get(&r);
+
+		if (r.min == 0 && r.hour != last_db_add_hour) {
+			osm_measure(OSM_CH1, NULL, &d.mA1, NULL);
+			osm_measure(OSM_CH2, NULL, &d.mA2, NULL);
+			db_osm_add(&d);
+			last_db_add_hour = r.hour;
+		}
+
 		if (r.min != last_ept_minutes && (r.min == 0 || r.min == 30)) {
 			eeprom_read(EEPROM_EPT_EN, &ept_en, 1);
 			if (ept_en) {
@@ -620,7 +630,8 @@ struct task_t attr_tasks task_osm = {
 static int osm_cmd_cb(int argc, char *argv[], int fdout)
 {
 	struct osm_cfg_t osm;
-	u32 a, v, temp;
+	u32 v, temp;
+	u16 a;
 	int i;
 
 	for (i = OSM_CH1; i <= OSM_CH2; i++) {

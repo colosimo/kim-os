@@ -52,9 +52,9 @@ attr_packed struct data_osm_t
 	u8 year;
 	u8 month;
 	u8 day;
-	u8 mA1;
-	u8 mA2;
-	u8 unused[11];
+	u16 mA1;
+	u16 mA2;
+	u8 unused[1];
 };
 
 #define ALRM_MAX_NUM ((EEPROM_ALARMS_END_ADDR - EEPROM_ALARMS_START_ADDR) / \
@@ -101,5 +101,17 @@ void db_ant_display(struct data_ant_t *d, int npage);
 void db_ant_save_to_eeprom(void);
 
 void db_ant_dump_all();
+
+void db_osm_init(void);
+
+void db_osm_add(struct data_osm_t *d);
+
+int db_osm_get(struct data_osm_t *d, int pos);
+
+void db_osm_display(struct data_osm_t *d, int pos);
+
+void db_osm_save_to_eeprom(void);
+
+void db_osm_dump_all();
 
 void db_data_reset(void);
