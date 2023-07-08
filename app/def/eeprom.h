@@ -58,6 +58,8 @@ struct ant_cfg_t {
 #define EEPROM_CUR_CHECK1        0x00c4
 #define EEPROM_CUR_CHECK2        0x00c8
 
+#define EEPROM_OSM_CUR_POS       0x00d0
+
 #define EEPROM_ALARMS_START_ADDR 0x0200
 #define EEPROM_ALARMS_END_ADDR   0x05f8
 

@@ -102,4 +102,4 @@ void db_ant_save_to_eeprom(void);
 
 void db_ant_dump_all();
 
-void db_data_reset(int erase_all);
+void db_data_reset(void);

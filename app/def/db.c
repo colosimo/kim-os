@@ -443,21 +443,6 @@ void db_ant_display(struct data_ant_t *d, int npage)
 	}
 }
 
-void db_data_reset(int erase_all)
-{
-	u32 tmp;
-	u8 page[64];
-
-	tmp = 0;
-	eeprom_write(EEPROM_ANT_CUR_POS, &tmp, sizeof(tmp));
-
-	if (erase_all) {
-		memset(page, 0xff, sizeof(page));
-		for (tmp = EEPROM_ANT_START_ADDR; tmp < EEPROM_ANT_END_ADDR; tmp += 64)
-			eeprom_write(tmp, page, sizeof(page));
-	}
-}
-
 void db_ant_dump_all()
 {
 	int p, p_init;
@@ -477,4 +462,22 @@ void db_ant_dump_all()
 		if (p == p_init)
 			break;
 	}
+}
+
+
+void db_data_reset()
+{
+	u32 tmp;
+	u8 page[64];
+
+	tmp = 0;
+	eeprom_write(EEPROM_ANT_CUR_POS, &tmp, sizeof(tmp));
+	eeprom_write(EEPROM_OSM_CUR_POS, &tmp, sizeof(tmp));
+
+	memset(page, 0xff, sizeof(page));
+	for (tmp = EEPROM_ANT_START_ADDR; tmp < EEPROM_ANT_END_ADDR; tmp += 64)
+		eeprom_write(tmp, page, sizeof(page));
+	for (tmp = EEPROM_OSM_START_ADDR; tmp < EEPROM_OSM_END_ADDR; tmp += 64)
+		eeprom_write(tmp, page, sizeof(page));
+
 }
