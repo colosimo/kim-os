@@ -1663,7 +1663,7 @@ static void on_evt_fmode(int key)
 		case 3:
 			if (key == KEY_ENTER) {
 				eeprom_write(EEPROM_ENABLE_DEF_OUT, &fmode_en_def_out, 1);
-				osm_restart();
+				def_restart();
 				fmode_cursor_pos = 24;
 				status = 4;
 			}

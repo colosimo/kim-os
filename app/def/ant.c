@@ -132,6 +132,10 @@ void ant_disable(void)
 
 void ant_enable(void)
 {
+	char fmode_en_def_out;
+	eeprom_read(EEPROM_ENABLE_DEF_OUT, &fmode_en_def_out, 1);
+	if (!fmode_en_def_out)
+		return;
 #ifdef BOARD_elo_new
 	or32(R_TIM4_CR1, BIT0);
 #else

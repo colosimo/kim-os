@@ -160,6 +160,8 @@ static void update_last_seen_on()
 static void def_start(struct task_t *t)
 {
 	struct rtc_t r;
+	char fmode_en_def_out;
+
 	rtc_get(&r);
 	if (r.year < 23) {
 		r.year = 23;
@@ -182,6 +184,16 @@ static void def_start(struct task_t *t)
 	lcd_init();
 	eeprom_init();
 	ant_init();
+
+	eeprom_read(EEPROM_ENABLE_DEF_OUT, &fmode_en_def_out, 1);
+	if (!fmode_en_def_out) {
+		ant_check_enable(0);
+		ant_disable();
+	}
+	else {
+		ant_check_enable(1);
+		ant_enable();
+	}
 
 	db_ant_init();
 	set_standby(0);
@@ -274,6 +286,20 @@ static void def_step(struct task_t *t)
 		show_home();
 	}
 }
+
+void def_restart(void)
+{
+	struct task_t *t;
+
+	ant_check_enable(0);
+
+	t = task_find("def");
+	if (t) {
+		task_stop(t);
+		task_start(t);
+	}
+}
+
 
 struct task_t attr_tasks task_def = {
 	.start = def_start,
