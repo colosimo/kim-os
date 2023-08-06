@@ -29,6 +29,8 @@ static struct osm_cfg_t osm_array[2];
 #define PWM1_PWM2_HZ 500
 #define ARR_TIM3_PWM1_PWM2 (COUNTER_HZ / PWM1_PWM2_HZ)
 
+static u32 cur_check_history[2][2] = {{0, 0}, {0, 0}};
+
 static void print_invalid_channel(int channel)
 {
 	err("Invalid osm channel %d\n", channel);
@@ -74,6 +76,7 @@ void osm_init(void)
 void osm_set_cfg(int channel, struct osm_cfg_t *osm)
 {
 	u32 arr;
+	task_t *check;
 
 	if (channel < 0 || channel > OSM_CH2) {
 		print_invalid_channel(channel);
@@ -95,6 +98,14 @@ void osm_set_cfg(int channel, struct osm_cfg_t *osm)
 		wr32(R_TIM5_ARR, arr - 1);
 		wr32(R_TIM5_CCR2, (arr * (100 - osm->duty)) / 100);
 		wr32(R_TIM3_CCR4, (ARR_TIM3_PWM1_PWM2 * osm->volt_perc) / 100);
+	}
+
+	check = task_find("cur_check");
+	if (check && memcmp(&osm_array[channel], osm, sizeof(*osm))) {
+		if (check->running)
+			task_stop(check);
+		cur_check_history[channel][0] = 0;
+		cur_check_history[channel][1] = 0;
 	}
 
 	osm_array[channel] = *osm;
@@ -311,7 +322,6 @@ void osm_get_cur_check(int channel, struct osm_cur_check_t *_check)
 }
 
 /* Current check task begin */
-static u32 cur_check_history[2][2] = {{0, 0}, {0, 0}};
 u32 cur_check_count[2];
 u32 cur_check_sum[2];
 struct osm_cur_check_t cur_check[2];
