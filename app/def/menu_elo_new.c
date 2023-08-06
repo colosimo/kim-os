@@ -1281,6 +1281,15 @@ static u8 dl_code[6];
 static int dl_to_unlock = -1;
 static struct deadline_t dl;
 
+static void enter_dl_code()
+{
+	dl_to_unlock = dl_iselapsed();
+
+	if (dl_to_unlock < 0)
+		return;
+	dl_get(dl_to_unlock, &dl);
+}
+
 static void update_screen_dl_code()
 {
 	char buf[24];
@@ -1365,7 +1374,7 @@ static void on_evt_dl_code(int key)
 			else
 				lcd_write_line("PASSWORD ERRATA", 0, 1);
 			k_delay_us(1000000);
-			on_evt_def(KEY_ENTER);
+			on_evt_def(KEY_ESC);
 			keys_clear_evts(1 << key);
 			return;
 		}
@@ -2107,6 +2116,10 @@ static void update_active_alarms(void)
 		alrm_showing_type = ALRM_TYPE_ANT;
 		active_alarms &= ~ALRM_BITFIELD_ANT;
 	}
+	else if (active_alarms & ALRM_BITFIELD_TIME) {
+		alrm_showing_type = ALRM_TYPE_TIME;
+		active_alarms &= ~ALRM_BITFIELD_TIME;
+	}
 	else if (active_alarms & ALRM_BITFIELD_BATTERY(0) ||
         active_alarms & ALRM_BITFIELD_BATTERY(1) ||
         active_alarms & ALRM_BITFIELD_BATTERY(2) ||
@@ -2194,7 +2207,7 @@ static struct menu_voice_t menu[] = {
 	{11, {"", ""}, on_evt_def, refresh_info, {14, 12, 10, -1}, 1},
 	{12, {"", ""}, on_evt_def, refresh_measures, {11, 13, 10, -1}, 1},
 	{13, {"", ""}, on_evt_def, refresh_def_rolling, {12, 14, 10, -1}, 1},
-	{14, {"", ""}, on_evt_dl_code, refresh_dl_code, {13, 11, 10, -1}, 1},
+	{14, {"", ""}, on_evt_dl_code, refresh_dl_code, {13, 11, 10, -1}, 1, enter_dl_code},
 	{20, {"LOG", ""}, on_evt_def, NULL, {10, 30, -1, 21}, 1},
 	{21, {"LOG", "ALLARMI"}, on_evt_def, NULL, {23, 22, 20, 210}, 1},
 	{210, {"", ""}, on_evt_show, refresh_show_alarms, {-1, -1, 21, -1}, 1},
@@ -2253,14 +2266,6 @@ void menu_step(struct task_t *t)
 		if (k & (1 << KEY_ESC))
 			set_standby(1);
 		else {
-			pwd = get_menu_voice(MENU_VOICE_PWD);
-			if (pwd) {
-				dl_to_unlock = get_deadline_idx();
-				if (dl_to_unlock >= 0)
-					pwd->enabled = 1;
-				else
-					pwd->enabled = 0;
-			}
 
 			cur_menu = get_menu_voice(MENU_VOICE_DEFAULT);
 			if (!cur_menu)
@@ -2271,6 +2276,17 @@ void menu_step(struct task_t *t)
 		}
 		keys_clear_evts(k);
 		return;
+	}
+
+	if (k) {
+		pwd = get_menu_voice(MENU_VOICE_PWD);
+		if (pwd) {
+			dl_to_unlock = dl_iselapsed();
+			if (dl_to_unlock >= 0)
+				pwd->enabled = 1;
+			else
+				pwd->enabled = 0;
+		}
 	}
 
 	menu_refresh_cnt++;

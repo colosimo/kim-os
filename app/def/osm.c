@@ -544,6 +544,7 @@ static void osm_step(struct task_t *t)
 	if (idx >= 0 && !deadline_lock) {
 		osm_disable(OSM_CH1);
 		osm_disable(OSM_CH2);
+		deadline_lock = 1;
 	}
 	else if (deadline_lock && idx < 0) {
 		deadline_lock = 0;

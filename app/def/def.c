@@ -216,6 +216,7 @@ static void def_step(struct task_t *t)
 	u8 mode;
 	struct ant_cfg_t p;
 	int idx;
+	char fmode_en_def_out;
 
 	if (k_elapsed(last_time_seen_on) >= 10 * MS_TO_TICKS(MS_IN_MIN)) {
 		update_last_seen_on();
@@ -278,10 +279,13 @@ static void def_step(struct task_t *t)
 	}
 	else if (deadline_lock && idx < 0) {
 		deadline_lock = 0;
-		ant_enable();
 		clr_alarm(ALRM_BITFIELD_TIME);
 		db_alarm_add(ALRM_TYPE_TIME_END, 0);
-		ant_check_enable(1);
+		eeprom_read(EEPROM_ENABLE_DEF_OUT, &fmode_en_def_out, 1);
+		if (fmode_en_def_out) {
+			ant_enable();
+			ant_check_enable(1);
+		}
 		reset_active_alarms();
 		show_home();
 	}
