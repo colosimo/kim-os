@@ -551,7 +551,7 @@ void db_osm_save_to_eeprom(void)
 	d.month = r.month;
 	d.year = r.year;
 	d.mA1 = mA1 / cnt;
-	d.mA2 = mA1 / cnt;
+	d.mA2 = mA2 / cnt;
 
 	eeprom_read(EEPROM_OSM_CUR_POS, &pos, sizeof(pos));
 
