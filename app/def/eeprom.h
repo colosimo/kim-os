@@ -7,6 +7,7 @@
 #define _EEPROM_H_
 
 #include <basic.h>
+#include "rtc.h"
 
 #define EEPROM_SIGN_ADDR     0x0000
 #define EEPROM_FMT_VER_ADDR  0x0004
@@ -15,6 +16,11 @@
 struct ant_cfg_t {
 	u32 freq;
 	u32 duty;
+};
+
+struct dly_start_t {
+	char en;
+	struct rtc_t r;
 };
 
 #define EEPROM_ANT_CURRENT_MODE_ADDR  0x000c /* 3: rolling; 4: log */
@@ -59,6 +65,7 @@ struct ant_cfg_t {
 #define EEPROM_CUR_CHECK2        0x00c8
 
 #define EEPROM_OSM_CUR_POS       0x00d0
+#define EEPROM_DLY_START_CFG     0x00e0
 
 #define EEPROM_ALARMS_START_ADDR 0x0200
 #define EEPROM_ALARMS_END_ADDR   0x05f8

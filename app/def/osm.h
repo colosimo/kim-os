@@ -25,6 +25,8 @@ attr_packed struct osm_cur_check_t {
 	u8 unused;
 };
 
+int osm_delay_start_active(void);
+
 void osm_init(void);
 void osm_restart(void);
 

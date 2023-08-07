@@ -408,16 +408,19 @@ void osm_restart(void)
 
 
 static int deadline_lock;
+static int delayed_lock;
 static int last_ept_minutes = -1;
 static int last_check_minutes = -1;
 static int last_db_add_hour = -1;
-static int ept_status;
+static int ept_status = -1;
 static u32 ept_status_ticks;
 static u16 ept_pause, ept_inv;
 static int short_circuit[2];
 static int short_retry[2];
 static int short_retry_ticks[2];
 static int osm_start_ticks = 0;
+
+static struct dly_start_t dly_start;
 
 static void osm_start(struct task_t *t)
 {
@@ -435,7 +438,7 @@ static void osm_start(struct task_t *t)
 	}
 
 	deadline_lock = 0;
-	ept_status = -1;
+	delayed_lock = 0;
 	short_circuit[OSM_CH1] = short_circuit[OSM_CH2] = 0;
 	short_retry[OSM_CH1] = short_retry[OSM_CH2] = -1;
 
@@ -463,6 +466,19 @@ static void osm_start(struct task_t *t)
 
 		osm_set_cfg(i, &osm_cfg);
 	}
+
+	eeprom_read(EEPROM_DLY_START_CFG, &dly_start, sizeof(dly_start));
+}
+
+int osm_delay_start_active(void)
+{
+	struct rtc_t r;
+	if (dly_start.en) {
+		rtc_get(&r);
+		if (rtc_compare(&r, &dly_start.r) == 1)
+			return 1;
+	}
+	return 0;
 }
 
 int osm_short_circuit(int ch)
@@ -536,8 +552,20 @@ static void osm_step(struct task_t *t)
 	else if (overtemp && (temp + 10 <= temp_max)) {
 		log("OVERTEMPERATURE ENDED!\n");
 		clr_alarm(ALRM_BITFIELD_OVERTEMP);
+		ept_status = -1;
 		osm_restart();
 		return;
+	}
+
+	if (!delayed_lock && osm_delay_start_active()) {
+		osm_disable(OSM_CH1);
+		osm_disable(OSM_CH2);
+		delayed_lock = 1;
+	}
+	else if (delayed_lock && !osm_delay_start_active()) {
+		delayed_lock = 0;
+		ept_status = -1;
+		osm_restart();
 	}
 
 	idx = dl_iselapsed();
@@ -548,6 +576,7 @@ static void osm_step(struct task_t *t)
 	}
 	else if (deadline_lock && idx < 0) {
 		deadline_lock = 0;
+		ept_status = -1;
 		osm_restart();
 	}
 

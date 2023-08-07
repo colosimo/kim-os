@@ -54,6 +54,7 @@ static struct menu_voice_t *cur_menu = NULL;
 extern int deadline_lock;
 extern int deadline_idx;
 extern u32 hours;
+static struct dly_start_t dly_start;
 
 static struct menu_voice_t *get_menu_voice(int id);
 
@@ -85,8 +86,16 @@ void show_home(void)
 
 	k_sprintf(buf, "Elo srl Centr: %d%c", en_osm, en_def_out ? 'D' : ' ');
 	lcd_write_line(buf, 0, 0);
-	k_sprintf(buf, "%04d GG %03d mA   %c",
-	    (uint) hours / 24, (uint)(mA1 + mA2), dl_isactive() ? 'T' : ' ');
+
+	if (!osm_delay_start_active()) {
+		k_sprintf(buf, "%04d GG %03d mA   %c",
+			(uint) hours / 24, (uint)(mA1 + mA2), dl_isactive() ? 'T' : ' ');
+	}
+	else {
+		eeprom_read(EEPROM_DLY_START_CFG, &dly_start, sizeof(dly_start));
+		k_sprintf(buf, "START %02d/%02d/%02d H:%02d",
+		    dly_start.r.day, dly_start.r.month, dly_start.r.year, dly_start.r.hour);
+	}
 	lcd_write_line(buf, 1, 0);
 }
 
@@ -1869,6 +1878,164 @@ static void on_evt_ept(int key)
 
 /* EPT Setting End */
 
+/* Delayed Start Begin */
+
+static struct dly_start_t dly_start;
+
+static void update_dly_start(void)
+{
+	char buf[24];
+
+	k_sprintf(buf, "IL:%02d/%02d/%02d h:%02d",
+	    dly_start.r.day, dly_start.r.month, dly_start.r.year, dly_start.r.hour);
+	lcd_write_line(buf, 0, 0);
+
+	k_sprintf(buf, "START RIT:%c", dly_start.en ? 'S' : 'N');
+	lcd_write_line(buf, 1, 0);
+
+	if (osm_cursor_pos > 0)
+		lcd_cursor(osm_cursor_pos / 20, osm_cursor_pos % 20, 1);
+	else
+		lcd_cursor(0, 0, 0);
+
+}
+
+static void refresh_dly_start(void)
+{
+	if (status == 0) {
+		eeprom_read(EEPROM_DLY_START_CFG, &dly_start, sizeof(dly_start));
+		if (!rtc_valid(&dly_start.r) || !dly_start.en) {
+			rtc_get(&dly_start.r);
+			dly_start.en = 0;
+		}
+		dly_start.r.min = 0;
+		dly_start.r.sec = 0;
+		status = 1;
+		update_dly_start();
+	}
+}
+
+static void on_evt_dly(int key)
+{
+	if (key == KEY_ESC) {
+		osm_cursor_pos = 0;
+
+		if (status == 1) {
+			on_evt_def(key);
+			return;
+		}
+		else {
+			status = 0;
+			goto refresh;
+		}
+	}
+
+	switch (status) {
+		case 1:
+			if (key == KEY_ENTER) {
+				status = 2;
+				osm_cursor_pos = 3;
+				update_dly_start();
+			}
+			else {
+				on_evt_def(key);
+				return;
+			}
+			break;
+
+		case 2:
+			if (key == KEY_UP)
+				dly_start.r.day = (dly_start.r.day % 31) + 1;
+			else if (key == KEY_DOWN) {
+				if (dly_start.r.day == 1)
+					dly_start.r.day = 31;
+				else
+					dly_start.r.day--;
+			}
+			else if (key == KEY_ENTER) {
+				osm_cursor_pos = 6;
+				status = 3;
+			}
+			update_dly_start();
+			break;
+		case 3:
+			if (key == KEY_UP)
+				dly_start.r.month = (dly_start.r.month % 12) + 1;
+			else if (key == KEY_DOWN) {
+				if (dly_start.r.month == 1)
+					dly_start.r.month = 12;
+				else
+					dly_start.r.month--;
+			}
+			else if (key == KEY_ENTER) {
+				osm_cursor_pos = 9;
+				status = 4;
+			}
+			update_dly_start();
+			break;
+		case 4:
+			if (key == KEY_UP)
+				dly_start.r.year = dly_start.r.year % 100 + 1;
+			else if (key == KEY_DOWN) {
+				if (dly_start.r.year == 0)
+					dly_start.r.year = 99;
+				else
+					dly_start.r.year--;
+			}
+			else if (key == KEY_ENTER) {
+				if (!rtc_valid(&dly_start.r)) {
+					lcd_write_line("DATA NON VALIDA", 1, 0);
+					k_delay(1000);
+					osm_cursor_pos = 3;
+					status = 2;
+				}
+				else {
+					osm_cursor_pos = 14;
+					status = 5;
+					eeprom_write(EEPROM_DLY_START_CFG, &dly_start, sizeof(dly_start));
+					osm_restart();
+				}
+			}
+			update_dly_start();
+			break;
+		case 5:
+			if (key == KEY_UP)
+				dly_start.r.hour = (dly_start.r.hour + 1) % 24;
+			else if (key == KEY_DOWN) {
+				if (dly_start.r.hour == 0)
+					dly_start.r.hour = 23;
+				else
+					dly_start.r.hour--;
+			}
+			else if (key == KEY_ENTER) {
+				osm_cursor_pos = 30;
+				status = 6;
+				eeprom_write(EEPROM_DLY_START_CFG, &dly_start, sizeof(dly_start));
+				osm_restart();
+			}
+			update_dly_start();
+			break;
+		case 6:
+			if (key == KEY_UP || key == KEY_DOWN) {
+				dly_start.en = !dly_start.en;
+				eeprom_write(EEPROM_DLY_START_CFG, &dly_start, sizeof(dly_start));
+				osm_restart();
+			}
+			else if (key == KEY_ENTER) {
+				osm_cursor_pos = 0;
+				status = 1;
+			}
+			update_dly_start();
+			break;
+	}
+
+refresh:
+	refresh_dly_start();
+	keys_clear_evts(1 << key);
+}
+
+/* Delayed Start End */
+
 /* Current check Begin */
 static struct osm_cur_check_t menu_check;
 
@@ -2222,7 +2389,7 @@ static struct menu_voice_t menu[] = {
 	{32, {"PARAMETRI PWM", ""}, on_evt_def, NULL, {31, 33, 30, 321}, 1},
 	{321, {"", ""}, on_evt_osm, refresh_osm, {325, 322, 32, -1}, 1, enter_osm_double_ch_page},
 	{322, {"", ""}, on_evt_ept, refresh_ept, {321, 323, 32, -1}, 1},
-	{323, {"START RIT:A", "IL:GG/MM/AA h:OO"}, on_evt_def, NULL, {322, 324, 32, -1}, 1},
+	{323, {"", ""}, on_evt_dly, refresh_dly_start, {322, 324, 32, -1}, 1},
 	{324, {"", ""}, on_evt_cur_check, refresh_cur_check, {323, 325, 32, -1}, 1, enter_osm_double_ch_page},
 	{325, {"", ""}, on_evt_short_circuit, refresh_short_circuit, {324, 321, 32, -1}, 1, enter_osm_double_ch_page},
 	{33, {"PARAMETRI DEF", ""}, on_evt_def, NULL, {32, 34, 30, 331}, 1},
