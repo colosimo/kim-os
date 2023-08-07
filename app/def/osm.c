@@ -473,6 +473,10 @@ static void osm_start(struct task_t *t)
 int osm_delay_start_active(void)
 {
 	struct rtc_t r;
+
+	if (!rtc_valid(&dly_start.r))
+		return 0;
+
 	if (dly_start.en) {
 		rtc_get(&r);
 		if (rtc_compare(&r, &dly_start.r) == 1)
