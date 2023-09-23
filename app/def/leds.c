@@ -30,10 +30,19 @@ void ledblink_step(struct task_t *t)
 	if (!alarm_bits) {
 		cur = led_off;
 		k_write(k_fd_byname("user_led_2"), &cur, 1);
+#ifdef BOARD_elo_new
+		k_write(k_fd_byname("buzzer"), &buzzer_off, 1);
+#endif
 	}
 	else {
 		/* red led blink on alarms different than Antenna */
 		k_write(k_fd_byname("user_led_2"), &cur, 1);
+#ifdef BOARD_elo_new
+		if (cur == led_on)
+			k_write(k_fd_byname("buzzer"), &buzzer_on, 1);
+		else
+			k_write(k_fd_byname("buzzer"), &buzzer_off, 1);
+#endif
 	}
 }
 
@@ -59,8 +68,10 @@ void ledr_step(struct task_t *t)
 	if (first_step || (alarm && tmp == led_off) || (!alarm && tmp == led_on)) {
 		tmp = alarm ? led_on : led_off;
 
-		if (get_alarm(ALRM_BITFIELD_ANT))
+		if (get_alarm(ALRM_BITFIELD_ANT)) {
 			k_write(k_fd_byname("user_led_2"), &tmp, 1);
+			k_write(k_fd_byname("buzzer"), &buzzer_on, 1);
+		}
 
 		eeprom_read(EEPROM_ALRM_OUT_POL, &tmp, 1);
 

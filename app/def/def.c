@@ -37,6 +37,8 @@ const char one = 1;
 #ifdef BOARD_elo_new
 const char led_off = 1;
 const char led_on = 0;
+const char buzzer_on = 1;
+const char buzzer_off = 0;
 #else
 const char led_off = 0;
 const char led_on = 1;

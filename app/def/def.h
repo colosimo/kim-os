@@ -15,6 +15,11 @@ extern const char one;
 extern const char led_off;
 extern const char led_on;
 
+#ifdef BOARD_elo_new
+extern const char buzzer_on;
+extern const char buzzer_off;
+#endif
+
 /* Alarm is handled as a bitfield */
 #define ALRM_TYPE_ANT           0
 #define ALRM_TYPE_OVERTEMP      1

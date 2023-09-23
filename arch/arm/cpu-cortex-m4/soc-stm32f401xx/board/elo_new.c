@@ -73,6 +73,9 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 
 	uart_init();
 
+	/* Init and disable buzzer */
+	gpio_wr(IO(PORTB, 4), 0);
+	gpio_dir(IO(PORTB, 4), DIR_OUT);
 
 	/* Configure I2C1 pins: SDA on PB7, SCL on PB6 (AF4). */
 	gpio_func(IO(PORTB, 6), 4);
@@ -173,6 +176,7 @@ declare_gpio_dev(21, IO(PORTA, 12), DIR_IN, PULL_UP, alert);
 declare_gpio_dev(22, IO(PORTA, 15), DIR_OUT, PULL_NO, el1pwr);
 declare_gpio_dev(23, IO(PORTC, 10), DIR_OUT, PULL_NO, el2pwr);
 declare_gpio_dev(24, IO(PORTC, 11), DIR_OUT, PULL_NO, reverse);
+declare_gpio_dev(25, IO(PORTB, 4), DIR_OUT, PULL_NO, buzzer);
 
 declare_dev(MAJ_SOC_I2C, MINOR_I2C1, NULL, i2c1);
 declare_dev(MAJ_SOC_I2C, MINOR_I2C3, NULL, i2c3);
