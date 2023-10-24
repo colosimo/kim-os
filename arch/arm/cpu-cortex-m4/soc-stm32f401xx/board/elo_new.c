@@ -119,7 +119,7 @@ void board_init(u32 *cpu_freq, u32 *ahb_freq, u32 *apb_freq)
 	or32(R_I2C3_CR1, BIT0);
 
 	gpio_odrain(IO(PORTC, 9), 1);
-	gpio_odrain(IO(PORTA, 8), 1);
+	gpio_odrain(IO(PORTA, 8), 0);
 
 	/* RTC initialization */
 	or32(R_PWR_CR, BIT8);

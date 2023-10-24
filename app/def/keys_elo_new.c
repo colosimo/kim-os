@@ -22,6 +22,7 @@ static int last_key_off[4];
 static u8 keys_stat[4];
 static u32 keys_evts;
 static int long_evt[4];
+static u8 vlast = 0;
 
 #define CAP1296_I2C_ADDR_7BIT 0b0101000
 
@@ -122,13 +123,15 @@ void keys_step(struct task_t *t)
 	if (gpio_rd(IO(PORTA, 12)) == 0) {
 		intr = 0b01000100;
 		cap1296_write(fd_cap1296, 0x00, &intr, 1);
+		rd = cap1296_read(fd_cap1296, 0x3, &v, 1);
+		if (rd < 1) {
+			err("cap1296 read failed, force to 0\n");
+			v = 0;
+		}
+		vlast = v;
 	}
-
-	rd = cap1296_read(fd_cap1296, 0x3, &v, 1);
-	if (rd < 1) {
-		err("cap1296 read failed, force to 0\n");
-		v = 0;
-	}
+	else
+		v = vlast;
 
 	for (i = KEY_UP; i <= KEY_ENTER; i++) {
 

@@ -151,7 +151,7 @@ static void rfrx_start(struct task_t *t)
 	or32(R_EXTI_FTSR1, BIT9);
 	or32(R_EXTI_RTSR1, BIT9);
 	or32(R_EXTI_IMR1, BIT9);
-//	or32(R_NVIC_ISER(0), BIT23); /* EXTI9_5 is irq 23 */
+	or32(R_NVIC_ISER(0), BIT23); /* EXTI9_5 is irq 23 */
 #else
 	or32(R_EXTI_FTSR1, BIT15);
 	or32(R_EXTI_RTSR1, BIT15);
