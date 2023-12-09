@@ -33,6 +33,8 @@ int dl_isactive(void);
 
 int dl_iselapsed(void);
 
+int dl_firstelapsing(void);
+
 int dl_unlock(int idx, u8 *code);
 
 void dl_disable_all(void);

@@ -65,12 +65,22 @@ void reset_active_alarms(void)
 	active_alarms = get_alarm_bitfield();
 }
 
+static void enter_dl_code(int);
+static void update_screen_dl_code(void);
+
 void show_home(void)
 {
 	char buf[24];
 	u16 mA1, mA2;
 	u8 en_def_out, en_osm;
 	status = 0;
+
+	if (dl_iselapsed() >= 0) {
+		cur_menu = get_menu_voice(MENU_VOICE_PWD);
+		enter_dl_code(0);
+		update_screen_dl_code();
+		return;
+	}
 
 	if (active_alarms) {
 		cur_menu = get_menu_voice(MENU_VOICE_ACTIVE_ALARMS);
@@ -1290,12 +1300,17 @@ static u8 dl_code[6];
 static int dl_to_unlock = -1;
 static struct deadline_t dl;
 
-static void enter_dl_code()
+static void enter_dl_code(int k)
 {
 	dl_to_unlock = dl_iselapsed();
+	memset(dl_code, 0, sizeof(dl_code));
+	status = 0;
 
-	if (dl_to_unlock < 0)
-		return;
+	if (dl_to_unlock < 0) {
+		dl_to_unlock = dl_firstelapsing();
+		if (dl_to_unlock < 0)
+			return;
+	}
 	dl_get(dl_to_unlock, &dl);
 }
 
@@ -1335,7 +1350,8 @@ static void on_evt_dl_code(int key)
 	int ret;
 
 	if (key == KEY_ESC) {
-		on_evt_def(key);
+		if (dl_iselapsed() < 0)
+			on_evt_def(key);
 		return;
 	}
 
@@ -1383,8 +1399,14 @@ static void on_evt_dl_code(int key)
 			else
 				lcd_write_line("PASSWORD ERRATA", 0, 1);
 			k_delay_us(1000000);
-			on_evt_def(KEY_ESC);
 			keys_clear_evts(1 << key);
+			if (ret)
+				on_evt_def(KEY_ESC);
+			else {
+				enter_dl_code(0);
+				update_screen_dl_code();
+			}
+
 			return;
 		}
 		else
@@ -2448,7 +2470,7 @@ void menu_step(struct task_t *t)
 	if (k) {
 		pwd = get_menu_voice(MENU_VOICE_PWD);
 		if (pwd) {
-			dl_to_unlock = dl_iselapsed();
+			dl_to_unlock = dl_firstelapsing();
 			if (dl_to_unlock >= 0)
 				pwd->enabled = 1;
 			else

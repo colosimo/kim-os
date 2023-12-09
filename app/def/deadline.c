@@ -112,6 +112,31 @@ int dl_iselapsed(void)
 	return -1;
 }
 
+int dl_firstelapsing(void)
+{
+	struct rtc_t *first;
+	int first_found = 0;
+	int first_id = -1;
+	int i;
+
+	for (i = 0; i < 3; i++) {
+		if (!deadlines[i].enable)
+			continue;
+		if (!first_found) {
+			first = &deadlines[i].rtc;
+			first_id = i;
+			first_found = 1;
+			continue;
+		}
+		if (rtc_compare(&deadlines[i].rtc, first) == 1) {
+			first = &deadlines[i].rtc;
+			first_id = i;
+			continue;
+		}
+	}
+	return first_id;
+}
+
 int dl_unlock(int idx, u8 *code)
 {
 	if (idx < 0 || idx >= 3)
