@@ -14,6 +14,19 @@
 #include "def.h"
 #include "eeprom.h"
 
+char buzzer_enabled = 1;
+
+void buzzer_enable(int en)
+{
+	buzzer_enabled = en;
+	if (en) {
+		if (get_alarm_bitfield())
+			k_write(k_fd_byname("buzzer"), &buzzer_on, 1);
+	}
+	else
+		k_write(k_fd_byname("buzzer"), &buzzer_off, 1);
+}
+
 void ledblink_step(struct task_t *t)
 {
 	char cur;
@@ -38,8 +51,10 @@ void ledblink_step(struct task_t *t)
 		/* red led blink on alarms different than Antenna */
 		k_write(k_fd_byname("user_led_2"), &cur, 1);
 #ifdef BOARD_elo_new
-		if (cur == led_on)
-			k_write(k_fd_byname("buzzer"), &buzzer_on, 1);
+		if (cur == led_on) {
+			if (buzzer_enabled)
+				k_write(k_fd_byname("buzzer"), &buzzer_on, 1);
+		}
 		else
 			k_write(k_fd_byname("buzzer"), &buzzer_off, 1);
 #endif
@@ -54,12 +69,15 @@ struct task_t attr_tasks task_ledblink = {
 
 static int first_step = 1;
 
-void ledr_step(struct task_t *t)
+void ledr_and_relay_step(struct task_t *t)
 {
 #ifdef BOARD_elo_new
 	char tmp;
 	char alarm;
 	char relay_out;
+
+	if (!buzzer_enabled)
+		k_write(k_fd_byname("buzzer"), &buzzer_off, 1);
 
 	k_read(k_fd_byname("user_led_2"), &tmp, 1);
 
@@ -70,20 +88,23 @@ void ledr_step(struct task_t *t)
 
 		if (get_alarm(ALRM_BITFIELD_ANT)) {
 			k_write(k_fd_byname("user_led_2"), &tmp, 1);
-			k_write(k_fd_byname("buzzer"), &buzzer_on, 1);
+			if (buzzer_enabled)
+				k_write(k_fd_byname("buzzer"), &buzzer_on, 1);
 		}
-
-		eeprom_read(EEPROM_ALRM_OUT_POL, &tmp, 1);
-
-		switch (tmp) {
-			case 0: relay_out = alarm ? 0 : 1; break;
-			case 1: relay_out = alarm; break;
-			case 2:
-			default: relay_out = 0; break;
-		}
-		k_write(k_fd_byname("alarm_out"), &relay_out, 1);
 		first_step = 0;
 	}
+
+	eeprom_read(EEPROM_ALRM_OUT_POL, &tmp, 1);
+	switch (tmp) {
+		case 0: relay_out = alarm ? 0 : 1; break;
+		case 1: relay_out = alarm; break;
+		case 2:
+		default: relay_out = 0; break;
+	}
+	k_read(k_fd_byname("alarm_out"), &tmp, 1);
+	if (tmp != relay_out)
+		k_write(k_fd_byname("alarm_out"), &relay_out, 1);
+
 
 #else
 	char tmp;
@@ -101,8 +122,8 @@ void ledr_step(struct task_t *t)
 #endif
 }
 
-struct task_t attr_tasks task_ledr = {
-	.step = ledr_step,
+struct task_t attr_tasks task_ledr_and_relay = {
+	.step = ledr_and_relay_step,
 	.intvl_ms = 100,
 	.name = "ledr",
 };

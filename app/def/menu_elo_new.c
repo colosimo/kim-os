@@ -2476,6 +2476,8 @@ void menu_step(struct task_t *t)
 			else
 				pwd->enabled = 0;
 		}
+
+		buzzer_enable(0);
 	}
 
 	menu_refresh_cnt++;

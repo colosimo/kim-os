@@ -18,6 +18,8 @@ extern const char led_on;
 #ifdef BOARD_elo_new
 extern const char buzzer_on;
 extern const char buzzer_off;
+extern char buzzer_enabled;
+void buzzer_enable(int en);
 #endif
 
 /* Alarm is handled as a bitfield */

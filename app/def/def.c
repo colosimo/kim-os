@@ -104,8 +104,10 @@ void set_standby(int stdby)
 
 	lcd_set_backlight(!stdby);
 
-	if (stdby)
+	if (stdby) {
 		last_time_key = 0;
+		buzzer_enable(1);
+	}
 
 	reset_active_alarms();
 	show_home();
