@@ -418,21 +418,21 @@ int db_ant_get(struct data_ant_t *d, int pos)
 	return p;
 }
 
-void db_ant_display(struct data_ant_t *d, int npage)
+void db_ant_display(struct data_ant_t *d, int npage, int pos)
 {
 	char buf[24];
 
 	if (npage == 1) {
 
-		k_sprintf(buf, "S:%d %02d/%02d/%02d mV:%c%d", d->sens + 1, d->day, d->month, d->year,
-			(d->vread < 0) ? '-' : ' ',
-			(uint)abs(d->vread));
+		k_sprintf(buf, "S%d %04d %02d%02d%02d H:%s%d", d->sens + 1, pos,
+		    d->day, d->month, d->year,
+			d->hum < 100 ? " " : "", d->hum);
 		lcd_write_line(buf, 0, 0);
 
-		k_sprintf(buf, "H:%s%d T:%c%d.%d B:%s%d.%d",
-			d->hum < 100 ? " " : "", d->hum,
-			d->temp < 0 ? '-': ' ', (uint)abs(d->temp / 10), (uint)abs(d->temp % 10),
-			d->vbat >= 100 ? "" : " ", (uint)d->vbat / 10, d->vbat % 10);
+		k_sprintf(buf, "T%c%d.%d B:%s%d.%d mV%c%d",
+			d->temp < 0 ? '-': ':', (uint)abs(d->temp / 10), (uint)abs(d->temp % 10),
+			d->vbat >= 100 ? "" : " ", (uint)d->vbat / 10, d->vbat % 10,
+			(d->vread < 0) ? '-' : ':', (uint)abs(d->vread));
 		lcd_write_line(buf, 1, 0);
 	}
 	else {

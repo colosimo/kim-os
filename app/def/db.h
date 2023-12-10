@@ -96,7 +96,7 @@ void db_ant_add(struct data_ant_t *d);
 
 int db_ant_get(struct data_ant_t *d, int pos);
 
-void db_ant_display(struct data_ant_t *d, int npage);
+void db_ant_display(struct data_ant_t *d, int npage, int pos);
 
 void db_ant_save_to_eeprom(void);
 

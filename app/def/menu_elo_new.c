@@ -860,7 +860,7 @@ static void refresh_show_data_ant(void)
 	pos = status & ~BIT30;
 	pos = db_ant_get(&d, pos);
 
-	db_ant_display(&d, show_data_page);
+	db_ant_display(&d, show_data_page, pos);
 }
 
 static void on_evt_show_data_ant(int key)
@@ -2398,7 +2398,7 @@ static struct menu_voice_t menu[] = {
 	{13, {"", ""}, on_evt_def, refresh_def_rolling, {12, 14, 10, -1}, 1},
 	{14, {"", ""}, on_evt_dl_code, refresh_dl_code, {13, 11, 10, -1}, 1, enter_dl_code},
 	{20, {"LOG", ""}, on_evt_def, NULL, {10, 30, -1, 21}, 1},
-	{21, {"LOG", "ALLARMI"}, on_evt_def, NULL, {23, 22, 20, 210}, 1},
+	{21, {"LOG", "ALLARMI"}, on_evt_def, NULL, {24, 22, 20, 210}, 1},
 	{210, {"", ""}, on_evt_show, refresh_show_alarms, {-1, -1, 21, -1}, 1},
 	{22, {"LOG", "AVVII"}, on_evt_def, NULL, {21, 23, 20, 220}, 1},
 	{220, {"", ""}, on_evt_show, refresh_show_avvii, {-1, -1, 22, -1}, 1},
