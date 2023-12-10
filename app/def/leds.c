@@ -14,10 +14,13 @@
 #include "def.h"
 #include "eeprom.h"
 
-char buzzer_enabled = 1;
+char buzzer_enabled = BUZ_OFF;
 
 void buzzer_enable(int en)
 {
+	if (buzzer_enabled == en)
+		return;
+
 	buzzer_enabled = en;
 	if (en) {
 		if (get_alarm_bitfield())
@@ -26,6 +29,37 @@ void buzzer_enable(int en)
 	else
 		k_write(k_fd_byname("buzzer"), &buzzer_off, 1);
 }
+
+#ifdef BOARD_elo_new
+void buzzer_step(struct task_t *t)
+{
+	char cur;
+	u32 alarm_bits;
+
+	alarm_bits = get_alarm_bitfield();
+	k_read(k_fd_byname("buzzer"), &cur, 1);
+
+	if (!alarm_bits || buzzer_enabled == BUZ_OFF) {
+		if (cur != buzzer_off)
+			k_write(k_fd_byname("buzzer"), &buzzer_off, 1);
+	}
+	else if (alarm_bits) {
+		if (buzzer_enabled == BUZ_CONT && cur != buzzer_on)
+			k_write(k_fd_byname("buzzer"), &buzzer_on, 1);
+		else {
+			cur = !cur;
+			if (buzzer_enabled == BUZ_INT)
+				k_write(k_fd_byname("buzzer"), &cur, 1);
+		}
+	}
+}
+
+struct task_t attr_tasks task_buzzer = {
+	.step = buzzer_step,
+	.intvl_ms = 500,
+	.name = "buzzer",
+};
+#endif
 
 void ledblink_step(struct task_t *t)
 {
@@ -43,21 +77,10 @@ void ledblink_step(struct task_t *t)
 	if (!alarm_bits) {
 		cur = led_off;
 		k_write(k_fd_byname("user_led_2"), &cur, 1);
-#ifdef BOARD_elo_new
-		k_write(k_fd_byname("buzzer"), &buzzer_off, 1);
-#endif
 	}
 	else {
 		/* red led blink on alarms different than Antenna */
 		k_write(k_fd_byname("user_led_2"), &cur, 1);
-#ifdef BOARD_elo_new
-		if (cur == led_on) {
-			if (buzzer_enabled)
-				k_write(k_fd_byname("buzzer"), &buzzer_on, 1);
-		}
-		else
-			k_write(k_fd_byname("buzzer"), &buzzer_off, 1);
-#endif
 	}
 }
 
@@ -76,9 +99,6 @@ void ledr_and_relay_step(struct task_t *t)
 	char alarm;
 	char relay_out;
 
-	if (!buzzer_enabled)
-		k_write(k_fd_byname("buzzer"), &buzzer_off, 1);
-
 	k_read(k_fd_byname("user_led_2"), &tmp, 1);
 
 	alarm = get_alarm(ALRM_BITFIELD_ANY);
@@ -86,11 +106,9 @@ void ledr_and_relay_step(struct task_t *t)
 	if (first_step || (alarm && tmp == led_off) || (!alarm && tmp == led_on)) {
 		tmp = alarm ? led_on : led_off;
 
-		if (get_alarm(ALRM_BITFIELD_ANT)) {
+		if (get_alarm(ALRM_BITFIELD_ANT))
 			k_write(k_fd_byname("user_led_2"), &tmp, 1);
-			if (buzzer_enabled)
-				k_write(k_fd_byname("buzzer"), &buzzer_on, 1);
-		}
+
 		first_step = 0;
 	}
 
@@ -125,5 +143,5 @@ void ledr_and_relay_step(struct task_t *t)
 struct task_t attr_tasks task_ledr_and_relay = {
 	.step = ledr_and_relay_step,
 	.intvl_ms = 100,
-	.name = "ledr",
+	.name = "ledr_and_relay",
 };

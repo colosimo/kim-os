@@ -100,13 +100,15 @@ int get_deadline_idx(void)
 void set_standby(int stdby)
 {
 	int stdby_old;
+	u8 buz;
 	stdby_old = !lcd_get_backlight();
 
 	lcd_set_backlight(!stdby);
 
 	if (stdby) {
 		last_time_key = 0;
-		buzzer_enable(1);
+		eeprom_read(EEPROM_BUZZER_EN, &buz, 1);
+		buzzer_enable(buz); /* Reset buffer setting (if key was touched) */
 	}
 
 	reset_active_alarms();
@@ -165,6 +167,7 @@ static void def_start(struct task_t *t)
 {
 	struct rtc_t r;
 	char fmode_en_def_out;
+	u8 buz;
 
 	rtc_get(&r);
 	if (r.year < 23) {
@@ -188,6 +191,14 @@ static void def_start(struct task_t *t)
 	lcd_init();
 	eeprom_init();
 	ant_init();
+
+	/* Init buzzer setting */
+	eeprom_read(EEPROM_BUZZER_EN, &buz, 1);
+	if (buz > BUZ_INT) {
+		buz = BUZ_OFF;
+		eeprom_write(EEPROM_BUZZER_EN, &buz, 1);
+	}
+	buzzer_enable(buz);
 
 	eeprom_read(EEPROM_ENABLE_DEF_OUT, &fmode_en_def_out, 1);
 	if (!fmode_en_def_out) {

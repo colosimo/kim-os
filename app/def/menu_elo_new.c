@@ -55,6 +55,7 @@ extern int deadline_lock;
 extern int deadline_idx;
 extern u32 hours;
 static struct dly_start_t dly_start;
+static int cursor_pos;
 
 static struct menu_voice_t *get_menu_voice(int id);
 
@@ -172,6 +173,65 @@ static void refresh_info()
 		HUMAN_VERSION, r.day, r.month, r.year, (uint)temp);
 	lcd_write_line(buf, 1, 0);
 	status = 1;
+}
+
+/* Beep (buzzer) settings */
+static u8 buz;
+static void update_buz(void)
+{
+	const char *buf[] = {"Off", "Cont", "Int"};
+
+	if (buz > BUZ_INT)
+		buz = BUZ_OFF;
+	lcd_write_line(buf[buz], 1, 0);
+	if (status == 2)
+		lcd_cursor(1, cursor_pos, 1);
+	else
+		lcd_cursor(0, 0, 0);
+}
+
+static void refresh_buz(void)
+{
+	if (status == 0) {
+		eeprom_read(EEPROM_BUZZER_EN, &buz, 1);
+		update_buz();
+		status = 1;
+	}
+}
+
+static void on_evt_buz(int key)
+{
+	if (status == 1) {
+		if (key == KEY_ENTER) {
+			status = 2;
+			update_buz();
+			keys_clear_evts(1 << key);
+		}
+		else
+			on_evt_def(key);
+		return;
+	}
+	else if (status == 2) {
+		if (key == KEY_ESC) {
+			eeprom_read(EEPROM_BUZZER_EN, &buz, 1);
+			status = 1;
+		}
+		else if (key == KEY_ENTER) {
+			eeprom_write(EEPROM_BUZZER_EN, &buz, 1);
+			buzzer_enable(buz);
+			status = 1;
+		}
+		else if (key == KEY_UP)
+			buz = (buz + 1) % 3;
+		else if (key == KEY_DOWN) {
+			if (buz == BUZ_OFF)
+				buz = BUZ_INT;
+			else
+				buz--;
+		}
+		update_buz();
+	}
+	keys_clear_evts(1 << key);
 }
 
 /* Show measures */
@@ -1420,7 +1480,6 @@ static void on_evt_dl_code(int key)
 
 static int osm_ch = OSM_CH1;
 static struct osm_cfg_t menu_osm;
-static int osm_cursor_pos;
 
 static void update_osm(void)
 {
@@ -1437,8 +1496,8 @@ static void update_osm(void)
 	k_sprintf(buf, "T:%d.%dV C=%03dmA", (uint)v / 1000, (uint)(v % 1000) / 100, (uint)a);
 	lcd_write_line(buf, 1, 0);
 
-	if (osm_cursor_pos > 0)
-		lcd_cursor(0, osm_cursor_pos, 1);
+	if (cursor_pos > 0)
+		lcd_cursor(0, cursor_pos, 1);
 	else
 		lcd_cursor(0, 0, 0);
 }
@@ -1463,7 +1522,7 @@ static void enter_osm_double_ch_page(int key)
 static void on_evt_osm(int key)
 {
 	if (key == KEY_ESC) {
-		osm_cursor_pos = 0;
+		cursor_pos = 0;
 
 		if (status == 0 || status == 1) {
 			on_evt_def(key);
@@ -1491,7 +1550,7 @@ static void on_evt_osm(int key)
 				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
 			}
 			if (key == KEY_ENTER) {
-				osm_cursor_pos = 11;
+				cursor_pos = 11;
 				status++;
 			}
 			break;
@@ -1510,7 +1569,7 @@ static void on_evt_osm(int key)
 				eeprom_write(EEPROM_OSM_CH1_CFG + 0x10 * osm_ch, &menu_osm, sizeof(menu_osm));
 			}
 			if (key == KEY_ENTER) {
-				osm_cursor_pos = 17;
+				cursor_pos = 17;
 				status++;
 			}
 			break;
@@ -1530,7 +1589,7 @@ static void on_evt_osm(int key)
 			}
 
 			if (key == KEY_ENTER) {
-				osm_cursor_pos = 0;
+				cursor_pos = 0;
 				status = 0;
 				break;
 			}
@@ -1546,13 +1605,13 @@ static void on_evt_osm(int key)
 			goto refresh;
 		}
 		else if (key == KEY_ENTER) {
-			osm_cursor_pos = 5;
+			cursor_pos = 5;
 			status = 2;
 			keys_clear_evts(1 << key);
 		}
 		else {
 			osm_ch = OSM_CH1;
-			osm_cursor_pos = 0;
+			cursor_pos = 0;
 			on_evt_def(key);
 		}
 
@@ -1575,7 +1634,7 @@ static void update_alrm_pol(void)
 		alrm_pol = 2;
 	lcd_write_line(buf[alrm_pol], 1, 0);
 	if (status == 2)
-		lcd_cursor(1, osm_cursor_pos, 1);
+		lcd_cursor(1, cursor_pos, 1);
 	else
 		lcd_cursor(0, 0, 0);
 }
@@ -1915,8 +1974,8 @@ static void update_dly_start(void)
 	k_sprintf(buf, "START RIT:%c", dly_start.en ? 'S' : 'N');
 	lcd_write_line(buf, 1, 0);
 
-	if (osm_cursor_pos > 0)
-		lcd_cursor(osm_cursor_pos / 20, osm_cursor_pos % 20, 1);
+	if (cursor_pos > 0)
+		lcd_cursor(cursor_pos / 20, cursor_pos % 20, 1);
 	else
 		lcd_cursor(0, 0, 0);
 
@@ -1940,7 +1999,7 @@ static void refresh_dly_start(void)
 static void on_evt_dly(int key)
 {
 	if (key == KEY_ESC) {
-		osm_cursor_pos = 0;
+		cursor_pos = 0;
 
 		if (status == 1) {
 			on_evt_def(key);
@@ -1956,7 +2015,7 @@ static void on_evt_dly(int key)
 		case 1:
 			if (key == KEY_ENTER) {
 				status = 2;
-				osm_cursor_pos = 3;
+				cursor_pos = 3;
 				update_dly_start();
 			}
 			else {
@@ -1975,7 +2034,7 @@ static void on_evt_dly(int key)
 					dly_start.r.day--;
 			}
 			else if (key == KEY_ENTER) {
-				osm_cursor_pos = 6;
+				cursor_pos = 6;
 				status = 3;
 			}
 			update_dly_start();
@@ -1990,7 +2049,7 @@ static void on_evt_dly(int key)
 					dly_start.r.month--;
 			}
 			else if (key == KEY_ENTER) {
-				osm_cursor_pos = 9;
+				cursor_pos = 9;
 				status = 4;
 			}
 			update_dly_start();
@@ -2008,11 +2067,11 @@ static void on_evt_dly(int key)
 				if (!rtc_valid(&dly_start.r)) {
 					lcd_write_line("DATA NON VALIDA", 1, 0);
 					k_delay(1000);
-					osm_cursor_pos = 3;
+					cursor_pos = 3;
 					status = 2;
 				}
 				else {
-					osm_cursor_pos = 14;
+					cursor_pos = 14;
 					status = 5;
 					eeprom_write(EEPROM_DLY_START_CFG, &dly_start, sizeof(dly_start));
 					osm_restart();
@@ -2030,7 +2089,7 @@ static void on_evt_dly(int key)
 					dly_start.r.hour--;
 			}
 			else if (key == KEY_ENTER) {
-				osm_cursor_pos = 30;
+				cursor_pos = 30;
 				status = 6;
 				eeprom_write(EEPROM_DLY_START_CFG, &dly_start, sizeof(dly_start));
 				osm_restart();
@@ -2044,7 +2103,7 @@ static void on_evt_dly(int key)
 				osm_restart();
 			}
 			else if (key == KEY_ENTER) {
-				osm_cursor_pos = 0;
+				cursor_pos = 0;
 				status = 1;
 			}
 			update_dly_start();
@@ -2071,8 +2130,8 @@ static void update_cur_check()
 	k_sprintf(buf, "%%:%02d T=%02d", menu_check.max_perc, menu_check.intvl);
 	lcd_write_line(buf, 1, 0);
 
-	if (osm_cursor_pos > 0)
-		lcd_cursor(osm_cursor_pos / 20, osm_cursor_pos % 20, 1);
+	if (cursor_pos > 0)
+		lcd_cursor(cursor_pos / 20, cursor_pos % 20, 1);
 	else
 		lcd_cursor(0, 0, 0);
 }
@@ -2089,7 +2148,7 @@ static void refresh_cur_check(void)
 static void on_evt_cur_check(int key)
 {
 	if (key == KEY_ESC) {
-		osm_cursor_pos = 0;
+		cursor_pos = 0;
 
 		if (status == 0 || status == 1) {
 			osm_ch = OSM_CH1;
@@ -2110,7 +2169,7 @@ static void on_evt_cur_check(int key)
 				osm_set_cur_check(osm_ch, &menu_check);
 			}
 			else if (key == KEY_ENTER) {
-				osm_cursor_pos = 23;
+				cursor_pos = 23;
 				status++;
 			}
 			break;
@@ -2127,7 +2186,7 @@ static void on_evt_cur_check(int key)
 				osm_set_cur_check(osm_ch, &menu_check);
 			}
 			if (key == KEY_ENTER) {
-				osm_cursor_pos = 28;
+				cursor_pos = 28;
 				status++;
 			}
 			break;
@@ -2145,7 +2204,7 @@ static void on_evt_cur_check(int key)
 			}
 
 			if (key == KEY_ENTER) {
-				osm_cursor_pos = 0;
+				cursor_pos = 0;
 				status = 0;
 			}
 			break;
@@ -2163,7 +2222,7 @@ static void on_evt_cur_check(int key)
 			goto refresh;
 		}
 		else if (key == KEY_ENTER) {
-			osm_cursor_pos = 16;
+			cursor_pos = 16;
 			status = 2;
 			update_cur_check();
 			keys_clear_evts(1 << key);
@@ -2201,8 +2260,8 @@ static void update_short_circuit()
 	k_sprintf(buf, "mA: %04d", max_cur);
 	lcd_write_line(buf, 1, 0);
 
-	if (osm_cursor_pos > 0)
-		lcd_cursor(osm_cursor_pos / 20, osm_cursor_pos % 20, 1);
+	if (cursor_pos > 0)
+		lcd_cursor(cursor_pos / 20, cursor_pos % 20, 1);
 	else
 		lcd_cursor(0, 0, 0);
 }
@@ -2219,7 +2278,7 @@ static void refresh_short_circuit(void)
 static void on_evt_short_circuit(int key)
 {
 	if (key == KEY_ESC) {
-		osm_cursor_pos = 0;
+		cursor_pos = 0;
 
 		if (status == 0 || status == 1) {
 			osm_ch = OSM_CH1;
@@ -2251,7 +2310,7 @@ static void on_evt_short_circuit(int key)
 				osm_set_max(osm_ch, max_cur);
 			}
 			if (key == KEY_ENTER) {
-				osm_cursor_pos = 0;
+				cursor_pos = 0;
 				status = 0;
 			}
 			break;
@@ -2269,7 +2328,7 @@ static void on_evt_short_circuit(int key)
 			goto refresh;
 		}
 		else if (key == KEY_ENTER) {
-			osm_cursor_pos = 27;
+			cursor_pos = 27;
 			status = 2;
 			update_short_circuit();
 			keys_clear_evts(1 << key);
@@ -2393,10 +2452,11 @@ static void on_evt_active_alarms(int key)
 
 static struct menu_voice_t menu[] = {
 	{10, {"VERSIONE", ""}, on_evt_def, NULL, {30, 20, -1, 11}, 1},
-	{11, {"", ""}, on_evt_def, refresh_info, {14, 12, 10, -1}, 1},
-	{12, {"", ""}, on_evt_def, refresh_measures, {11, 13, 10, -1}, 1},
+	{11, {"", ""}, on_evt_def, refresh_info, {14, 15, 10, -1}, 1},
+	{12, {"", ""}, on_evt_def, refresh_measures, {15, 13, 10, -1}, 1},
 	{13, {"", ""}, on_evt_def, refresh_def_rolling, {12, 14, 10, -1}, 1},
 	{14, {"", ""}, on_evt_dl_code, refresh_dl_code, {13, 11, 10, -1}, 1, enter_dl_code},
+	{15, {"Beep", ""}, on_evt_buz, refresh_buz, {11, 12, 10, -1}, 1},
 	{20, {"LOG", ""}, on_evt_def, NULL, {10, 30, -1, 21}, 1},
 	{21, {"LOG", "ALLARMI"}, on_evt_def, NULL, {24, 22, 20, 210}, 1},
 	{210, {"", ""}, on_evt_show, refresh_show_alarms, {-1, -1, 21, -1}, 1},
@@ -2477,7 +2537,7 @@ void menu_step(struct task_t *t)
 				pwd->enabled = 0;
 		}
 
-		buzzer_enable(0);
+		buzzer_enable(BUZ_OFF);
 	}
 
 	menu_refresh_cnt++;

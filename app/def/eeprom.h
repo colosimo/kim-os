@@ -57,6 +57,7 @@ struct dly_start_t {
 #define EEPROM_EPT_EN            0x00b3
 #define EEPROM_EPT_PAUSE         0x00b4
 #define EEPROM_EPT_INV           0x00b6
+#define EEPROM_BUZZER_EN         0x00b8
 
 #define EEPROM_CUR_MAX1          0x00c0
 #define EEPROM_CUR_MAX2          0x00c2

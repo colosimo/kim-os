@@ -102,6 +102,10 @@ void eeprom_reset(void)
 	tmp16 = 30; /* Unit is 0.1s */
 	eeprom_write(EEPROM_EPT_INV, &tmp16, 2);
 
+	/* Reset BUZZER ENABLE */
+	tmp8 = 0;
+	eeprom_write(EEPROM_BUZZER_EN, &tmp8, 1);
+
 	/* Reset osm alarm thresholds */
 	tmp16 = CUR_MAX_DEF;
 	eeprom_write(EEPROM_CUR_MAX1, &tmp16, sizeof(tmp16));

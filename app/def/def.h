@@ -20,6 +20,9 @@ extern const char buzzer_on;
 extern const char buzzer_off;
 extern char buzzer_enabled;
 void buzzer_enable(int en);
+#define BUZ_OFF   0
+#define BUZ_CONT  1
+#define BUZ_INT   2
 #endif
 
 /* Alarm is handled as a bitfield */

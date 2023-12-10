@@ -17,6 +17,7 @@ attr_packed struct alarm_t
 	u8 hour;
 	u8 min;
 	u8 dummy;
+	u8 data[8];
 };
 
 attr_packed struct avvii_t
