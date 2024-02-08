@@ -47,6 +47,13 @@ void *memcpy(void *dest, const void *src, size_t n)
 	return _memcpy(dest, src, n, 0);
 }
 
+void *memmove(void *dest, const void *src, size_t n)
+{
+	u8 tmp[n];
+	_memcpy(tmp, src, n, 0);
+	return _memcpy(dest, tmp, n, 0);
+}
+
 void *memset(void *dest, int c, size_t n)
 {
 	while (n--) {
