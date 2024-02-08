@@ -3,7 +3,7 @@
  */
 MEMORY
 {
-#ifdef SOC_VARIANT_stm32f401ret7
+#ifdef SOC_VARIANT_stm32f401re
 	flash : o = 0x08000000, l = 512k
 #else
 #error Unhandled SOC_VARIANT: $(SOC_VARIANT)
