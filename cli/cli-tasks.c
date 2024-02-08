@@ -16,7 +16,10 @@
 #include <kim-io.h>
 #include <kim-io-defs.h>
 #include <errcode.h>
+
+#ifdef ARCH_arm
 #include <cpu-cortex-m-common.h>
+#endif
 
 static int ps_cmd_cb(int argc, char *argv[], int fdout)
 {
@@ -110,6 +113,8 @@ const struct cli_cmd_t attr_cli cli_stop = {
 	    "or stop <name1> <name2> <id3>...",
 };
 
+#ifdef ARCH_arm
+
 static int reset_cmd_cb(int argc, char *argv[], int fdout)
 {
 	k_fprintf(fdout, "Reset...");
@@ -123,3 +128,6 @@ const struct cli_cmd_t attr_cli cli_reset = {
 	.name = "reset",
 	.descr = "Reset MCU",
 };
+
+#endif
+
