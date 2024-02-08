@@ -42,6 +42,9 @@ ifdef VERB
 CFLAGS += -DVERB=$(VERB)
 endif
 
+# Arch
+CFLAGS += -DARCH_$(ARCH)
+
 # Board
 CFLAGS += -DBOARD_$(BOARD)
 
