@@ -14,6 +14,8 @@
 #include <kim.h>
 #include <kim-io.h>
 
+#ifndef ARCH_unix
+
 static int rw_cmd_cb(int argc, char *argv[], int fdout)
 {
 	wr32((u32*)atoi_hex(argv[1]), atoi_hex(argv[2]));
@@ -59,3 +61,5 @@ const struct cli_cmd_t attr_cli cli_rr = {
 	.descr = "Register Read: read one or N CPU registers and dump them.\r\n"
 	    "\tUsage: rr <addr> [N]",
 };
+
+#endif
